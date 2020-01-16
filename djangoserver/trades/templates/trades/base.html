@@ -1,0 +1,18 @@
+{# this is the base page that all pages in the trades app should inherit #}
+<!DOCTYPE html>
+<html>
+<head>
+    {% if title %}
+    <title>{{title}} - Deutsche Bank</title>
+    {% else %}
+    <title>Derivative Trades - Deutsche Bank</title>
+    {% endif %}
+</head>
+<body>
+    {# Make navigation bar here #}
+    <a href="{% url 'trades/new.html'}"></a>
+
+    {# This block is replaced by the inheriting sub-templates #}
+    {% block content %}{% endblock content %}
+</body>
+</html>

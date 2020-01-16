@@ -1,3 +1,7 @@
 from django.shortcuts import render
 
-# Create your views here.
+def enter(request):
+    if request.method == "POST":
+        # proccess entered data contained in request.POST
+        return NotImplemented
+    return render(request, "trades/new.html")
