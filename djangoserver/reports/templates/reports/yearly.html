@@ -1,0 +1,27 @@
+{% extends "trades/base.html" %}
+{% block content %}
+    {% if year %}
+        <div>
+            <p>Requested to see report for year {{year}}</p>
+
+            <table>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                </tr>
+                {% for monthdata in yearlydata %}
+                    <tr>
+                        <td>{{ monthdata.date }}</td>
+                        <td>{{ monthdata.amount }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="number" name="year" />
+            <input type="submit" name="" />
+        </form>
+    {% endif %}
+{% endblock content %}

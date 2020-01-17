@@ -1,0 +1,10 @@
+{% extends "trades/base.html" %}
+
+{% block content %}
+<p>HTML ul rocks!</p>
+<ul>
+    <li><a href="{% url 'trades-new' %}">Trades</a></li>
+    <li><a href="{% url 'reports-yearly' %}">Yearly reports</a></li>
+    <li><a href="/admin/">Admin</a></li>
+</ul>
+{% endblock content %}

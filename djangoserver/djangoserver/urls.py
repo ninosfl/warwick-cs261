@@ -15,9 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-# from trades import views as trade_views
+from trades import views as trades_views
+
 
 urlpatterns = [
+    path("", trades_views.home, name="home-page"),
     path('admin/', admin.site.urls),
-    path('trades/', include("trades.urls"))
+    path('trades/', include("trades.urls")),
+    path("reports/", include("reports.urls"))
 ]
