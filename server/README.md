@@ -5,10 +5,10 @@ In terminal execute
 `pip install django`
 
 ### Run server
-`cd` to this directory
+`cd` to this directory (`cs261db/server/`)
 
 Django by default uses port 8000, you can omit it in the following command.
-`python manage.py runserver 8000`
+`python3 manage.py runserver 8000`
 If you have troubles with this port you can try a different one.
 
 If successful the last line in console will be
@@ -16,4 +16,4 @@ If successful the last line in console will be
 
 Connect on `localhost:8000` (or whatever port you may have specified)
 
-### Stop server using `Ctrl+C` 
+### Stop server using `Ctrl+C`
