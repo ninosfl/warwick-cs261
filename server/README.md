@@ -18,6 +18,10 @@ If you have troubles with this port you can try a different one.
 If successful the last line in console will be
 `Starting development server at http://127.0.0.1:8000/`
 
+Connect on `localhost:8000` (or whatever port you may have specified)
+
+Stop server using `Ctrl+C`
+
 ## Mac/Linux
 
 ### Install django
@@ -34,6 +38,6 @@ If you have troubles with this port you can try a different one.
 If successful the last line in console will be
 `Starting development server at http://127.0.0.1:8000/`
 
-## Connect on `localhost:8000` (or whatever port you may have specified)
+Connect on `localhost:8000` (or whatever port you may have specified)
 
-## Stop server using `Ctrl+C`
+Stop server using `Ctrl+C`
