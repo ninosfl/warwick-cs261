@@ -50,18 +50,20 @@ class Company(models.Model):
 class Product(models.Model):
     # 39 max name length found in data, and unique
     name = models.CharField(primary_key=True, max_length=50, blank=False)
-    company_id = models.ForeignKey(Company, on_delete=models.CASCADE)
+    # one company may sell multiple products.
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
-class CurrencyValues(models.Model):
+class CurrencyValue(models.Model):
     date = models.DateField()
     # max 4 decimal places found in data
     value = models.DecimalField(max_digits=12, decimal_places=6)
 
 class Currency(models.Model):
     currency_code = models.CharField(primary_key=True, max_length=3)
-    values = models.ManyToManyField(CurrencyValues)
+    # every Currency is assigned to many CurrencyValue's
+    values = models.ManyToManyField(CurrencyValue)
 
-class DerivativeTrades(models.Model):
+class DerivativeTrade(models.Model):
     date_of_trade = models.DateTimeField()
     trade_id = models.CharField(primary_key=True, max_length=16)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -79,11 +81,11 @@ class DerivativeTrades(models.Model):
                                             related_name="underlying_currency")
     strike_price = models.DecimalField(max_digits=12, decimal_places=2)
 
-class ProductPrices(models.Model):
+class ProductPrice(models.Model):
     date = models.DateField(null=False, blank=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
-class StockPrices(models.Model):
+class StockPrice(models.Model):
     date = models.DateField()
-    company = models.OneToOneField(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2)
