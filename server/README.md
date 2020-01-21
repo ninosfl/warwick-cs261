@@ -12,10 +12,10 @@ In terminal execute
 `cd` to this directory (`cs261db/server/`)
 
 Django by default uses port 8000, you can omit it in the following command.
-`python manage.py runserver 8000`
+`python manage.py runserver 8000`.
 If you have troubles with this port you can try a different one.
 
-If successful the last line in console will be
+If successful the (second to) last line in console will be
 `Starting development server at http://127.0.0.1:8000/`
 
 Connect on `localhost:8000` (or whatever port you may have specified)
@@ -31,13 +31,26 @@ In terminal execute
 ### Run server
 `cd` to this directory (`cs261db/server/`)
 
-Django by default uses port 8000, you can omit it in the following command.
-`python3 manage.py runserver 8000`
+Django by default uses port 8000, you can omit it in the following command:
+`python3 manage.py runserver 8000`.
 If you have troubles with this port you can try a different one.
 
-If successful the last line in console will be
+If successful the (second to) last line in console will be
 `Starting development server at http://127.0.0.1:8000/`
 
 Connect on `localhost:8000` (or whatever port you may have specified)
 
 Stop server using `Ctrl+C`
+
+
+## Login to admin page
+
+(Mac/Linux please replace `python` with `python3`)
+
+`python manage.py createsuperuser`
+
+`python manage.py makemigrations`
+
+`python manage.py migrate`
+
+Admin page URL: `localhost:8000/admin`
