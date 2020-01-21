@@ -8,7 +8,7 @@ def loadCSV(file_path, model, column_mapping, has_header=False, delimiter=','):
             # skip first line if it has headers
             next(reader)
         for line in reader:
-            obj = model(dict(zip(column_mapping, line)))
+            obj = model(**dict(zip(column_mapping, line)))
             obj.save()
 
 
