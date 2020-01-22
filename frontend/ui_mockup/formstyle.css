@@ -1,0 +1,37 @@
+.untouched {
+  border-radius: 5em;
+  border-style: solid;
+  border-color: grey;
+  padding: 0.5em;
+  padding-left: 1em;
+  width: 20em;
+  font-size: 1em;
+  outline: none;
+}
+
+.approved {
+  border-radius: 5em;
+  border-style: solid;
+  border-color: green;
+  padding: 0.5em;
+  padding-left: 1em;
+  width: 20em;
+  font-size: 1em;
+  outline: none;
+}
+
+.prompt_correction {
+  border-radius: 5em;
+  border-style: solid;
+  border-color: red;
+  padding: 0.5em;
+  padding-left: 1em;
+  width: 20em;
+  font-size: 1em;
+  outline: none;
+}
+
+input[type=text]:focus {
+  border-color: blue;
+  outline: none;
+}
