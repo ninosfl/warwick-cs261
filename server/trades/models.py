@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 
 """
@@ -51,41 +52,58 @@ class Product(models.Model):
     # 39 max name length found in data, and unique
     name = models.CharField(primary_key=True, max_length=50, blank=False)
     # one company may sell multiple products.
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    seller_company = models.ForeignKey(Company, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
 
 class CurrencyValue(models.Model):
     date = models.DateField()
+    currency = models.CharField(max_length=3)
     # max 4 decimal places found in data
-    value = models.DecimalField(max_digits=12, decimal_places=6)
-
-class Currency(models.Model):
-    currency_code = models.CharField(primary_key=True, max_length=3)
-    # every Currency is assigned to many CurrencyValue's
-    values = models.ManyToManyField(CurrencyValue)
+    value = models.DecimalField(max_digits=16, decimal_places=6)
+    
+    class Meta:
+        unique_together = ("date", "currency")
 
 class DerivativeTrade(models.Model):
-    date_of_trade = models.DateTimeField()
+    class ProductTypes(models.TextChoices):
+        STOCKS = 'S', 'Stocks'
+        PRODUCT = 'P', 'Product'
+
     trade_id = models.CharField(primary_key=True, max_length=16)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    date_of_trade = models.DateTimeField(null=False, default=timezone.now)
+    product_type = models.CharField(max_length=1,
+                                    choices=ProductTypes.choices,
+                                    default=ProductTypes.STOCKS)
     buying_party = models.ForeignKey(Company, on_delete=models.CASCADE,
-                                     related_name="buying_company")
+                                     related_name="trades_buying")
     selling_party = models.ForeignKey(Company, on_delete=models.CASCADE,
-                                      related_name="selling_company")
-    notional_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    notional_currency = models.ForeignKey(Currency, on_delete=models.CASCADE,
-                                          related_name="notional_currency")
+                                      related_name="trades_selling")
+    notional_amount = models.DecimalField(max_digits=20, decimal_places=4)
+    notional_currency = models.CharField(max_length=3)
     quantity = models.IntegerField()
     maturity_date = models.DateField()
-    underlying_price = models.DecimalField(max_digits=12, decimal_places=2)
-    underlying_currency = models.ForeignKey(Currency, on_delete=models.CASCADE,
-                                            related_name="underlying_currency")
-    strike_price = models.DecimalField(max_digits=12, decimal_places=2)
+    underlying_price = models.DecimalField(max_digits=16, decimal_places=4)
+    underlying_currency = models.CharField(max_length=3)
+    strike_price = models.DecimalField(max_digits=16, decimal_places=4)
 
 class ProductPrice(models.Model):
     date = models.DateField(null=False, blank=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        unique_together = ("date", "product")
 
 class StockPrice(models.Model):
     date = models.DateField()
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        unique_together = ("date", "company")
+
+class DerivativeTradeProduct(models.Model):
+    trade = models.OneToOneField(DerivativeTrade, primary_key=True, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
