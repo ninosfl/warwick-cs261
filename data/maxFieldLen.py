@@ -28,9 +28,9 @@ def main():
             reader = csv.reader(file_obj)
             headers = next(reader)
             max_lengths = None
-            lengths = (len(x) for x in reader)
+            lengths = ([len(field) for field in line] for line in reader)
             for line in lengths:
-                max_lengths = list([max(pair) for pair in zip(max_lengths, line)] if max_lengths else line)
+                max_lengths = [max(pair) for pair in zip(max_lengths, line)] if max_lengths else line
         max_field_lengths[f] = dict(zip(headers, max_lengths))
         print(f"{f}: {max_field_lengths[f]}")
     dirs = ("currencyValues", "derivativeTrades", "productPrices", "stockPrices")
@@ -44,7 +44,7 @@ def main():
                         headers = next(reader) # skip header
                         lengths = ((len(field) for field in line) for line in reader)
                         for line in lengths:
-                            max_lengths = list((max(pair) for pair in zip(line, max_lengths)) if max_lengths else next(lengths))
+                            max_lengths = [max(pair) for pair in zip(line, max_lengths)] if max_lengths else list(next(lengths))
             print(yeardir)
         max_field_lengths[d] = dict(zip(headers, max_lengths))
         print(f"{d}: {max_field_lengths[d]}")
