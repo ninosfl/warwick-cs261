@@ -1,7 +1,8 @@
 """
 Measure maximum string length for all csv files 
 
-(directories are grouped together and maximum is throughout all years)
+(All files in directories grouped by directory and maximum
+is throughout all years)
 
 Results after running:
 companyCodes.csv: {'companyName': 36, ' companyTradeID': 6}
@@ -21,18 +22,18 @@ DATA_DIR = Path('.')
 
 def main():
     max_field_lengths = {}
-    files = ["companyCodes.csv", "productSellers.csv"]
+    files = ("companyCodes.csv", "productSellers.csv")
     for f in files:
         with open(f, 'r', newline='') as file_obj:
             reader = csv.reader(file_obj)
             headers = next(reader)
             max_lengths = None
-            lengths = map(lambda x: map(len, x), reader)
+            lengths = (len(x) for x in reader)
             for line in lengths:
-                max_lengths = list(map(max, zip(max_lengths, line)) if max_lengths else line)
+                max_lengths = list([max(pair) for pair in zip(max_lengths, line)] if max_lengths else line)
         max_field_lengths[f] = dict(zip(headers, max_lengths))
         print(f"{f}: {max_field_lengths[f]}")
-    dirs = ["currencyValues", "derivativeTrades", "productPrices", "stockPrices"]
+    dirs = ("currencyValues", "derivativeTrades", "productPrices", "stockPrices")
     for d in dirs:
         max_lengths = None
         for yeardir in (DATA_DIR/d).iterdir():
@@ -41,9 +42,9 @@ def main():
                     with f.open('r', newline='') as file_obj:
                         reader = csv.reader(file_obj, delimiter=',')
                         headers = next(reader) # skip header
-                        lengths = map(lambda x: map(len, x), reader)
+                        lengths = ((len(field) for field in line) for line in reader)
                         for line in lengths:
-                            max_lengths = list(map(max, zip(line, max_lengths)) if max_lengths else next(lengths))
+                            max_lengths = list((max(pair) for pair in zip(line, max_lengths)) if max_lengths else next(lengths))
             print(yeardir)
         max_field_lengths[d] = dict(zip(headers, max_lengths))
         print(f"{d}: {max_field_lengths[d]}")
