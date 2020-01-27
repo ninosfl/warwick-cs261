@@ -54,3 +54,19 @@ Stop server using `Ctrl+C`
 `python manage.py migrate`
 
 Admin page URL: `localhost:8000/admin`
+
+## Load CSV data
+
+`python manage.py migrate`
+
+`python manage.py shell`
+
+`>>>import loadcsv`
+
+`>>>loadcsv.main()`
+
+Note: For example purposes it is sufficient to load a single year.
+(Approx 10 minutes for `all` months YMMV)
+Select more years at your own risk (and waste of time).
+
+Note Note: Do not commit the resulting `db.sqlite3` file yet...
