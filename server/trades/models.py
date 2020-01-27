@@ -40,17 +40,16 @@ stockPrices
 """
 
 class Company(models.Model):
-    # primary_key=True implies null=False and unique=True
-    id = models.CharField(primary_key=True, max_length=6, blank=False)
+    id = models.CharField(primary_key=True, max_length=6)
     # 36 max name length found in data
-    name = models.CharField(max_length=50, null=False, blank=False)
+    name = models.CharField(max_length=50)
 
     def __str__(self):
         return f"{self.name} Company"
 
 class Product(models.Model):
     # 39 max name length found in data, and unique
-    name = models.CharField(primary_key=True, max_length=50, blank=False)
+    name = models.CharField(primary_key=True, max_length=50)
     # one company may sell multiple products.
     seller_company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
@@ -59,6 +58,7 @@ class Product(models.Model):
 
 class CurrencyValue(models.Model):
     date = models.DateField()
+    # 3 letter code
     currency = models.CharField(max_length=3)
     # max 4 decimal places found in data
     value = models.DecimalField(max_digits=16, decimal_places=6)
@@ -72,7 +72,7 @@ class DerivativeTrade(models.Model):
         PRODUCT = 'P', 'Product'
 
     trade_id = models.CharField(primary_key=True, max_length=16)
-    date_of_trade = models.DateTimeField(null=False, default=timezone.now)
+    date_of_trade = models.DateTimeField(default=timezone.now)
     product_type = models.CharField(max_length=1,
                                     choices=ProductTypes.choices,
                                     default=ProductTypes.STOCKS)
@@ -89,7 +89,7 @@ class DerivativeTrade(models.Model):
     strike_price = models.DecimalField(max_digits=16, decimal_places=4)
 
 class ProductPrice(models.Model):
-    date = models.DateField(null=False, blank=False)
+    date = models.DateField()
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=12, decimal_places=2)
 
@@ -105,5 +105,6 @@ class StockPrice(models.Model):
         unique_together = ("date", "company")
 
 class DerivativeTradeProduct(models.Model):
-    trade = models.OneToOneField(DerivativeTrade, primary_key=True, on_delete=models.CASCADE)
+    trade = models.OneToOneField(DerivativeTrade, primary_key=True, 
+                                 on_delete=models.CASCADE, related_name="traded_product")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
