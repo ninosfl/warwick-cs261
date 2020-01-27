@@ -104,7 +104,7 @@ class StockPrice(models.Model):
     class Meta:
         unique_together = ("date", "company")
 
-class DerivativeTradeProduct(models.Model):
+class TradeProduct(models.Model):
     trade = models.OneToOneField(DerivativeTrade, primary_key=True, 
                                  on_delete=models.CASCADE, related_name="traded_product")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
