@@ -22,6 +22,6 @@ urlpatterns = [
     path("", trades_views.home, name="home-page"),
     path("admin/", admin.site.urls),
     path("trades/", include("trades.urls")),
-    path("reports/", include("reports.urls"))
-    path("api", include("api.urls"))
+    path("reports/", include("reports.urls")),
+    path("api/", include("api.urls"))  # Test with curl locahost:8000/api/
 ]
