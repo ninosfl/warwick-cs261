@@ -20,7 +20,8 @@ from trades import views as trades_views
 
 urlpatterns = [
     path("", trades_views.home, name="home-page"),
-    path('admin/', admin.site.urls),
-    path('trades/', include("trades.urls")),
+    path("admin/", admin.site.urls),
+    path("trades/", include("trades.urls")),
     path("reports/", include("reports.urls"))
+    path("api", include("api.urls"))
 ]
