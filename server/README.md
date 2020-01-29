@@ -1,6 +1,6 @@
 # Instructions To Run Server
 
-Make sure python 3.7+ is installed on your system.
+Make sure python 3.8+ is installed on your system.
 
 ## Windows
 
@@ -41,7 +41,6 @@ If successful the (second to) last line in console will be
 Connect on `localhost:8000` (or whatever port you may have specified)
 
 Stop server using `Ctrl+C`
-
 
 ## Login to admin page
 
