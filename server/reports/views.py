@@ -37,12 +37,40 @@ def months(request, year: int):
     now = datetime.datetime.now()
     if year > now.year:
         html = f"<html><body>The year {year} is in the future. There are no trades listed.</body></html>"
+        return HttpResponse(html)
     elif year < 1970:
         html = f"<html><body>The year {year} is too far in the past. There are no trades listed.</body></html>"
+        return HttpResponse(html)
     else:
-        html = f"<html><body>This is the <em>months</em> page. The given year is {year}.</body></html>"
-    
-    return HttpResponse(html)
+
+        # Get way to transform int months into month strings
+        month_names = {
+            1: "January",
+            2: "February",
+            3: "March",
+            4: "April",
+            5: "May",
+            6: "June",
+            7: "July",
+            8: "August",
+            9: "September",
+            10: "October",
+            11: "November",
+            12: "December"
+        }
+
+        # Get valid lists of months (as integers)
+        if year == now.year:
+            months = [m for m in range(1, min(12, now.month) + 1)]
+        else:
+            months = [m for m in range(1, 12 + 1)]
+
+        context = {
+            "month_names": month_names,
+            "months": months,
+            "year": year
+        }
+        return render(request, "reports/months.html", context)
 
 def days(request, year: int, month: int):
     # Check for year validity
@@ -57,7 +85,9 @@ def days(request, year: int, month: int):
         if month < 1 or month > 12:
             html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
         else:
-            # for m in range (1, max(month, now.month) + 1):
+
+            # # Get list of valid days for that month
+            # days = [d for d in c.itermonthdays(year, month) if d != 0]
             html = f"<html><body>This is the <em>days</em> page. The given year is {year}, month is {month}.</body></html>"
     return HttpResponse(html)
 
