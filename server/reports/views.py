@@ -28,8 +28,9 @@ from calendar import Calendar
 #     return render(request, "reports/yearly.html")
 
 def years(request):
-    html = "<html><body>This is the <em>years</em> page.</body></html>"
-    return HttpResponse(html)
+    placeholder_years = [y for y in range(2000, 2020 + 1)]
+    context = { "years": placeholder_years }
+    return render(request, "reports/years.html", context)
 
 def months(request, year: int):
     # Check for year validity
