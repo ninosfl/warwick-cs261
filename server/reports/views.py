@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-import datetime
 from calendar import Calendar
+import datetime
 
 def years(request):
     placeholder_years = [y for y in range(2000, 2020 + 1)]
@@ -12,11 +12,13 @@ def months(request, year: int):
     # Check for year validity
     now = datetime.datetime.now()
     if year > now.year:
-        html = f"<html><body>The year {year} is in the future. There are no trades listed.</body></html>"
-        return HttpResponse(html)
+        error_message = f"The year {year} is in the future. There are no trades listed."
+        context = { "error_message": error_message }
+        return render(request, "errors/errorpage.html", context)
     elif year < 1970:
-        html = f"<html><body>The year {year} is too far in the past. There are no trades listed.</body></html>"
-        return HttpResponse(html)
+        error_message = f"The year {year} is too far in the past. There are no trades listed."
+        context = { "error_message": error_message }
+        return render(request, "errors/errorpage.html", context)
     else:
 
         # Get way to transform int months into month strings
@@ -52,20 +54,24 @@ def days(request, year: int, month: int):
     # Check for year validity
     now = datetime.datetime.now()
     if year > now.year:
-        html = f"<html><body>The year {year} is in the future. There are no trades listed.</body></html>"
-        return HttpResponse(html)
+        error_message = f"The year {year} is in the future. There are no trades listed."
+        context = { "error_message": error_message }
+        return render(request, "errors/errorpage.html", context)
     elif year < 1970:
-        html = f"<html><body>The year {year} is too far in the past. There are no trades listed.</body></html>"
-        return HttpResponse(html)
+        error_message = f"The year {year} is too far in the past. There are no trades listed."
+        context = { "error_message": error_message }
+        return render(request, "errors/errorpage.html", context)
     else:
 
         # Check for month validity
         if month < 1 or month > 12:
-            html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
-            return HttpResponse(html)
+            error_message = f"Month values are from 1 to 12. The given month, {month}, is invalid."
+            context = { "error_message": error_message }
+            return render(request, "errors/errorpage.html", context)
         elif year == now.year and month > now.month:
-            html = f"<html><body>The month {month} is in the future. There are no trades listed.</body></html>"
-            return HttpResponse(html)
+            error_message = f"The month {month} is in the future. There are no trades listed."
+            context = { "error_message": error_message }
+            return render(request, "errors/errorpage.html", context)
         else:
 
             # Get list of valid days for that month
@@ -86,20 +92,24 @@ def report(request, year: int, month: int, day: int):
     # Check for year validity
     now = datetime.datetime.now()
     if year > now.year:
-        html = f"<html><body>The year {year} is in the future. There are no trades listed.</body></html>"
-        return HttpResponse(html)
+        error_message = f"The year {year} is in the future. There are no trades listed."
+        context = { "error_message": error_message }
+        return render(request, "errors/errorpage.html", context)
     elif year < 1970:
-        html = f"<html><body>The year {year} is too far in the past. There are no trades listed.</body></html>"
-        return HttpResponse(html)
+        error_message = f"The year {year} is too far in the past. There are no trades listed."
+        context = { "error_message": error_message }
+        return render(request, "errors/errorpage.html", context)
     else:
 
         # Check for month validity
         if month < 1 or month > 12:
-            html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
-            return HttpResponse(html)
+            error_message = f"Month values are from 1 to 12. The given month, {month}, is invalid."
+            context = { "error_message": error_message }
+            return render(request, "errors/errorpage.html", context)
         elif year == now.year and month > now.month:
-            html = f"<html><body>The month {month} is in the future. There are no trades listed.</body></html>"
-            return HttpResponse(html)
+            error_message = f"The month {month} is in the future. There are no trades listed."
+            context = { "error_message": error_message }
+            return render(request, "errors/errorpage.html", context)
         else:
 
             # Get list of valid days for the month, making sure they don't go
@@ -112,8 +122,9 @@ def report(request, year: int, month: int, day: int):
                 days = [d for d in c.itermonthdays(year, month) if d != 0]
 
             if day not in days:
-                html = f"<html><body>There are no trades listed for {day}/{month}/{year}.</body></html>"
-                return HttpResponse(html)
+                error_message = f"There are no trades listed for {day}/{month}/{year}."
+                context = { "error_message": error_message }
+                return render(request, "errors/errorpage.html", context)
             else:
 
                 context = {
