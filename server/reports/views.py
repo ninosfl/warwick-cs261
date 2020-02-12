@@ -63,14 +63,14 @@ def days(request, year: int, month: int):
         if month < 1 or month > 12:
             html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
             return HttpResponse(html)
-        elif month > now.month:
+        elif year == now.year and month > now.month:
             html = f"<html><body>The month {month} is in the future. There are no trades listed.</body></html>"
             return HttpResponse(html)
         else:
 
             # Get list of valid days for that month
             c = Calendar()
-            if month == now.month:
+            if year == now.year and month == now.month:
                 days = [d for d in c.itermonthdays(year, month) if d != 0 and d <= now.day]
             else:
                 days = [d for d in c.itermonthdays(year, month) if d != 0]
@@ -97,20 +97,22 @@ def report(request, year: int, month: int, day: int):
         if month < 1 or month > 12:
             html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
             return HttpResponse(html)
-        elif month > now.month:
+        elif year == now.year and month > now.month:
             html = f"<html><body>The month {month} is in the future. There are no trades listed.</body></html>"
             return HttpResponse(html)
         else:
 
-            # Check for day validity
+            # Get list of valid days for the month, making sure they don't go
+            # into the future.
             c = Calendar()
-            # Get list of valid days for that month
-            days = [d for d in c.itermonthdays(year, month) if d != 0]
+            if year == now.year and month == now.month:
+                days = [d for d in c.itermonthdays(year, month)
+                        if d != 0 and d <= now.day]
+            else:
+                days = [d for d in c.itermonthdays(year, month) if d != 0]
+
             if day not in days:
-                html = f"<html><body>{day} in not a valid day in month {month} of the year {year}.</body></html>"
-                return HttpResponse(html)
-            elif day > now.day:
-                html = f"<html><body>The day {day} is in the future. There are no trades listed.</body></html>"
+                html = f"<html><body>There are no trades listed for {day}/{month}/{year}.</body></html>"
                 return HttpResponse(html)
             else:
 
