@@ -77,19 +77,31 @@ def days(request, year: int, month: int):
     now = datetime.datetime.now()
     if year > now.year:
         html = f"<html><body>The year {year} is in the future. There are no trades listed.</body></html>"
+        return HttpResponse(html)
     elif year < 1970:
         html = f"<html><body>The year {year} is too far in the past. There are no trades listed.</body></html>"
+        return HttpResponse(html)
     else:
 
         # Check for month validity
         if month < 1 or month > 12:
             html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
+            return HttpResponse(html)
         else:
 
-            # # Get list of valid days for that month
-            # days = [d for d in c.itermonthdays(year, month) if d != 0]
-            html = f"<html><body>This is the <em>days</em> page. The given year is {year}, month is {month}.</body></html>"
-    return HttpResponse(html)
+            # Get list of valid days for that month
+            c = Calendar()
+            if month == now.month:
+                days = [d for d in c.itermonthdays(year, month) if d != 0 and d <= now.day]
+            else:
+                days = [d for d in c.itermonthdays(year, month) if d != 0]
+            
+            context = {
+                "days": days,
+                "year": year,
+                "month": month
+            }
+            return render(request, "reports/days.html", context)
 
 def report(request, year: int, month: int, day: int):
     # Check for year validity

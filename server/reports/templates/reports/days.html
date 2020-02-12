@@ -1,4 +1,8 @@
 {% extends "trades/base.html" %}
 
 {% block content %}
+    {% for day in days %}
+        <a class="report_link" href="{% url 'report-get' year month day %}">{{day}}</a>
+        <br>
+    {% endfor %}
 {% endblock content %}
