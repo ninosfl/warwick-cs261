@@ -3,30 +3,6 @@ from django.http import HttpResponse
 import datetime
 from calendar import Calendar
 
-# def yearly_report(request):
-#     if request.method == "POST":
-#         mockdata = [
-#             {
-#                 "date": "1 january",
-#                 "amount": "loads"
-#             },
-#             {
-#                 "date": "2 january",
-#                 "amount": "maybe less"
-#             },
-#             {
-#                 "date": "1 april",
-#                 "amount": "incredible quantity"
-#             }
-#         ]
-#         context = {
-#             "method": request.method,
-#             "year": request.POST.get("year"),
-#             "yearlydata": mockdata
-#         }
-#         return render(request, "reports/yearly.html", context)
-#     return render(request, "reports/yearly.html")
-
 def years(request):
     placeholder_years = [y for y in range(2000, 2020 + 1)]
     context = { "years": placeholder_years }
