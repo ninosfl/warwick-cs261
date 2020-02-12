@@ -87,6 +87,9 @@ def days(request, year: int, month: int):
         if month < 1 or month > 12:
             html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
             return HttpResponse(html)
+        elif month > now.month:
+            html = f"<html><body>The month {month} is in the future. There are no trades listed.</body></html>"
+            return HttpResponse(html)
         else:
 
             # Get list of valid days for that month
@@ -108,13 +111,19 @@ def report(request, year: int, month: int, day: int):
     now = datetime.datetime.now()
     if year > now.year:
         html = f"<html><body>The year {year} is in the future. There are no trades listed.</body></html>"
+        return HttpResponse(html)
     elif year < 1970:
         html = f"<html><body>The year {year} is too far in the past. There are no trades listed.</body></html>"
+        return HttpResponse(html)
     else:
 
         # Check for month validity
         if month < 1 or month > 12:
             html = f"<html><body>Month values are from 1 to 12. The given month, {month}, is invalid."
+            return HttpResponse(html)
+        elif month > now.month:
+            html = f"<html><body>The month {month} is in the future. There are no trades listed.</body></html>"
+            return HttpResponse(html)
         else:
 
             # Check for day validity
@@ -123,8 +132,15 @@ def report(request, year: int, month: int, day: int):
             days = [d for d in c.itermonthdays(year, month) if d != 0]
             if day not in days:
                 html = f"<html><body>{day} in not a valid day in month {month} of the year {year}.</body></html>"
+                return HttpResponse(html)
+            elif day > now.day:
+                html = f"<html><body>The day {day} is in the future. There are no trades listed.</body></html>"
+                return HttpResponse(html)
             else:
 
-                #for d in range(1, max(day, days[-1]) + 1):
-                html = f"<html><body>This is the <em>report</em> page. The given year is {year}, month is {month}, day is {day}.</body></html>"
-    return HttpResponse(html)
+                context = {
+                    "year": year,
+                    "month": month,
+                    "day": day
+                }
+                return render(request, "reports/report.html", context)
