@@ -133,3 +133,6 @@ def report(request, year: int, month: int, day: int):
                     "day": day
                 }
                 return render(request, "reports/report.html", context)
+
+def material(request):
+    return render(request, "material/material.html")
