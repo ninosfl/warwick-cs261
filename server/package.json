@@ -4,7 +4,9 @@
   "description": "CS261 coursework npm package.",
   "main": "index.jsx",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js --progress --colors",
+    "watch": "webpack --config webpack.config.js --watch"
   },
   "author": "Group 20",
   "license": "ISC",
