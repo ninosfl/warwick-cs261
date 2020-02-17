@@ -136,8 +136,8 @@ dmypy.json
 .pyre/
 
 # Node.js modules/packages
-./server/node_modules/
-./server/node_modules/**
+server/node_modules/
+server/node_modules/**
 
 ############################
 ###                      ###
