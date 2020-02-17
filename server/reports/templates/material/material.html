@@ -1,7 +1,7 @@
 {% extends "trades/base.html" %}
-{% load static %}
+{% load render_bundle from webpack_loader %}
 
 {% block content %}
-    <div id="react-root"></div>
-    <script type="module" src="{% static "material/test-react.js" %}"></script>
+    <div id="react-app"></div>
+    {% render_bundle 'main' %}
 {% endblock content %}
