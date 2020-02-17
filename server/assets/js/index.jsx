@@ -27,8 +27,8 @@ function DataList(props) {
   let data = JSON.parse(document.getElementById('list-data').textContent);
 
   let listItems = data.map((number) =>
-    <div>
-      <ListItemLink href={number.toString() + "/"} key={number.toString()}>
+    <div key={number.toString()}>
+      <ListItemLink href={number.toString() + "/"}>
         <ListItemText primary={number.toString()} />
       </ListItemLink>
       <Divider />
