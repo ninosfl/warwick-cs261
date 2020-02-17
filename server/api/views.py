@@ -19,12 +19,18 @@ def api_main(request, func):
 def validate_company(data):
     if "name" not in data:
         return {"error_message": "No name provided"}
-    result = {}
+    # result = {}
     try:
         Company.objects.get(name=data["name"])
-        result["success"] = True
+        result = {
+            "success": True,
+            "name": data["name"]
+        }
     except Company.DoesNotExist:
-        result["success"] = False
+        result = {
+            "success": False,
+            "name": [c.name for c in Company.objects.filter(name__startswith=data["name"])[:5]]
+        }
     return result
 
 def validate_product(data):
