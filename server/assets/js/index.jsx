@@ -1,5 +1,20 @@
+// import React from 'react';
+// import ReactDOM from 'react-dom';
+// var App = require('./app');
+
+// ReactDOM.render(<App/>, document.getElementById('react-app'));
+
+
 import React from 'react';
 import ReactDOM from 'react-dom';
-var App = require('./app');
+import Button from '@material-ui/core/Button';
 
-ReactDOM.render(<App/>, document.getElementById('react-app'));
+function App() {
+  return (
+    <Button variant="contained" color="primary">
+      Hello World
+    </Button>
+  );
+}
+
+ReactDOM.render(<App />, document.querySelector('#react-app'));
