@@ -139,6 +139,10 @@ dmypy.json
 server/node_modules/
 server/node_modules/**
 
+# Webpack build files
+server/assets/bundles/
+server/webpack-stats.json
+
 ############################
 ###                      ###
 ###     OTHER COMMON     ###
