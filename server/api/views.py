@@ -21,7 +21,7 @@ def validate_company(data):
         return {"error_message": "No name provided"}
     result = {}
     try:
-        Company.get(name=data["name"])
+        Company.objects.get(name=data["name"])
         result["success"] = True
     except Company.DoesNotExist:
         result["success"] = False
