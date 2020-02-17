@@ -4,9 +4,11 @@ from calendar import Calendar
 import datetime
 
 def years(request):
-    placeholder_years = [y for y in range(2000, 2020 + 1)]
-    context = { "years": placeholder_years }
-    return render(request, "reports/years.html", context)
+    now = datetime.datetime.now()
+    start_year = 2000
+    placeholder_years = [y for y in range(now.year, start_year - 1, -1)]
+    context = { "list": placeholder_years }
+    return render(request, "material/list.html", context)
 
 def months(request, year: int):
     # Check for year validity
@@ -21,22 +23,6 @@ def months(request, year: int):
         return render(request, "errors/errorpage.html", context)
     else:
 
-        # Get way to transform int months into month strings
-        month_names = {
-            1: "January",
-            2: "February",
-            3: "March",
-            4: "April",
-            5: "May",
-            6: "June",
-            7: "July",
-            8: "August",
-            9: "September",
-            10: "October",
-            11: "November",
-            12: "December"
-        }
-
         # Get valid lists of months (as integers)
         if year == now.year:
             months = [m for m in range(1, min(12, now.month) + 1)]
@@ -44,11 +30,10 @@ def months(request, year: int):
             months = [m for m in range(1, 12 + 1)]
 
         context = {
-            "month_names": month_names,
-            "months": months,
+            "list": months,
             "year": year
         }
-        return render(request, "reports/months.html", context)
+        return render(request, "material/list.html", context)
 
 def days(request, year: int, month: int):
     # Check for year validity
@@ -82,11 +67,11 @@ def days(request, year: int, month: int):
                 days = [d for d in c.itermonthdays(year, month) if d != 0]
             
             context = {
-                "days": days,
+                "list": days,
                 "year": year,
                 "month": month
             }
-            return render(request, "reports/days.html", context)
+            return render(request, "material/list.html", context)
 
 def report(request, year: int, month: int, day: int):
     # Check for year validity
@@ -133,6 +118,3 @@ def report(request, year: int, month: int, day: int):
                     "day": day
                 }
                 return render(request, "reports/report.html", context)
-
-def material(request):
-    return render(request, "material/material.html")
