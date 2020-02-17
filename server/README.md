@@ -74,16 +74,30 @@ Select more years at your own risk (and waste of time).
 
 Note Note: Do not commit the resulting `db.sqlite3` file yet...
 
-## Bundle Webpack data and run server
+## Install React dependencies
 
-Due to the use of `npm init`, Node modules have only been installed locally, and not to the system PATH. Therefore, to bundle any changes you have made to the React code, you should run, from the directory server:
+A node environment has been set up via `npm init`, so you can just make your way to the `server/` directory and run the following commands:
 
 ```bash
-./node_modules/.bin/webpack --config webpack.config.js
+cd server/  # If required
+npm install
+pip install django-webpack-loader  # May need pip3, depends on your installation
+```
+
+We use django-webpack-loader because it automatically interfaces between Django and the bundles created by webpack. It's hugely helpful and does a bunch of busywork for us :)
+
+## Bundle Webpack data and run server
+
+To bundle any changes you have made to the React code, you should run, from the directory `server/`:
+
+```bash
+npm run build
 ```
 
 To automatically re-bundle if any changes are made, you can tell Webpack to watch the files with:
 
 ```bash
-./node_modules/.bin/webpack --config webpack.config.js --watch
+npm run watch
 ```
+
+After this, you can run the server as usual with `python3 manage.py runserver 8000`.
