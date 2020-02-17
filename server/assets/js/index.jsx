@@ -1,10 +1,3 @@
-// import React from 'react';
-// import ReactDOM from 'react-dom';
-// var App = require('./app');
-
-// ReactDOM.render(<App/>, document.getElementById('react-app'));
-
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
