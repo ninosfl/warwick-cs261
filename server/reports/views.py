@@ -8,7 +8,7 @@ def years(request):
     start_year = 2000
     placeholder_years = [y for y in range(now.year, start_year - 1, -1)]
     context = { "list": placeholder_years }
-    return render(request, "material/list.html", context)
+    return render(request, "reports/years.html", context)
 
 def months(request, year: int):
     # Check for year validity
@@ -33,7 +33,7 @@ def months(request, year: int):
             "list": months,
             "year": year
         }
-        return render(request, "material/list.html", context)
+        return render(request, "reports/months.html", context)
 
 def days(request, year: int, month: int):
     # Check for year validity
