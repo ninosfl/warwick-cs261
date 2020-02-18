@@ -30,7 +30,7 @@ def list_days(request, year: int, month: int):
     """ List all days available in the given month. """
     now = datetime.datetime.now()
 
-    result, err = is_month_valid(year, now)
+    result, err = is_month_valid(year, month, now)
     if not result:
         context = {"error_message": err}
         return render(request, "errors/errorpage.html", context)
