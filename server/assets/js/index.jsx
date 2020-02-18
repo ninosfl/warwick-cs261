@@ -35,6 +35,18 @@ function DataList(props) {
       {index < limit && <Divider />}
     </React.Fragment>
   )
+  
+  /* curried version to try
+  let func = k => (number, index) =>
+    <React.Fragment key={k}>
+      <ListItemLink href={k + "/"}>
+        <ListItemText primary={k} />
+      </ListItemLink>
+      {index < limit && <Divider />}
+    </React.Fragment>;
+    
+  let listItems = data.map(func(number.toString()));
+  */
 
   return <List>{listItems}</List>;
 }
