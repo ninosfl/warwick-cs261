@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
 import { YearList, MonthList, DayList } from './list-reports';
+import { ErrorMessage } from './errors';
 
 function App() {
   return (
@@ -26,3 +27,7 @@ if (target = document.querySelector('#report-list-years')) {
 } else if (target = document.querySelector('#report-list-days')) {
   ReactDOM.render(<DayList />, target);
 }
+
+if (target = document.querySelector('#error-root')) {
+  ReactDOM.render(<ErrorMessage />, target);
+} 
