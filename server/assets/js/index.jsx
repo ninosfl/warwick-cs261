@@ -37,13 +37,14 @@ function DataList(props) {
   )
   
   /* curried version to try
-  let func = k => (number, index) =>
+  let func = k => (number, index) => (
     <React.Fragment key={k}>
       <ListItemLink href={k + "/"}>
         <ListItemText primary={k} />
       </ListItemLink>
       {index < limit && <Divider />}
-    </React.Fragment>;
+    </React.Fragment>
+  );
     
   let listItems = data.map(func(number.toString()));
   */
