@@ -59,7 +59,7 @@ function MonthList(props) {
 
     // Create the ListLink component from the inputs
     let func = (k, i) =>
-        <ListLink key={k} id={k} index={i} text={monthNames[k] + year} limit={limit} />;
+        <ListLink key={k} id={k} index={i} text={monthNames[k] + " " + year} limit={limit} />;
     
     // Transform each element in the list to the corresponding link element
     let listItems = data.map((n, i) => func(n.toString(), i));
