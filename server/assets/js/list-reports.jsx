@@ -23,11 +23,11 @@ const monthNames = {
 
 function dayName(day) {
     let char = day.slice(-1);
-    if char === "1" {
+    if (char === "1") {
         return day + "st";
-    } else if char === "2" {
+    } else if (char === "2") {
         return day + "nd";
-    } else if char === "3" {
+    } else if (char === "3") {
         return day + "rd";
     } else {
         return day + "th";
