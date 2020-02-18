@@ -23,4 +23,6 @@ if (target = document.querySelector('#report-list-years')) {
   ReactDOM.render(<YearList />, target);
 } else if (target = document.querySelector('#report-list-months')) {
   ReactDOM.render(<MonthList />, target);
+} else if (target = document.querySelector('#report-list-days')) {
+  ReactDOM.render(<DayList />, target);
 }
