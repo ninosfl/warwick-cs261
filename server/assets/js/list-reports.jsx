@@ -6,6 +6,8 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Divider from '@material-ui/core/Divider';
 
+export { YearList, MonthList, DayList };
+
 const monthNames = {
     "1": "January",
     "2": "February",
@@ -23,11 +25,11 @@ const monthNames = {
 
 function dayName(day) {
     let char = day.slice(-1);
-    if (char === "1") {
+    if (char === "1" && day != "11") {
         return day + "st";
-    } else if (char === "2") {
+    } else if (char === "2" && day != "12") {
         return day + "nd";
-    } else if (char === "3") {
+    } else if (char === "3" && day != "13") {
         return day + "rd";
     } else {
         return day + "th";
@@ -47,7 +49,7 @@ function ListLink(props) {
         {props.index < props.limit && <Divider />}
     </>);
 }
-  
+
 // Define Year component
 function YearList(props) {
     // Get list of data!
@@ -89,12 +91,10 @@ function DayList(props) {
 
     // Create the ListLink component from the inputs
     let func = (k, i) =>
-        <ListLink key={k} id={k} index={i} text={dayName(k) + " of " + month + " " + year} limit={limit} />;
+        <ListLink key={k} id={k} index={i} text={dayName(k) + " of " + monthNames[month] + " " + year} limit={limit} />;
     
     // Transform each element in the list to the corresponding link element
     let listItems = data.map((n, i) => func(n.toString(), i));
 
     return <List>{listItems}</List>;
 }
-
-export { YearList, MonthList, DayList };
