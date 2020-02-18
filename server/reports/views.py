@@ -3,12 +3,12 @@ from django.http import HttpResponse
 from calendar import Calendar
 import datetime
 
-def years(request):
+def list_years(request):
     placeholder_years = [y for y in range(2000, 2020 + 1)]
     context = { "years": placeholder_years }
     return render(request, "reports/years.html", context)
 
-def months(request, year: int):
+def list_months(request, year: int):
     # Check for year validity
     now = datetime.datetime.now()
     if year > now.year:
@@ -50,7 +50,7 @@ def months(request, year: int):
         }
         return render(request, "reports/months.html", context)
 
-def days(request, year: int, month: int):
+def list_days(request, year: int, month: int):
     # Check for year validity
     now = datetime.datetime.now()
     if year > now.year:
