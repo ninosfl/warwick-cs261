@@ -21,6 +21,19 @@ const monthNames = {
     "12": "December"
 };
 
+function dayName(day) {
+    let char = day.slice(-1);
+    if char === "1" {
+        return day + "st";
+    } else if char === "2" {
+        return day + "nd";
+    } else if char === "3" {
+        return day + "rd";
+    } else {
+        return day + "th";
+    }
+}
+
 // Define list item link component
 function ListItemLink(props) {
     return <ListItem button component="a" {...props} />;
@@ -67,4 +80,21 @@ function MonthList(props) {
     return <List>{listItems}</List>;
 }
 
-export { YearList, MonthList };
+function DayList(props) {
+    // Get list of data!
+    let data = JSON.parse(document.getElementById('list-data').textContent);
+    let year = JSON.parse(document.getElementById('year').textContent);
+    let month = JSON.parse(document.getElementById('month').textContent);
+    let limit = data.length - 1;
+
+    // Create the ListLink component from the inputs
+    let func = (k, i) =>
+        <ListLink key={k} id={k} index={i} text={dayName(k) + " of " + month + " " + year} limit={limit} />;
+    
+    // Transform each element in the list to the corresponding link element
+    let listItems = data.map((n, i) => func(n.toString(), i));
+
+    return <List>{listItems}</List>;
+}
+
+export { YearList, MonthList, DayList };
