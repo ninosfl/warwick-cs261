@@ -1,5 +1,5 @@
 from calendar import Calendar
-import datetime
+from django.utils import timezone
 from django.shortcuts import render
 
 def list_years(request):
@@ -11,7 +11,7 @@ def list_years(request):
 def list_months(request, year: int):
     """ List all months available in the given year. """
 
-    now = datetime.datetime.now()
+    now = timezone.now()
 
     result, err = is_year_valid(year, now)
     if not result:
@@ -28,7 +28,7 @@ def list_months(request, year: int):
 
 def list_days(request, year: int, month: int):
     """ List all days available in the given month. """
-    now = datetime.datetime.now()
+    now = timezone.now()
 
     result, err = is_month_valid(year, month, now)
     if not result:
@@ -62,7 +62,7 @@ def report(request, year: int, month: int, day: int):
     return render(request, "reports/report.html", context)
 
 
-def is_year_valid(year: int, now=datetime.datetime.now()):
+def is_year_valid(year: int, now=timezone.now()):
     """ Checks if a given year is valid. """
     # TODO: Make now use django timezone
 
@@ -77,7 +77,7 @@ def is_year_valid(year: int, now=datetime.datetime.now()):
     return True, None
 
 
-def is_month_valid(year: int, month: int, now=datetime.datetime.now()):
+def is_month_valid(year: int, month: int, now=timezone.now()):
     """ Checks if a given year and month pair are valid. """
     # TODO: Make now use django timezone
 
@@ -96,7 +96,7 @@ def is_month_valid(year: int, month: int, now=datetime.datetime.now()):
     return True, None
 
 
-def is_day_valid(year: int, month: int, day: int, now=datetime.datetime.now()):
+def is_day_valid(year: int, month: int, day: int, now=timezone.now()):
     """ Checks if a given year, month, and day are valid. """
     # TODO: Make now use django timezone
 
@@ -110,7 +110,7 @@ def is_day_valid(year: int, month: int, day: int, now=datetime.datetime.now()):
 
     return True, None
 
-def get_months(year: int, now=datetime.datetime.now()):
+def get_months(year: int, now=timezone.now()):
     """ Given a year, get all the valid months within it. """
     # TODO: Make now use django timezone
 
@@ -120,7 +120,7 @@ def get_months(year: int, now=datetime.datetime.now()):
     return list(range(1, 12 + 1))
 
 def get_days(year: int, month: int,
-             now=datetime.datetime.now(), calendar=Calendar()):
+             now=timezone.now(), calendar=Calendar()):
     """ Given a year and a month, get all the valid days of that month of that year. """
     # TODO: Make now use django timezone
 
