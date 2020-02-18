@@ -25,14 +25,16 @@ function ListItemLink(props) {
 function DataList(props) {
   // Get list of data!
   let data = JSON.parse(document.getElementById('list-data').textContent);
+  let limit = data.length - 1;
 
-  let listItems = data.map((number) =>
+  let listItems = data.map((number, index) =>
     <React.Fragment key={number.toString()}>
       <ListItemLink href={number.toString() + "/"}>
         <ListItemText primary={number.toString()} />
       </ListItemLink>
-      <Divider />
-    </React.Fragment>)
+      {index < limit && <Divider />}
+    </React.Fragment>
+  )
 
   return <List>{listItems}</List>;
 }
