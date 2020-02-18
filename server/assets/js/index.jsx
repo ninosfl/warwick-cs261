@@ -3,7 +3,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
-import { YearList, MonthList } from './list-reports';
+import { YearList, MonthList, DayList } from './list-reports';
 
 function App() {
   return (
