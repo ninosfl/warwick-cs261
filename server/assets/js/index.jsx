@@ -26,18 +26,9 @@ function DataList(props) {
   // Get list of data!
   let data = JSON.parse(document.getElementById('list-data').textContent);
   let limit = data.length - 1;
-
-  let listItems = data.map((number, index) =>
-    <React.Fragment key={number.toString()}>
-      <ListItemLink href={number.toString() + "/"}>
-        <ListItemText primary={number.toString()} />
-      </ListItemLink>
-      {index < limit && <Divider />}
-    </React.Fragment>
-  )
   
-  /* curried version to try
-  let func = k => (number, index) => (
+  // curried version to try
+  let func = (k, index) => (
     <React.Fragment key={k}>
       <ListItemLink href={k + "/"}>
         <ListItemText primary={k} />
@@ -46,8 +37,7 @@ function DataList(props) {
     </React.Fragment>
   );
     
-  let listItems = data.map(func(number.toString()));
-  */
+  let listItems = data.map((number, i) => func(number.toString(), i));
 
   return <List>{listItems}</List>;
 }
