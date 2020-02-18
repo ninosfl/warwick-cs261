@@ -27,12 +27,12 @@ function DataList(props) {
   let data = JSON.parse(document.getElementById('list-data').textContent);
 
   let listItems = data.map((number) =>
-    <div key={number.toString()}>
+    <React.Fragment key={number.toString()}>
       <ListItemLink href={number.toString() + "/"}>
         <ListItemText primary={number.toString()} />
       </ListItemLink>
       <Divider />
-    </div>)
+    </React.Fragment>)
 
   return <List>{listItems}</List>;
 }
