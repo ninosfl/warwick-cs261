@@ -18,9 +18,9 @@ let target = null;
 if (target = document.querySelector('#react-app')) {
   ReactDOM.render(<App />, target);
 }
+
 if (target = document.querySelector('#report-list-years')) {
   ReactDOM.render(<YearList />, target);
-}
-if (target = document.querySelector('#report-list-months')) {
+} else if (target = document.querySelector('#report-list-months')) {
   ReactDOM.render(<MonthList />, target);
 }
