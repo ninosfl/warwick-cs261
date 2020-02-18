@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 from .views import list_years, list_months, list_days, report
 
 urlpatterns = [
