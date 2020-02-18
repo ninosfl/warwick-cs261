@@ -71,7 +71,7 @@ def days(request, year: int, month: int):
                 "year": year,
                 "month": month
             }
-            return render(request, "material/list.html", context)
+            return render(request, "reports/days.html", context)
 
 def report(request, year: int, month: int, day: int):
     # Check for year validity
