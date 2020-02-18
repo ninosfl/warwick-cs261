@@ -41,6 +41,7 @@ function DataList(props) {
 let target = null;
 if (target = document.querySelector('#react-app')) {
   ReactDOM.render(<App />, target);
-} else if (target = document.querySelector('#report-list')) {
+}
+if (target = document.querySelector('#report-list')) {
   ReactDOM.render(<DataList />, target);
 }
