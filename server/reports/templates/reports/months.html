@@ -6,6 +6,9 @@
     <base href="{{ request.path }}" />
     {# React root! #}
     <div id="report-list-months"></div>
+    {# Transfer data from Django template to React #}
     {{list | json_script:"list-data"}}
+    {{year | json_script:"year"}}
+    {# Get react to do some rendering! #}
     {% render_bundle 'main' %}
 {% endblock content %}
