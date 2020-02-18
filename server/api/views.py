@@ -1,9 +1,13 @@
 import json
+from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from trades.models import Company
+from django.utils import timezone
 
-# Create your views here.
+from jellyfish import damerau_levenshtein_distance as dist
+
+
 @csrf_exempt
 def api_main(request, func):
     """API main view. Takes a request and a function which performs back-end
@@ -19,25 +23,51 @@ def api_main(request, func):
 def validate_company(data):
     if "name" not in data:
         return {"error_message": "No name provided"}
-    # result = {}
     try:
         Company.objects.get(name=data["name"])
-        result = {
-            "success": True,
-            "name": data["name"]
-        }
+        result = {"success": True}
     except Company.DoesNotExist:
-        result = {
-            "success": False,
-            "name": [c.name for c in Company.objects.filter(name__startswith=data["name"])[:5]]
-        }
+        result = {"success": False}
+        # do not add too many companies, or this dies (all companies must fit in memory)
+        # also this levenshtein distance calculation on all available company names kills
+        # perfomance.
+    distances = {
+        c.name: dist(data["name"], c.name)
+        for c in Company.objects.all()
+    }
+    filtered_distances = {w: d for w, d in distances.items() if d <= 5}
+    sorted_distances = sorted(filtered_distances, key=distances.get)
+    result["names"] = sorted_distances[:5]
     return result
 
 def validate_product(data):
     return {}
 
-def ai_magic(data):
-    return {}
+def validate_trade(data):
+    ai_magic()
+    data
+    return {"success": True}
+
+def ai_magic():
+    pass
 
 def validate_maturity_date(data):
-    return {}
+    today = timezone.now().date()
+
+    # Attempt to parse given date string
+    try:
+        date = datetime.strptime(data["date"], "%d/%m/%Y").date()
+    except ValueError:
+        return {
+            "success":False,
+            "error_message": "Invalid date string given. Expected format DD/MM/YYYY"
+        }
+
+    # Validate date.
+    if date <= today:
+        return {
+            "success": False,
+            "error_message": f"Date must be in the future. Today is {today.strftime('%d/%m/%Y')}"
+        }
+
+    return {"success": True}
