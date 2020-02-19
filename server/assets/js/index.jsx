@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
 import { YearList, MonthList, DayList } from './list-reports';
 import { ErrorMessage } from './errors';
+import { SuperForm } from './forms';
 
 function App() {
   return (
@@ -30,4 +31,8 @@ if (target = document.querySelector('#report-list-years')) {
 
 if (target = document.querySelector('#error-root')) {
   ReactDOM.render(<ErrorMessage />, target);
-} 
+}
+
+if (target = document.querySelector('#form-root')) {
+  ReactDOM.render(<SuperForm />, target);
+}
