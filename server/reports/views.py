@@ -64,7 +64,6 @@ def report(request, year: int, month: int, day: int):
 
 def is_year_valid(year: int, now=timezone.now()):
     """ Checks if a given year is valid. """
-    # TODO: Make now use django timezone
 
     if year > now.year:
         error_message = f"The year {year} is in the future. There are no trades listed."
@@ -79,7 +78,6 @@ def is_year_valid(year: int, now=timezone.now()):
 
 def is_month_valid(year: int, month: int, now=timezone.now()):
     """ Checks if a given year and month pair are valid. """
-    # TODO: Make now use django timezone
 
     result, err = is_year_valid(year, now)
     if not result:
@@ -98,7 +96,6 @@ def is_month_valid(year: int, month: int, now=timezone.now()):
 
 def is_day_valid(year: int, month: int, day: int, now=timezone.now()):
     """ Checks if a given year, month, and day are valid. """
-    # TODO: Make now use django timezone
 
     result, err = is_month_valid(year, month, now)
     if not result:
@@ -112,7 +109,6 @@ def is_day_valid(year: int, month: int, day: int, now=timezone.now()):
 
 def get_months(year: int, now=timezone.now()):
     """ Given a year, get all the valid months within it. """
-    # TODO: Make now use django timezone
 
     if year == now.year:
         return list(range(1, min(12, now.month) + 1))
@@ -122,7 +118,6 @@ def get_months(year: int, now=timezone.now()):
 def get_days(year: int, month: int,
              now=timezone.now(), calendar=Calendar()):
     """ Given a year and a month, get all the valid days of that month of that year. """
-    # TODO: Make now use django timezone
 
     if year == now.year and month == now.month:
         return [d for d in calendar.itermonthdays(year, month)
