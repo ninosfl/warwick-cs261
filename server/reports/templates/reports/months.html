@@ -1,8 +1,14 @@
 {% extends "trades/base.html" %}
+{% load render_bundle from webpack_loader %}
 
 {% block content %}
-    {% for month in months %}
-        <a class="month_link" href="{% url 'report-list-days' year month %}">{{month}}</a>
-        <br>
-    {% endfor %}
+    {# Store current url! #}
+    <base href="{{ request.path }}" />
+    {# React root! #}
+    <div id="report-list-months"></div>
+    {# Transfer data from Django template to React #}
+    {{list | json_script:"list-data"}}
+    {{year | json_script:"year"}}
+    {# Get react to do some rendering! #}
+    {% render_bundle 'main' %}
 {% endblock content %}
