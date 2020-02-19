@@ -14,16 +14,43 @@ const initialForm = {
     "strikePrice": 0.0
 };
 
+const types = {
+    new: "new"
+};
+
+const inputs = {
+    buying: "buyingParty",
+    selling: "sellingParty",
+    product: "productName",
+    quantity: "quantity",
+    uCurr: "underlyingCurrency",
+    uPrice: "underlyingPrice",
+    mDate: "maturityDate",
+    nCurr: "notionalCurrency",
+    sPrice: "strikePrice"
+};
+
 const reducer = (state, action) => {
     switch (action.type) {
-        case "newbuyingParty":
-            break;
+        case types.new:
+            state[action.input] = action.newValue;
+            return state;
+
+        default:
+            return state;
     }
 };
 
+const FormDispatch = React.createContext(null);
+
 function SuperForm(props) {
     const [state, dispatch] = useReducer(reducer, initialForm);
-    return <h1>Not implemented</h1>;
+
+    return (
+        <FormDispatch.Provider value={dispatch}>
+            <h1>Not implemented yet.</h1>
+        </FormDispatch.Provider>
+    );
 }
 
 function SubForm(props) {
