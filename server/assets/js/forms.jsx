@@ -1,13 +1,14 @@
 /* jshint esversion: 9 */
 
 import React, { useReducer, useContext } from 'react';
-import { Grid, Paper } from '@material-ui/core';
+import { Grid, Paper, Typography, Divider } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 export { SuperForm };
 
+// Contains all the initial form values
 const initialForm = {
     "buyingParty": "",
     "sellingParty": "",
@@ -20,11 +21,13 @@ const initialForm = {
     "strikePrice": 0.0
 };
 
+// All the valid action types
 const types = {
     new: "new",
     validate: "validate"
 };
 
+// All the valid input types - expressed here as an enum to avoid strings
 const inputs = {
     buying: "buyingParty",
     selling: "sellingParty",
@@ -37,6 +40,7 @@ const inputs = {
     sPrice: "strikePrice"
 };
 
+// Reducer function, for use with useReducer hook
 const reducer = (state, action) => {
     switch (action.type) {
         case types.new:
@@ -52,6 +56,7 @@ const reducer = (state, action) => {
     }
 };
 
+// Provide reducer dispatch function to all subform elements
 const FormDispatch = React.createContext(null);
 
 const useStyles = makeStyles({
@@ -65,6 +70,7 @@ const useStyles = makeStyles({
     },
 });
 
+// Form component for holding overall form data
 function SuperForm(props) {
     const classes = useStyles(props);
 
@@ -72,39 +78,71 @@ function SuperForm(props) {
 
     return (<>
         <Paper elevation={3} className={classes.formContainer}>
-            <Grid
-                container
-                justify="center"
-                alignContent="center"
-                className={classes.formContainer}
-            >
-                <CssBaseline />
-                <FormDispatch.Provider value={dispatch}>
-                    <SubForm buyingParty={state["buyingParty"]}/>
-                </FormDispatch.Provider>
-            </Grid>
+            <FormDispatch.Provider value={dispatch}>
+                <SubForm buyingParty={state["buyingParty"]}/>
+            </FormDispatch.Provider>
         </Paper>
     </>);
 }
 
+// Component for text fields in the form
+function FormField(props) {
+    return <TextField variant="outlined" {...props}/>;
+}
+
+// Subform component - only need 4, so can be custom
 function SubForm(props) {
+    const classes = useStyles(props);
+
     const dispatch = useContext(FormDispatch);
 
-    const handleChange = e => {
+    const inputChange = input => e => {
         dispatch({
-            input: inputs.buying,
+            input: input,
             type: types.new,
             newValue: e.target.value
         });
     };
 
     return (
-        <TextField
-            id="buyingParty"
-            label="Buying Party"
-            value={props.buyingParty}
-            onChange={handleChange}
-            variant="outlined"
-        />
+    <Grid
+            container
+            justify="center"
+            alignContent="center"
+            className={classes.formContainer}
+            direction="column"
+            spacing={3}
+    >
+        <CssBaseline />
+        <Grid item>
+            <Typography variant="h4" gutterBottom>
+                Step 1 of 4
+            </Typography>
+        </Grid>
+        <Grid item>
+            <FormField
+                id="buyingParty"
+                label="Buying Party"
+                value={props.buyingParty}
+                onChange={inputChange(inputs.buying)}
+            />
+        </Grid>
+        <Grid item>
+            <FormField
+                id="sellingParty"
+                label="Selling Party"
+                value={props.sellingParty}
+                onChange={inputChange(inputs.selling)}
+            />
+        </Grid>
+        <Grid item>
+            <FormField
+                id="productName"
+                label="Product Name"
+                value={props.productName}
+                onChange={inputChange(inputs.product)}
+            />
+        </Grid>
+    </Grid>
     );
 }
