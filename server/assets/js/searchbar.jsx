@@ -1,5 +1,6 @@
 import React from 'react';
 import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
@@ -63,6 +64,18 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+// General React Component to add buttons to our bar
+function BarButton(props){
+  return (<Button
+  variant="contained"
+  color="primary"
+  disableElevation="true"
+  href={props.href}
+>
+  {props.text}
+</Button>);
+}
+
 function SearchBar() {
   const classes = useStyles();
 
@@ -81,6 +94,22 @@ function SearchBar() {
           <Typography className={classes.title} variant="h6" noWrap>
             20th Legion
           </Typography>
+          <BarButton 
+            text="Add"
+            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+          />
+          <BarButton 
+            text="Trades"
+            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+          />
+          <BarButton 
+            text="Reports"
+            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+          />
+          <BarButton 
+            text="Admin"
+            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+          />
           <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />
