@@ -1,7 +1,7 @@
 /* jshint esversion: 9 */
 
 import React, { useReducer, useContext } from 'react';
-import { Grid, Paper, Typography, Divider } from '@material-ui/core';
+import { Grid, Paper, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -24,7 +24,8 @@ const initialForm = {
 // All the valid action types
 const types = {
     new: "new",
-    validate: "validate"
+    validate: "validate",
+    correction: "correction"
 };
 
 // All the valid input types - expressed here as an enum to avoid strings
@@ -44,11 +45,15 @@ const inputs = {
 const reducer = (state, action) => {
     switch (action.type) {
         case types.new:
-            // Return a new object with the input modified!
+            // Return a new object with only the input modified!
             return { ...state, [action.input]: action.newValue };
 
         case types.validate:
             // TODO: fetch from API
+            return state;
+
+        case types.correction:
+            // TODO: Send to API
             return state;
 
         default:
@@ -59,6 +64,7 @@ const reducer = (state, action) => {
 // Provide reducer dispatch function to all subform elements
 const FormDispatch = React.createContext(null);
 
+// Mad styling son - mostly to ensure the form goes in the middle of the screen
 const useStyles = makeStyles({
     formContainer: {
         minHeight: "80vh",
@@ -72,46 +78,53 @@ const useStyles = makeStyles({
 
 // Form component for holding overall form data
 function SuperForm(props) {
+    // Fetch defined styling
     const classes = useStyles(props);
 
+    // Use reducer hook to handle form data
     const [state, dispatch] = useReducer(reducer, initialForm);
 
-    return (<>
+    // Put form in awesome-looking paper background
+    return (
         <Paper elevation={3} className={classes.formContainer}>
             <FormDispatch.Provider value={dispatch}>
                 <SubForm buyingParty={state["buyingParty"]}/>
             </FormDispatch.Provider>
         </Paper>
-    </>);
+    );
 }
 
 // Component for text fields in the form
 function FormField(props) {
-    return <TextField variant="outlined" {...props}/>;
+    // Get dispatch function from the reducer hook via a context hook
+    // TODO: Move this out if this proves expensive
+    const dispatch = useContext(FormDispatch);
+
+    // Create a function that takes in an event, and dispatches the appropriate
+    // action to the reducer hook.
+    const handleChange = e => dispatch({
+        input: props.input,
+        type: types.new,
+        newValue: e.target.value
+    })
+
+    return <TextField variant="outlined" onChange={handleChange} {...props}/>;
 }
 
 // Subform component - only need 4, so can be custom
 function SubForm(props) {
+    // Fetch defined styling
     const classes = useStyles(props);
 
-    const dispatch = useContext(FormDispatch);
-
-    const inputChange = input => e => {
-        dispatch({
-            input: input,
-            type: types.new,
-            newValue: e.target.value
-        });
-    };
-
+    // Render sub-form within a grid
     return (
     <Grid
-            container
-            justify="center"
-            alignContent="center"
-            className={classes.formContainer}
-            direction="column"
-            spacing={3}
+        container
+        justify="center"
+        alignContent="center"
+        className={classes.formContainer}
+        direction="column"
+        spacing={3}
     >
         <CssBaseline />
         <Grid item>
@@ -124,7 +137,7 @@ function SubForm(props) {
                 id="buyingParty"
                 label="Buying Party"
                 value={props.buyingParty}
-                onChange={inputChange(inputs.buying)}
+                input={inputs.buying}
             />
         </Grid>
         <Grid item>
@@ -132,7 +145,7 @@ function SubForm(props) {
                 id="sellingParty"
                 label="Selling Party"
                 value={props.sellingParty}
-                onChange={inputChange(inputs.selling)}
+                input={inputs.selling}
             />
         </Grid>
         <Grid item>
@@ -140,7 +153,7 @@ function SubForm(props) {
                 id="productName"
                 label="Product Name"
                 value={props.productName}
-                onChange={inputChange(inputs.product)}
+                input={inputs.product}
             />
         </Grid>
     </Grid>
