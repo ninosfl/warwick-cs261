@@ -13,16 +13,16 @@ def api_main(request, func):
     """API main view. Takes a request and a function which performs back-end
     processing on request data."""
     if request.method != "POST":
-        return JsonResponse({"error_message": "Invalid method"})
+        return JsonResponse({"success": False, "error_message": "Invalid method"})
     try:
         json_dict = json.loads(request.body.decode("utf-8"))
     except json.decoder.JSONDecodeError:
-        return JsonResponse({"error_message": "Malformed JSON"})
+        return JsonResponse({"success": False, "error_message": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
 def validate_company(data):
     if "name" not in data:
-        return {"error_message": "No name provided"}
+        return {"success": False, "error_message": "No name provided"}
     try:
         Company.objects.get(name=data["name"])
         result = {"success": True}
