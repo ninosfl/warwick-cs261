@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
 import { YearList, MonthList, DayList } from './list-reports';
 import { ErrorMessage } from './errors';
+import { SearchBar } from './searchbar';
 
 function App() {
   return (
@@ -18,6 +19,10 @@ function App() {
 let target = null;
 if (target = document.querySelector('#react-app')) {
   ReactDOM.render(<App />, target);
+}
+
+if(target = document.querySelector('#searchbar')){
+  ReactDOM.render(<SearchBar />, target)
 }
 
 if (target = document.querySelector('#report-list-years')) {
