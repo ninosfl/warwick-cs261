@@ -48,11 +48,11 @@ function SuperForm(props) {
 
     return (
         <FormDispatch.Provider value={dispatch}>
-            <h1>Not implemented yet.</h1>
+            <SubForm />
         </FormDispatch.Provider>
     );
 }
 
 function SubForm(props) {
-
+    return (<h1>Not implemented yet.</h1>);
 }
