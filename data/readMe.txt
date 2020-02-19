@@ -31,10 +31,10 @@ tradeID - the unique ID for the trade
 product - The name of the product being traded, including if it is stocks
 buyingParty - The Company ID of the company buying the derivative contract
 sellingParty - The company ID of the company selling the derivative contract
-notionalAmount - The amount of value currently represented by the trade.
+notionalAmount - The amount of value currently represented by the trade. (quantity * underlying price in the notionalCurrency)
 quantity - The number of units to be traded
 notionalCurrency - The currency that the notionalAmount is expressed in.
 maturityDate - The date the buyer can choose to exercise their right to buy the given quantity of the product at the strike price
 underlyingPrice - The current price per unit
 underlyingCurrency - The currency that price is expressed in
-strikePrice - The price per unit that the buyer can pay if they exercise their right to this contract, expressed in the underlying currency
+strikePrice - The price per unit that the buyer can pay if they exercise their right to this contract, expressed in the *underlying currency*
