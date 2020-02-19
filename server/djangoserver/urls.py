@@ -23,5 +23,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("trades/", include("trades.urls")),
     path("reports/", include("reports.urls")),
-    path("api/", include("api.urls"))  # Test with curl locahost:8000/api/
+    path("api/", include("api.urls"), {'func': (lambda _: 'Testing out the stuff')})  # Test with curl locahost:8000/api/
 ]

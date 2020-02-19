@@ -1,0 +1,8 @@
+{% extends "trades/base.html" %}
+
+{% block content %}
+    {% for month in months %}
+        <a class="month_link" href="{% url 'report-list-days' year month %}">{{month}}</a>
+        <br>
+    {% endfor %}
+{% endblock content %}

@@ -1,0 +1,7 @@
+{% extends "trades/base.html" %}
+
+{% block content %}
+    <p class="error_message">{{error_message}}</p>
+    <br>
+    <a href="{% url 'report-list-years' %}">Return to main reports page</a>
+{% endblock content %}

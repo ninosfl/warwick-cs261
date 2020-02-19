@@ -4,4 +4,21 @@
 	<h1>This is the page where the user enters new trades</h1>
     <p>*insert react magic below, in the div*</p> </br>
     <div id="react-root"></div>
+    <p id="demo"></p>
+
+    <script>
+        fetch("http://localhost:8000/api/",
+            {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({a: 7, str: 'Some string: &=&'})
+            }).then(function(response) {
+                return response.json();
+            }).then(function(jsonResponse) {
+                document.getElementById("demo").innerHTML = JSON.stringify(jsonResponse);
+            });
+    </script>
 {% endblock content %}

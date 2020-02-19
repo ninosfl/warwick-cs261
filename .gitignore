@@ -179,3 +179,7 @@ dmypy.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Text Editor Files #
+#####################
+.vscode/settings.json
