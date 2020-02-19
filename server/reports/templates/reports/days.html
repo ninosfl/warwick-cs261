@@ -7,7 +7,7 @@
     {# React root! #}
     <div id="report-list-days"></div>
     {# Transfer data from Django template to React #}
-    {{list | json_script:"list-data"}}
+    {{days | json_script:"list-data"}}
     {{year | json_script:"year"}}
     {{month | json_script:"month"}}
     {# Get react to do some rendering! #}
