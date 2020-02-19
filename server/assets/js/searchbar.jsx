@@ -8,6 +8,7 @@ import InputBase from '@material-ui/core/InputBase';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
+import HomeIcon from '@material-ui/icons/Home';
 
 export{SearchBar};
 
@@ -94,21 +95,29 @@ function SearchBar() {
           <Typography className={classes.title} variant="h6" noWrap>
             20th Legion
           </Typography>
+          <IconButton
+            color="secondary"
+            aria-label="Home"
+            disableElevation="true"
+            component="span"      
+          >
+            <HomeIcon />
+          </IconButton>
           <BarButton 
             text="Add"
-            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+            href="/trades/" //Ways to add links to our buttons and formatting willk be done automatically TODO! make it accessable through dynamic URL?
           />
           <BarButton 
             text="Trades"
-            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+            href="/trades/" //Ways to add links to our buttons and formatting willk be done automatically
           />
           <BarButton 
             text="Reports"
-            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+            href="/reports/" //Ways to add links to our buttons and formatting willk be done automatically
           />
           <BarButton 
             text="Admin"
-            href="www.google.com" //Ways to add links to our buttons and formatting willk be done automatically
+            href="/admin/" //Ways to add links to our buttons and formatting willk be done automatically
           />
           <div className={classes.search}>
             <div className={classes.searchIcon}>
