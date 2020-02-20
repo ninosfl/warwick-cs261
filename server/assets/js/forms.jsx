@@ -69,7 +69,13 @@ const reducer = (state, action) => {
             return state;
 
         case types.nextForm:
-            return {...state, "currentForm": action.newForm };
+            if ((state.currentForm) === formTypes[1]) {
+                // TODO: Forward to second subform
+                return {...state, "currentForm": formTypes.submit };
+            } else if (state.currentForm === formTypes.submit) {
+                // TODO: Submit stuffs
+                return state;
+            }
 
         default:
             return state;
@@ -209,7 +215,7 @@ function NextButton(props) {
     // Fetch dispatch function from context
     const dispatch = useContext(FormDispatch);
 
-    const goToNextForm = () => dispatch({type: types.nextForm, newForm: formTypes.submit});
+    const goToNextForm = () => dispatch({ type: types.nextForm });
 
     return (
         <Button
