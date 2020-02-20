@@ -6,28 +6,38 @@ import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import PublishIcon from '@material-ui/icons/Publish';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 export { SuperForm };
+
+// All the valid forms
+const formTypes = {
+    1: "1",
+    "submit": "Submit"
+};
 
 // Contains all the initial form values
 const initialForm = {
     "buyingParty": "",
     "sellingParty": "",
     "productName": "",
-    "quantity": "",
+    "quantity": 0,
     "underlyingCurrency": "USD",
     "underlyingPrice": 0.0,
     "maturityDate": "01.01.1970",
     "notionalCurrency": "USD",
-    "strikePrice": 0.0
+    "strikePrice": 0.0,
+    "currentForm": formTypes[1]
 };
 
 // All the valid action types
 const types = {
     new: "new",
     validate: "validate",
-    correction: "correction"
+    correction: "correction",
+    nextForm: "next"
 };
 
 // All the valid input types - expressed here as an enum to avoid strings
@@ -58,6 +68,9 @@ const reducer = (state, action) => {
             // TODO: Send to API
             return state;
 
+        case types.nextForm:
+            return {...state, "currentForm": action.newForm };
+
         default:
             return state;
     }
@@ -69,12 +82,27 @@ const FormDispatch = React.createContext(null);
 // Mad styling son - mostly to ensure the form goes in the middle of the screen
 const useStyles = makeStyles( theme => ({
     formContainer: {
-        minHeight: "80vh",
+        minHeight: "90vh",
         minWidth: "80vh",
         position: 'absolute', 
-        left: '50%', 
+        left: '50%',
         top: '50%',
         transform: 'translate(-50%, -50%)'
+    },
+    submitContainer: {
+        minHeight: "90vh",
+        minWidth: "80vh",
+        position: 'absolute', 
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)'
+    },
+    submitItemContainer: {
+        minWidth: "60vh",
+    },
+    submitButton: {
+        minWidth: "60vh",
+        marginTop: "16px",
     },
     formItemContainer: {
         minWidth: "60vh",
@@ -98,14 +126,26 @@ function SuperForm(props) {
     // Use reducer hook to handle form data
     const [state, dispatch] = useReducer(reducer, initialForm);
 
-    // Put form in awesome-looking paper background
-    return (
-        <Paper elevation={3} className={classes.formContainer}>
-            <FormDispatch.Provider value={dispatch}>
-                <SubForm fields={{...state}} />
-            </FormDispatch.Provider>
-        </Paper>
-    );
+    let elem = <p>Stuff went wrong.</p>
+    if (state.currentForm === formTypes[1]) {
+        elem = (
+            <Paper elevation={3} className={classes.formContainer}>
+                <FormDispatch.Provider value={dispatch}>
+                    <SubForm fields={{...state}} />
+                </FormDispatch.Provider>
+            </Paper>
+        );
+    } else if (state.currentForm === formTypes.submit) {
+        elem = (
+            <Paper elevation={3} className={classes.submitContainer}>
+                <FormDispatch.Provider value={dispatch}>
+                    <SubmitForm fields={{...state}} />
+                </FormDispatch.Provider>
+            </Paper>
+        );
+    }
+
+    return elem;
 }
 
 // Component for text fields in the form
@@ -135,7 +175,57 @@ function FormField(props) {
     );
 }
 
+function SubmitField(props) {
+    // Get dispatch function from the reducer hook via a context hook
+    // TODO: Move this out if this proves expensive
+    const dispatch = useContext(FormDispatch);
+
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    // Create a function that takes in an event, and dispatches the appropriate
+    // action to the reducer hook.
+    const handleChange = e => dispatch({
+        input: props.input,
+        type: types.new,
+        newValue: e.target.value
+    });
+
+    return (
+        <TextField
+            variant="standard"
+            size="small"
+            onChange={handleChange}
+            className={classes.formItem}
+            {...props}
+        />
+    );
+}
+
 function NextButton(props) {
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    // Fetch dispatch function from context
+    const dispatch = useContext(FormDispatch);
+
+    const goToNextForm = () => dispatch({type: types.nextForm, newForm: formTypes.submit});
+
+    return (
+        <Button
+            variant="contained"
+            color="primary"
+            className={classes.button}
+            endIcon={<NavigateNextIcon />}
+            onClick={goToNextForm}
+            {...props}
+        >
+            Next Page
+        </Button>
+    );
+}
+
+function SubmitButton(props) {
     // Fetch defined styling
     const classes = useStyles(props);
 
@@ -144,10 +234,11 @@ function NextButton(props) {
             variant="contained"
             color="primary"
             className={classes.button}
-            endIcon={<NavigateNextIcon />}
+            endIcon={<CloudUploadIcon />}
+            // endIcon={<PublishIcon />}
             {...props}
         >
-            Next Page
+            Submit
         </Button>
     );
 }
@@ -157,9 +248,7 @@ function SubFormTitle(props) {
     const classes = useStyles(props);
 
     return (
-        <Typography variant="h4" gutterBottom className={classes.formTitle}>
-            Step {props.number} of 4
-        </Typography>
+        <Typography variant="h4" gutterBottom className={classes.formTitle} {...props}/>
     );
 }
 
@@ -180,13 +269,13 @@ function SubForm(props) {
     >
         <CssBaseline />
         <Grid item>
-            <SubFormTitle number={1} />
+            <SubFormTitle>Step 1 of 4</SubFormTitle>
         </Grid>
         <Grid item className={classes.formItemContainer}>
             <FormField
                 id="buyingParty"
                 label="Buying Party"
-                value={props.fields.buyingParty}
+                value={props.buyingParty}
                 input={inputs.buying}
             />
         </Grid>
@@ -194,7 +283,7 @@ function SubForm(props) {
             <FormField
                 id="sellingParty"
                 label="Selling Party"
-                value={props.fields.sellingParty}
+                value={props.sellingParty}
                 input={inputs.selling}
             />
         </Grid>
@@ -202,7 +291,7 @@ function SubForm(props) {
             <FormField
                 id="productName"
                 label="Product Name"
-                value={props.fields.productName}
+                value={props.productName}
                 input={inputs.product}
             />
         </Grid>
@@ -213,5 +302,101 @@ function SubForm(props) {
                 ? <NextButton disabled /> : <NextButton />}
         </Grid>
     </Grid>
+    );
+}
+
+function SubmitForm(props) {
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    // Render sub-form within a grid
+    return (
+        <Grid
+            container
+            justify="center"
+            alignContent="center"
+            className={classes.formContainer}
+            direction="column"
+            spacing={0}
+        >
+            <Grid item>
+                <SubFormTitle>Final Check</SubFormTitle>
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.buying}
+                    label="Buying Party"
+                    value={props.fields.buyingParty}
+                    input={inputs.buying}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.selling}
+                    label="Selling Party"
+                    value={props.fields.sellingParty}
+                    input={inputs.selling}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.product}
+                    label="Product Name"
+                    value={props.fields.productName}
+                    input={inputs.product}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.quantity}
+                    label="Product Quantity"
+                    value={props.fields.quantity}
+                    input={inputs.quantity}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.uPrice}
+                    label="Underlying Price"
+                    value={props.fields.underlyingPrice}
+                    input={inputs.uPrice}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.uCurr}
+                    label="Underlying Currency"
+                    value={props.fields.underlyingCurrency}
+                    input={inputs.uCurr}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.mDate}
+                    label="Maturity Date"
+                    value={props.fields.maturityDate}
+                    input={inputs.mDate}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.nCurr}
+                    label="Notional Currency"
+                    value={props.fields.notionalCurrency}
+                    input={inputs.nCurr}
+                />
+            </Grid>
+            <Grid item className={classes.submitItemContainer}>
+                <SubmitField
+                    id={inputs.sPrice}
+                    label="Strike Price"
+                    value={props.fields.strikePrice}
+                    input={inputs.sPrice}
+                />
+            </Grid>
+            <Grid item className={classes.submitButton}>
+                <SubmitButton/>
+            </Grid>
+        </Grid>
     );
 }
