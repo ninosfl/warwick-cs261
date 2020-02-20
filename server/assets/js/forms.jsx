@@ -4,6 +4,8 @@ import React, { useReducer, useContext } from 'react';
 import { Grid, Paper, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import CssBaseline from '@material-ui/core/CssBaseline';
 
 export { SuperForm };
@@ -65,7 +67,7 @@ const reducer = (state, action) => {
 const FormDispatch = React.createContext(null);
 
 // Mad styling son - mostly to ensure the form goes in the middle of the screen
-const useStyles = makeStyles({
+const useStyles = makeStyles( theme => ({
     formContainer: {
         minHeight: "80vh",
         minWidth: "80vh",
@@ -74,7 +76,20 @@ const useStyles = makeStyles({
         top: '50%',
         transform: 'translate(-50%, -50%)'
     },
-});
+    formItemContainer: {
+        minWidth: "60vh",
+    },
+    formItem: {
+        minWidth: "50vh",
+    },
+    formTitle: {
+        // right: '40%'
+    },
+    button: {
+        margin: theme.spacing(1),
+        left: '50%'
+    },
+}));
 
 // Form component for holding overall form data
 function SuperForm(props) {
@@ -88,7 +103,7 @@ function SuperForm(props) {
     return (
         <Paper elevation={3} className={classes.formContainer}>
             <FormDispatch.Provider value={dispatch}>
-                <SubForm buyingParty={state["buyingParty"]}/>
+                <SubForm fields={{...state}} />
             </FormDispatch.Provider>
         </Paper>
     );
@@ -100,15 +115,52 @@ function FormField(props) {
     // TODO: Move this out if this proves expensive
     const dispatch = useContext(FormDispatch);
 
+    // Fetch defined styling
+    const classes = useStyles(props);
+
     // Create a function that takes in an event, and dispatches the appropriate
     // action to the reducer hook.
     const handleChange = e => dispatch({
         input: props.input,
         type: types.new,
         newValue: e.target.value
-    })
+    });
 
-    return <TextField variant="outlined" onChange={handleChange} {...props}/>;
+    return (
+        <TextField
+            variant="outlined"
+            onChange={handleChange}
+            className={classes.formItem}
+            {...props}
+        />
+    );
+}
+
+function NextButton(props) {
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    return (
+        <Button
+            variant="contained"
+            color="primary"
+            className={classes.button}
+            endIcon={<NavigateNextIcon />}
+        >
+            Next Page
+        </Button>
+    );
+}
+
+function SubFormTitle(props) {
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    return (
+        <Typography variant="h4" gutterBottom className={classes.formTitle}>
+            Step {props.number} of 4
+        </Typography>
+    );
 }
 
 // Subform component - only need 4, so can be custom
@@ -128,33 +180,34 @@ function SubForm(props) {
     >
         <CssBaseline />
         <Grid item>
-            <Typography variant="h4" gutterBottom>
-                Step 1 of 4
-            </Typography>
+            <SubFormTitle number={1} />
         </Grid>
-        <Grid item>
+        <Grid item className={classes.formItemContainer}>
             <FormField
                 id="buyingParty"
                 label="Buying Party"
-                value={props.buyingParty}
+                value={props.fields.buyingParty}
                 input={inputs.buying}
             />
         </Grid>
-        <Grid item>
+        <Grid item className={classes.formItemContainer}>
             <FormField
                 id="sellingParty"
                 label="Selling Party"
-                value={props.sellingParty}
+                value={props.fields.sellingParty}
                 input={inputs.selling}
             />
         </Grid>
-        <Grid item>
+        <Grid item className={classes.formItemContainer}>
             <FormField
                 id="productName"
                 label="Product Name"
-                value={props.productName}
+                value={props.fields.productName}
                 input={inputs.product}
             />
+        </Grid>
+        <Grid item className={classes.formItemContainer}>
+            <NextButton />
         </Grid>
     </Grid>
     );
