@@ -146,6 +146,7 @@ function NextButton(props) {
             color="primary"
             className={classes.button}
             endIcon={<NavigateNextIcon />}
+            {...props}
         >
             Next Page
         </Button>
@@ -207,7 +208,10 @@ function SubForm(props) {
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            <NextButton />
+            {(props.fields.sellingParty === ""
+                || props.fields.buyingParty === ""
+                || props.fields.productName === "")
+                ? <NextButton disabled /> : <NextButton />}
         </Grid>
     </Grid>
     );
