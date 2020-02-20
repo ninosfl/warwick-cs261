@@ -137,7 +137,7 @@ function SuperForm(props) {
         elem = (
             <Paper elevation={3} className={classes.formContainer}>
                 <FormDispatch.Provider value={dispatch}>
-                    <SubForm fields={{...state}} />
+                    <SubFormOne fields={{...state}} />
                 </FormDispatch.Provider>
             </Paper>
         );
@@ -258,8 +258,8 @@ function SubFormTitle(props) {
     );
 }
 
-// Subform component - only need 4, so can be custom
-function SubForm(props) {
+// First subform component - only need 3, so can be custom
+function SubFormOne(props) {
     // Fetch defined styling
     const classes = useStyles(props);
 
