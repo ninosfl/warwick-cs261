@@ -166,7 +166,7 @@ function FormField(props) {
     // Create a function that takes in an event, and dispatches the appropriate
     // action to the reducer hook.
     const handleChange = e => dispatch({
-        input: props.input,
+        input: props.id,
         type: types.new,
         newValue: e.target.value
     });
@@ -192,7 +192,7 @@ function SubmitField(props) {
     // Create a function that takes in an event, and dispatches the appropriate
     // action to the reducer hook.
     const handleChange = e => dispatch({
-        input: props.input,
+        input: props.id,
         type: types.new,
         newValue: e.target.value
     });
@@ -279,26 +279,23 @@ function SubForm(props) {
         </Grid>
         <Grid item className={classes.formItemContainer}>
             <FormField
-                id="buyingParty"
+                id={inputs.buying}
                 label="Buying Party"
-                value={props.buyingParty}
-                input={inputs.buying}
+                value={props.fields.buyingParty}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
             <FormField
-                id="sellingParty"
+                id={inputs.selling}
                 label="Selling Party"
-                value={props.sellingParty}
-                input={inputs.selling}
+                value={props.fields.sellingParty}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
             <FormField
-                id="productName"
+                id={inputs.product}
                 label="Product Name"
-                value={props.productName}
-                input={inputs.product}
+                value={props.fields.productName}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -333,7 +330,6 @@ function SubmitForm(props) {
                     id={inputs.buying}
                     label="Buying Party"
                     value={props.fields.buyingParty}
-                    input={inputs.buying}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -341,7 +337,6 @@ function SubmitForm(props) {
                     id={inputs.selling}
                     label="Selling Party"
                     value={props.fields.sellingParty}
-                    input={inputs.selling}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -349,7 +344,6 @@ function SubmitForm(props) {
                     id={inputs.product}
                     label="Product Name"
                     value={props.fields.productName}
-                    input={inputs.product}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -357,7 +351,6 @@ function SubmitForm(props) {
                     id={inputs.quantity}
                     label="Product Quantity"
                     value={props.fields.quantity}
-                    input={inputs.quantity}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -365,7 +358,6 @@ function SubmitForm(props) {
                     id={inputs.uPrice}
                     label="Underlying Price"
                     value={props.fields.underlyingPrice}
-                    input={inputs.uPrice}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -373,7 +365,6 @@ function SubmitForm(props) {
                     id={inputs.uCurr}
                     label="Underlying Currency"
                     value={props.fields.underlyingCurrency}
-                    input={inputs.uCurr}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -381,7 +372,6 @@ function SubmitForm(props) {
                     id={inputs.mDate}
                     label="Maturity Date"
                     value={props.fields.maturityDate}
-                    input={inputs.mDate}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -389,7 +379,6 @@ function SubmitForm(props) {
                     id={inputs.nCurr}
                     label="Notional Currency"
                     value={props.fields.notionalCurrency}
-                    input={inputs.nCurr}
                 />
             </Grid>
             <Grid item className={classes.submitItemContainer}>
@@ -397,7 +386,6 @@ function SubmitForm(props) {
                     id={inputs.sPrice}
                     label="Strike Price"
                     value={props.fields.strikePrice}
-                    input={inputs.sPrice}
                 />
             </Grid>
             <Grid item className={classes.submitButton}>
