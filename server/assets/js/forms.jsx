@@ -80,14 +80,13 @@ const useStyles = makeStyles( theme => ({
         minWidth: "60vh",
     },
     formItem: {
-        minWidth: "50vh",
+        width: '100%'
     },
     formTitle: {
         // right: '40%'
     },
     button: {
-        margin: theme.spacing(1),
-        left: '50%'
+        float: 'right'
     },
 }));
 
