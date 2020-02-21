@@ -83,7 +83,7 @@ function SearchBar() {
   return (
     <div className={classes.root}>
       <AppBar position="static">
-        <Toolbar>
+        <Toolbar> 
           <IconButton
             edge="start"
             className={classes.menuButton}
@@ -96,10 +96,9 @@ function SearchBar() {
             20th Legion
           </Typography>
           <IconButton
-            color="secondary"
+            color="inherit"
             aria-label="Home"
-            disableElevation="true"
-            component="span"      
+            href="/"        //Home also added in manually
           >
             <HomeIcon />
           </IconButton>
