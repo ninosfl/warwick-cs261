@@ -9,6 +9,7 @@ import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import PublishIcon from '@material-ui/icons/Publish';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import { useEffect } from 'react';
 
 export { SuperForm };
 
@@ -29,7 +30,8 @@ const initialForm = {
     "maturityDate": "01.01.1970",
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
-    "currentForm": formTypes[1]
+    "currentForm": formTypes[1],
+    "validateFields": {}
 };
 
 // All the valid action types
@@ -62,7 +64,7 @@ const reducer = (state, action) => {
 
         case types.validate:
             // TODO: fetch from API
-            return state;
+            return { ...state, "validateFields": action.fields };
 
         case types.correction:
             // TODO: Send to API
@@ -74,6 +76,8 @@ const reducer = (state, action) => {
                 return {...state, "currentForm": formTypes.submit };
             } else if (state.currentForm === formTypes.submit) {
                 // TODO: Submit stuffs
+                return state;
+            } else {  // Nothing should change??
                 return state;
             }
 
@@ -132,7 +136,23 @@ function SuperForm(props) {
     // Use reducer hook to handle form data
     const [state, dispatch] = useReducer(reducer, initialForm);
 
-    let elem = <p>Stuff went wrong.</p>
+    // Use effect hook for api validation
+    useEffect(() => {
+        // TODO: Make sure buyingparty is the only field if you're gonna do this
+        if (inputs.buying in state.validateFields) {
+
+            // TODO: Get the validated value using fetch!
+            let validatedValue = "temporaryCorrection";
+
+            dispatch({
+                input: inputs.buying,
+                type: types.new,
+                newValue: validatedValue
+            });
+        }
+    }, [state.validateFields]);  // Only update when validateFields changes
+
+    let elem = <p>Should never see this.</p>
     if (state.currentForm === formTypes[1]) {
         elem = (
             <Paper elevation={3} className={classes.formContainer}>
@@ -263,6 +283,13 @@ function SubFormOne(props) {
     // Fetch defined styling
     const classes = useStyles(props);
 
+    // Fetch dispatch function from context
+    const dispatch = useContext(FormDispatch);
+
+    const validateBuying = () => {
+        dispatch({ type: types.validate, fields: {[inputs.buying]: true}})
+    };
+
     // Render sub-form within a grid
     return (
     <Grid
@@ -282,6 +309,7 @@ function SubFormOne(props) {
                 id={inputs.buying}
                 label="Buying Party"
                 value={props.fields.buyingParty}
+                onBlur={validateBuying}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
