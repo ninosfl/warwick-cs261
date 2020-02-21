@@ -13,14 +13,15 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 export { SuperForm };
 
 // All the valid forms
-const formTypes = {
+const subForms = {
     1: "1",
     2: "2",
     3: "3",
     "submit": "Submit"
 };
 
-const validateTypes = {
+// All the types of validations that can occur
+const validationTypes = {
     none: "None",
     buying: "buyingParty",
     selling: "sellingParty",
@@ -28,7 +29,7 @@ const validateTypes = {
 };
 
 // Contains all the initial form values
-const initialForm = {
+const initialFormState = {
     "buyingParty": "",
     "sellingParty": "",
     "productName": "",
@@ -38,12 +39,12 @@ const initialForm = {
     "maturityDate": "01.01.1970",
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
-    "currentForm": formTypes[1],
-    "validateType": validateTypes.none
+    "currentForm": subForms[1],
+    "validationType": validationTypes.none
 };
 
 // All the valid action types
-const types = {
+const actionTypes = {
     new: "new",
     validate: "validate",
     correction: "correction",
@@ -63,28 +64,38 @@ const inputs = {
     sPrice: "strikePrice"
 };
 
-// Reducer function, for use with useReducer hook
+// Reducer function, for use with useReducer hook.
+// Takes in a current state, and an action object (describing the details of
+// the action to be undertaken).
+// Returns a new state.
 const reducer = (state, action) => {
     switch (action.type) {
-        case types.new:
-            // Return a new object with only the input modified!
+        case actionTypes.new:
+            // Return a new object with only the relevant input modified!
             return { ...state, [action.input]: action.newValue };
 
-        case types.validate:
-            // Change validateType to activate SuperForm effect hook.
-            return { ...state, "validateType": action.validateType };
+        case actionTypes.validate:
+            // Change validationType to activate SuperForm effect hook.
+            return { ...state, "validationType": action.validationType };
 
-        case types.correction:
+        case actionTypes.correction:
             // TODO: Send previous value and new value to API
             return state;
 
-        case types.nextForm:
-            if ((state.currentForm) === formTypes[1]) {
-                // TODO: Forward to second subform
-                return {...state, "currentForm": formTypes.submit };
-            } else if (state.currentForm === formTypes.submit) {
-                // TODO: Submit stuffs
-                return state;
+        case actionTypes.nextForm:
+            switch (state.currentForm) {
+                case subForms[1]:
+                    // TODO: Forward to second subform (once it's made lol)
+                    return { ...state, "currentForm": subForms.submit };
+                case subForms[2]:
+                    return { ...state, "currentForm": subForms[3] };
+                case subForms[3]:
+                    return { ...state, "currentForm": subForms.submit };
+                case subForms.submit:
+                    // TODO: Submit stuffs
+                    return state;
+                default:
+                    return state;
             }
             break;
 
@@ -141,50 +152,48 @@ function SuperForm(props) {
     const classes = useStyles(props);
 
     // Use reducer hook to handle form data
-    const [state, dispatch] = useReducer(reducer, initialForm);
+    const [state, dispatch] = useReducer(reducer, initialFormState);
 
     // Use effect hook for api validation
+    // No need to reset validationType to some default value, since this
+    // effect will only run when it changes.
     useEffect(() => {
-        switch (state.validateType) {
-            case validateTypes.buying:
-                let validatedBuyer = "correctedBuyingParty";
+        // TODO: Make this do mad fetching to get validated values
+        switch (state.validationType) {
+            case validationTypes.buying:
                 dispatch({
                     input: inputs.buying,
-                    type: types.new,
-                    newValue: validatedBuyer
+                    type: actionTypes.new,
+                    newValue: state[inputs.buying] + " (validated by buying)"
                 });
 
                 break;
 
-            case validateTypes.selling:
-                let validatedSeller = "correctedSellingParty";
+            case validationTypes.selling:
                 dispatch({
                     input: inputs.selling,
-                    type: types.new,
-                    newValue: validatedSeller
+                    type: actionTypes.new,
+                    newValue: state[inputs.selling] + " (validated by selling)"
                 });
 
                 break;
 
-            case validateTypes.product:
-                // Get validated strings for buyingParty, sellingParty, and product
-                let [b, s, p] = ["validatedBuyingParty", "validatedSellingParty", "validatedProduct"];
-                
+            case validationTypes.product:
                 // Dispatch validated values to form!
                 dispatch({
                     input: inputs.buying,
-                    type: types.new,
-                    newValue: b
+                    type: actionTypes.new,
+                    newValue: state[inputs.buying] + " (validated by product)"
                 });
                 dispatch({
                     input: inputs.selling,
-                    type: types.new,
-                    newValue: s
+                    type: actionTypes.new,
+                    newValue: state[inputs.selling] + " (validated by product)"
                 });
                 dispatch({
                     input: inputs.product,
-                    type: types.new,
-                    newValue: p
+                    type: actionTypes.new,
+                    newValue: state[inputs.product] + " (validated by product)"
                 });
 
                 break;
@@ -192,10 +201,11 @@ function SuperForm(props) {
             default:
                 break;
         }
-    }, [state.validateType]);  // Only update when validateType changes
+    }, [state.validationType]);  // Only perform effect when validationType changes
 
+    // Render the specific subform that's currently meant to be on screen
     let elem = null;
-    if (state.currentForm === formTypes[1]) {
+    if (state.currentForm === subForms[1]) {
         elem = (
             <Paper elevation={3} className={classes.formContainer}>
                 <FormDispatch.Provider value={dispatch}>
@@ -203,7 +213,7 @@ function SuperForm(props) {
                 </FormDispatch.Provider>
             </Paper>
         );
-    } else if (state.currentForm === formTypes.submit) {
+    } else if (state.currentForm === subForms.submit) {
         elem = (
             <Paper elevation={3} className={classes.submitContainer}>
                 <FormDispatch.Provider value={dispatch}>
@@ -229,7 +239,7 @@ function FormField(props) {
     // action to the reducer hook.
     const handleChange = e => dispatch({
         input: props.id,
-        type: types.new,
+        type: actionTypes.new,
         newValue: e.target.value
     });
 
@@ -255,7 +265,7 @@ function SubmitField(props) {
     // action to the reducer hook.
     const handleChange = e => dispatch({
         input: props.id,
-        type: types.new,
+        type: actionTypes.new,
         newValue: e.target.value
     });
 
@@ -278,7 +288,7 @@ function NextButton(props) {
     const dispatch = useContext(FormDispatch);
 
     // Event function to get the SuperForm to render the next SubForm
-    const goToNextForm = () => dispatch({ type: types.nextForm });
+    const goToNextForm = () => dispatch({ type: actionTypes.nextForm });
 
     return (
         <Button
@@ -332,15 +342,15 @@ function SubFormOne(props) {
     // Define functions for validating each field, stating which fields need
     // to be sent and checked
     const validateBuying = () => {
-        dispatch({ type: types.validate, validateType: validateTypes.buying})
+        dispatch({ type: actionTypes.validate, validationType: validationTypes.buying})
     };
 
     const validateSelling = () => {
-        dispatch({ type: types.validate, validateType: validateTypes.selling})
+        dispatch({ type: actionTypes.validate, validationType: validationTypes.selling})
     };
 
     const validateProduct = () => {
-        dispatch({ type: types.validate, validateType: validateTypes.product })
+        dispatch({ type: actionTypes.validate, validationType: validationTypes.product })
     };
 
     // Render sub-form within a grid
@@ -391,6 +401,7 @@ function SubFormOne(props) {
     );
 }
 
+// Subform for the final Submit page, where the user checks everything
 function SubmitForm(props) {
     // Fetch defined styling
     const classes = useStyles(props);
