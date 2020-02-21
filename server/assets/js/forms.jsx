@@ -1,6 +1,6 @@
 /* jshint esversion: 9 */
 
-import React, { useReducer, useContext } from 'react';
+import React, { useReducer, useContext, useEffect } from 'react';
 import { Grid, Paper, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
@@ -9,14 +9,22 @@ import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import PublishIcon from '@material-ui/icons/Publish';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { useEffect } from 'react';
 
 export { SuperForm };
 
 // All the valid forms
 const formTypes = {
     1: "1",
+    2: "2",
+    3: "3",
     "submit": "Submit"
+};
+
+const validateTypes = {
+    none: "None",
+    buying: "buyingParty",
+    selling: "sellingParty",
+    product: "buyingParty, sellingParty, product"
 };
 
 // Contains all the initial form values
@@ -31,7 +39,7 @@ const initialForm = {
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
     "currentForm": formTypes[1],
-    "validateFields": {}
+    "validateType": validateTypes.none
 };
 
 // All the valid action types
@@ -63,11 +71,11 @@ const reducer = (state, action) => {
             return { ...state, [action.input]: action.newValue };
 
         case types.validate:
-            // TODO: fetch from API
-            return { ...state, "validateFields": action.fields };
+            // Change validateType to activate SuperForm effect hook.
+            return { ...state, "validateType": action.validateType };
 
         case types.correction:
-            // TODO: Send to API
+            // TODO: Send previous value and new value to API
             return state;
 
         case types.nextForm:
@@ -77,9 +85,8 @@ const reducer = (state, action) => {
             } else if (state.currentForm === formTypes.submit) {
                 // TODO: Submit stuffs
                 return state;
-            } else {  // Nothing should change??
-                return state;
             }
+            break;
 
         default:
             return state;
@@ -138,21 +145,56 @@ function SuperForm(props) {
 
     // Use effect hook for api validation
     useEffect(() => {
-        // TODO: Make sure buyingparty is the only field if you're gonna do this
-        if (inputs.buying in state.validateFields) {
+        switch (state.validateType) {
+            case validateTypes.buying:
+                let validatedBuyer = "correctedBuyingParty";
+                dispatch({
+                    input: inputs.buying,
+                    type: types.new,
+                    newValue: validatedBuyer
+                });
 
-            // TODO: Get the validated value using fetch!
-            let validatedValue = "temporaryCorrection";
+                break;
 
-            dispatch({
-                input: inputs.buying,
-                type: types.new,
-                newValue: validatedValue
-            });
+            case validateTypes.selling:
+                let validatedSeller = "correctedSellingParty";
+                dispatch({
+                    input: inputs.selling,
+                    type: types.new,
+                    newValue: validatedSeller
+                });
+
+                break;
+
+            case validateTypes.product:
+                // Get validated strings for buyingParty, sellingParty, and product
+                let [b, s, p] = ["validatedBuyingParty", "validatedSellingParty", "validatedProduct"];
+                
+                // Dispatch validated values to form!
+                dispatch({
+                    input: inputs.buying,
+                    type: types.new,
+                    newValue: b
+                });
+                dispatch({
+                    input: inputs.selling,
+                    type: types.new,
+                    newValue: s
+                });
+                dispatch({
+                    input: inputs.product,
+                    type: types.new,
+                    newValue: p
+                });
+
+                break;
+
+            default:
+                break;
         }
-    }, [state.validateFields]);  // Only update when validateFields changes
+    }, [state.validateType]);  // Only update when validateType changes
 
-    let elem = <p>Should never see this.</p>
+    let elem = null;
     if (state.currentForm === formTypes[1]) {
         elem = (
             <Paper elevation={3} className={classes.formContainer}>
@@ -235,6 +277,7 @@ function NextButton(props) {
     // Fetch dispatch function from context
     const dispatch = useContext(FormDispatch);
 
+    // Event function to get the SuperForm to render the next SubForm
     const goToNextForm = () => dispatch({ type: types.nextForm });
 
     return (
@@ -286,8 +329,18 @@ function SubFormOne(props) {
     // Fetch dispatch function from context
     const dispatch = useContext(FormDispatch);
 
+    // Define functions for validating each field, stating which fields need
+    // to be sent and checked
     const validateBuying = () => {
-        dispatch({ type: types.validate, fields: {[inputs.buying]: true}})
+        dispatch({ type: types.validate, validateType: validateTypes.buying})
+    };
+
+    const validateSelling = () => {
+        dispatch({ type: types.validate, validateType: validateTypes.selling})
+    };
+
+    const validateProduct = () => {
+        dispatch({ type: types.validate, validateType: validateTypes.product })
     };
 
     // Render sub-form within a grid
@@ -317,6 +370,7 @@ function SubFormOne(props) {
                 id={inputs.selling}
                 label="Selling Party"
                 value={props.fields.sellingParty}
+                onBlur={validateSelling}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -324,6 +378,7 @@ function SubFormOne(props) {
                 id={inputs.product}
                 label="Product Name"
                 value={props.fields.productName}
+                onBlur={validateProduct}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
