@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from django.utils import timezone
 from trades.models import (Product, Company, CurrencyValue, DerivativeTrade,
-                           ProductPrice, StockPrice, DerivativeTradeProduct)
+                           ProductPrice, StockPrice, TradeProduct)
 
 DATA_DIR = Path("../data")
 
@@ -108,10 +108,10 @@ def load_all(years_to_load, months_to_load):
                         underlying_currency=l[10],
                         strike_price=Decimal(l[11])))
                     if l[2] != "Stocks":
-                        tradeproducts.append(DerivativeTradeProduct(
+                        tradeproducts.append(TradeProduct(
                             trade=trades[-1], product_id=l[2]))
                 DerivativeTrade.objects.bulk_create(trades)
-                DerivativeTradeProduct.objects.bulk_create(tradeproducts)
+                TradeProduct.objects.bulk_create(tradeproducts)
             print(monthdir)
 
     """

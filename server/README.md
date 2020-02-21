@@ -4,9 +4,10 @@ Make sure python 3.8+ and npm 6.13+ are both installed on your system.
 
 ## Windows
 
-### Install django
+### Install requirements
 In terminal execute 
-`pip install django`
+`pip install django jellyfish`
+
 
 ### Run server
 `cd` to this directory (`cs261db/server/`)
