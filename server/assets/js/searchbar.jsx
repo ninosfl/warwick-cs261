@@ -84,14 +84,14 @@ function SearchBar() {
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar> 
-          <IconButton
+          {/* <IconButton
             edge="start"
             className={classes.menuButton}
             color="inherit"
             aria-label="open drawer"
           >
             <MenuIcon />
-          </IconButton>
+          </IconButton> */}
           <Typography className={classes.title} variant="h6" noWrap>
             20th Legion
           </Typography>
@@ -123,7 +123,7 @@ function SearchBar() {
               <SearchIcon />
             </div>
             <InputBase
-              placeholder="Search…"
+              placeholder="Search…" // will need to implement some kind of api call from here
               classes={{
                 root: classes.inputRoot,
                 input: classes.inputInput,
