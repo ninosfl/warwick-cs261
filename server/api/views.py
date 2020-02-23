@@ -186,7 +186,7 @@ def validate_trade(data):
 
     result["probabilityErroneous"] = ai_magic(data)
     result["success"] = True
-    return {"success": True}
+    return result
 
 def ai_magic(data):
     return 0
