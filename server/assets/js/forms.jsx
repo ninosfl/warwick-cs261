@@ -2,7 +2,6 @@
 
 import React, { useReducer, useContext, useEffect } from 'react';
 import { Grid, Paper, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
@@ -72,22 +71,36 @@ function SuperForm(props) {
 
     // Render the specific subform that's currently meant to be on screen
     let elem = null;
-    if (state.currentForm === subForms[1]) {
-        elem = (
-            <Paper elevation={3} className={classes.formContainer}>
-                <FormDispatch.Provider value={dispatch}>
-                    <SubFormOne fields={{...state}} />
-                </FormDispatch.Provider>
-            </Paper>
-        );
-    } else if (state.currentForm === subForms.submit) {
-        elem = (
-            <Paper elevation={3} className={classes.submitContainer}>
-                <FormDispatch.Provider value={dispatch}>
-                    <SubmitForm fields={{...state}} />
-                </FormDispatch.Provider>
-            </Paper>
-        );
+    switch (state.currentForm) {
+        case subForms[1]:
+            elem = (
+                <Paper elevation={3} className={classes.formContainer}>
+                    <FormDispatch.Provider value={dispatch}>
+                        <SubFormOne fields={{...state}} />
+                    </FormDispatch.Provider>
+                </Paper>
+            );
+            break;
+
+        case subForms[2]:
+            // TODO: Implement sub form 2!
+            elem = null;
+            break;
+
+        case subForms[3]:
+            // TODO: Implement sub form 3!
+            elem = null;
+            break;
+
+        case subForms.submit:
+            elem = (
+                <Paper elevation={3} className={classes.submitContainer}>
+                    <FormDispatch.Provider value={dispatch}>
+                        <SubmitForm fields={{...state}} />
+                    </FormDispatch.Provider>
+                </Paper>
+            );
+            break;
     }
 
     return elem;
