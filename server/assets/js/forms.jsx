@@ -94,7 +94,7 @@ function SuperForm(props) {
 
         case subForms.submit:
             elem = (
-                <Paper elevation={3} className={classes.submitContainer}>
+                <Paper elevation={3} className={classes.formContainer}>
                     <FormDispatch.Provider value={dispatch}>
                         <SubmitForm fields={{...state}} />
                     </FormDispatch.Provider>

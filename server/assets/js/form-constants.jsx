@@ -12,6 +12,7 @@ const subForms = {
 };
 
 // All the types of validations that can occur
+// TODO: Come up with and implement more!
 const validationTypes = {
     none: "None",
     buying: "buyingParty",
@@ -108,14 +109,14 @@ const useStyles = makeStyles( theme => ({
         top: '50%',
         transform: 'translate(-50%, -50%)'
     },
-    submitContainer: {
-        minHeight: "90vh",
-        minWidth: "80vh",
-        position: 'absolute', 
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)'
-    },
+    // submitContainer: {
+    //     minHeight: "90vh",
+    //     minWidth: "80vh",
+    //     position: 'absolute', 
+    //     left: '50%',
+    //     top: '50%',
+    //     transform: 'translate(-50%, -50%)'
+    // },
     submitItemContainer: {
         minWidth: "60vh",
     },
