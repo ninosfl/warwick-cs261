@@ -129,13 +129,14 @@ def validate_product(data):
         return result
 
     # Validate product sold by given company
-    if prod.seller_company == seller:
+    if prod.seller_company != seller:
         result["error"] = "Selling party does not match product selling company."
         if prod.seller_company.name == data["buyingParty"]:
             result["error"] += " Buying and selling parties can be swapped around"
-            result["canswap"] = True
+            result["canSwap"] = True
         else:
             result["canSwap"] = False
+        return result
 
     result["success"] = True
     return result
@@ -156,7 +157,7 @@ def validate_trade(data):
         result["error"] = f"Values not specified: {', '.join(not_specified)}"
         return result
 
-    # Things that should definitely be valid
+    # Fields that should definitely be valid
     prod = get_product(data["product"])
     if not prod:
         result["error"] = "Product does not exist"
