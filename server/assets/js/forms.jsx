@@ -27,6 +27,8 @@ function SuperForm(props) {
         // TODO: Make this do mad fetching to get validated values
         switch (state.validationType) {
             case validationTypes.buying:
+                // TODO: Validate buying party!
+
                 dispatch({
                     input: inputs.buying,
                     type: actionTypes.new,
@@ -36,6 +38,8 @@ function SuperForm(props) {
                 break;
 
             case validationTypes.selling:
+                // TODO: Validate selling party!
+
                 dispatch({
                     input: inputs.selling,
                     type: actionTypes.new,
@@ -45,6 +49,8 @@ function SuperForm(props) {
                 break;
 
             case validationTypes.product:
+                // TODO: Validate product!
+
                 // Dispatch validated values to form!
                 dispatch({
                     input: inputs.buying,
@@ -68,6 +74,11 @@ function SuperForm(props) {
                 break;
         }
     }, [state.validationType]);  // Only perform effect when validationType changes
+
+    // Use effect hook for logging corrections!
+    useEffect(() => {
+        // TODO: Send values to api/correction/
+    }, [state.correctionValues]);  // Only perform effect when correctValues changes
 
     // Render the specific subform that's currently meant to be on screen
     let elem = null;

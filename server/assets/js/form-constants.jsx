@@ -32,7 +32,8 @@ const initialFormState = {
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
     "currentForm": subForms[1],
-    "validationType": validationTypes.none
+    "validationType": validationTypes.none,
+    "correctionValues": []
 };
 
 // All the valid action types
