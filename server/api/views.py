@@ -49,7 +49,8 @@ def closest_matches(x, ws):
 
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
-    return currency_code in [CurrencyValue.objects.get(date=timezone.now().date())]
+    currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
+    return currency_code in currencies_today
 
 def ai_magic(data):
     # TODO by Michael
