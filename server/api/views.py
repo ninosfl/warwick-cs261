@@ -22,12 +22,14 @@ def api_main(request, func):
     return JsonResponse(func(json_dict))
 
 def get_company(name):
+    """ Returns the Company with that exact name or None if it does not exist """
     try:
         return Company.objects.get(name=name)
     except Company.DoesNotExist:
         return None
 
 def get_product(name):
+    """ Returns the Product with that exact name or None if it does not exist """
     try:
         return Product.objects.get(name=name)
     except Product.DoesNotExist:
@@ -46,7 +48,7 @@ def validate_company(data):
     else:
         result["success"] = True
 
-    # possibly a perfomance bottleneck
+    # possibly a performance bottleneck
     result["names"] = closest_matches(data["name"], [c.name for c in Company.objects.all()])
     return result
 
@@ -62,6 +64,7 @@ def closest_matches(x, ws):
     return sorted_distances[:5]
 
 def company(_, company_name):
+    """ View of a single company at path 'company/<company_name>/'' """
     comp = get_company(company_name)
     result = {
         "success": comp is not None,
@@ -77,17 +80,22 @@ def company(_, company_name):
     return JsonResponse(result)
 
 def product(_, product_name):
+    """ View of a single product at path 'product/<product_name>' """
     prod = get_product(product_name)
     result = {"success": prod is not None}
     if prod:
         result["product"] = {
             "name": prod.name,
-            "seller_company": prod.seller_company
+            "seller_company": prod.seller_company.name
         }
     result["suggestions"] = closest_matches(product_name, [p.name for p in Product.objects.all()])
     return JsonResponse(result)
 
 def company_product(_, company_name, product_name):
+    """
+    View of a single product of a company at path
+    'company/<company_name>/product/<product_name>'
+    """
     result = {}
     comp = get_company(company_name)
     result["company_exists"] = bool(comp)
@@ -98,7 +106,7 @@ def company_product(_, company_name, product_name):
     return JsonResponse(result)
 
 def validate_product(data):
-    """ Validate single product. Exected data: product, buyingParty, sellingParty"""
+    """ Validate single product. Expected data: product, buyingParty, sellingParty"""
     result = {"success": False}
 
     # Shape of request is as expected (all necessary data is given)
@@ -107,12 +115,12 @@ def validate_product(data):
         result["error"] = f"Values not specified: {', '.join(not_specified)}"
         return result
 
-    # Validate buyer existance
+    # Validate buyer existence
     if not get_company(data["buyingParty"]):
-        result["error"]= "Buying company does not exist"
+        result["error"] = "Buying company does not exist"
         return result
 
-    # Validate seller existance
+    # Validate seller existence
     seller = get_company(data["sellingParty"])
     if not seller:
         result["error"] = "Selling company does not exist"
@@ -122,7 +130,7 @@ def validate_product(data):
     result["products"] = closest_matches(
         data["product"], [p.name for p in Product.objects.all()])
 
-    # Validate product existance
+    # Validate product existence
     prod = get_product(data["product"])
     if not prod:
         result["error"] = "Product does not exist"
@@ -142,6 +150,7 @@ def validate_product(data):
     return result
 
 def currency_exists(currency_code):
+    """ Checks for if the given currency exists in today's currencies """
     return currency_code in [CurrencyValue.objects.get(date=timezone.now().date())]
 
 def validate_trade(data):
@@ -177,7 +186,7 @@ def validate_trade(data):
             result["error"] = "Quantity must be positive"
             return result
     except ValueError:
-        result["error"] = "Quanity given must be an integer"
+        result["error"] = "Quantity given must be an integer"
         return result
 
     product_validation_result = validate_product(data)
@@ -189,6 +198,7 @@ def validate_trade(data):
     return result
 
 def ai_magic(data):
+    # TODO by Michael
     return 0
 
 def validate_maturity_date(data):
