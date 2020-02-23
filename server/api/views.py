@@ -35,6 +35,26 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
+def closest_matches(x, ws):
+    """
+    Given a string and an iterable of strings returns the 5 with the smallest
+    edit distance in order of the closest string first. All strings with edit
+    distance > 5 are filtered out.
+    """
+    distances = {w: edit_dist(x, w) for w in ws}
+    filtered_distances = {w: d for w, d in distances.items() if d <= 5}
+    sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
+    return sorted_distances[:5]
+
+
+def currency_exists(currency_code):
+    """ Checks for if the given currency exists in today's currencies """
+    return currency_code in [CurrencyValue.objects.get(date=timezone.now().date())]
+
+def ai_magic(data):
+    # TODO by Michael
+    return 0
+
 def validate_company(data):
     """ Validate single company. Expected data: name """
     result = {"success": False}
@@ -51,59 +71,6 @@ def validate_company(data):
     # possibly a performance bottleneck
     result["names"] = closest_matches(data["name"], [c.name for c in Company.objects.all()])
     return result
-
-def closest_matches(x, ws):
-    """
-    Given a string and an iterable of strings returns the 5 with the smallest
-    edit distance in order of the closest string first. All strings with edit
-    distance > 5 are filtered out.
-    """
-    distances = {w: edit_dist(x, w) for w in ws}
-    filtered_distances = {w: d for w, d in distances.items() if d <= 5}
-    sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
-    return sorted_distances[:5]
-
-def company(_, company_name):
-    """ View of a single company at path 'company/<company_name>/'' """
-    comp = get_company(company_name)
-    result = {
-        "success": comp is not None,
-        "suggestions": closest_matches(
-            company_name, [c.name for c in Company.objects.all()]
-        ),
-    }
-    if comp:
-        result["company"] = {
-            "name": comp.name,
-            "id": comp.id
-        }
-    return JsonResponse(result)
-
-def product(_, product_name):
-    """ View of a single product at path 'product/<product_name>' """
-    prod = get_product(product_name)
-    result = {"success": prod is not None}
-    if prod:
-        result["product"] = {
-            "name": prod.name,
-            "seller_company": prod.seller_company.name
-        }
-    result["suggestions"] = closest_matches(product_name, [p.name for p in Product.objects.all()])
-    return JsonResponse(result)
-
-def company_product(_, company_name, product_name):
-    """
-    View of a single product of a company at path
-    'company/<company_name>/product/<product_name>'
-    """
-    result = {}
-    comp = get_company(company_name)
-    result["company_exists"] = bool(comp)
-    if comp:
-        result["product_suggestions"] = closest_matches(
-            product_name, [p.name for p in comp.product_set.all()]
-        )
-    return JsonResponse(result)
 
 def validate_product(data):
     """ Validate single product. Expected data: product, buyingParty, sellingParty"""
@@ -149,10 +116,6 @@ def validate_product(data):
     result["success"] = True
     return result
 
-def currency_exists(currency_code):
-    """ Checks for if the given currency exists in today's currencies """
-    return currency_code in [CurrencyValue.objects.get(date=timezone.now().date())]
-
 def validate_trade(data):
     """
     Validate a whole trade. Expected data: product, sellingParty, buyingParty,
@@ -197,10 +160,6 @@ def validate_trade(data):
     result["success"] = True
     return result
 
-def ai_magic(data):
-    # TODO by Michael
-    return 0
-
 def validate_maturity_date(data):
     """
     Validate maturity date based on server's current time.
@@ -229,3 +188,47 @@ def validate_maturity_date(data):
 
     result["success"] = True
     return result
+
+### Additional stuff below ###
+
+def company(_, company_name):
+    """ View of a single company at path 'company/<company_name>/'' """
+    comp = get_company(company_name)
+    result = {
+        "success": comp is not None,
+        "suggestions": closest_matches(
+            company_name, [c.name for c in Company.objects.all()]
+        ),
+    }
+    if comp:
+        result["company"] = {
+            "name": comp.name,
+            "id": comp.id
+        }
+    return JsonResponse(result)
+
+def product(_, product_name):
+    """ View of a single product at path 'product/<product_name>' """
+    prod = get_product(product_name)
+    result = {"success": prod is not None}
+    if prod:
+        result["product"] = {
+            "name": prod.name,
+            "seller_company": prod.seller_company.name
+        }
+    result["suggestions"] = closest_matches(product_name, [p.name for p in Product.objects.all()])
+    return JsonResponse(result)
+
+def company_product(_, company_name, product_name):
+    """
+    View of a single product of a company at path
+    'company/<company_name>/product/<product_name>'
+    """
+    result = {}
+    comp = get_company(company_name)
+    result["company_exists"] = bool(comp)
+    if comp:
+        result["product_suggestions"] = closest_matches(
+            product_name, [p.name for p in comp.product_set.all()]
+        )
+    return JsonResponse(result)
