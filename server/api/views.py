@@ -35,6 +35,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
+
 def closest_matches(x, ws):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
@@ -46,6 +47,13 @@ def closest_matches(x, ws):
     sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
     return sorted_distances[:5]
 
+# TODO Optimisation when insertion of new CurrencyValues is sorted out 
+# @functools.lru_cache
+# def get_currencies(date_param=timezone.now().date()):
+#     return {c.currency for c in CurrencyValue.objects.get(date=date_param)}
+# def currency_exists(currency_code):
+#     currencies_today = get_currencies(timezone.now().date())
+#     return currency_code in currencies_today
 
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
