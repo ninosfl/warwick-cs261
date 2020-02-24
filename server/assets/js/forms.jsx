@@ -1,6 +1,6 @@
 /* jshint esversion: 9 */
 
-import React, { useReducer, useContext, useEffect } from 'react';
+import React, { useReducer, useContext, useEffect, useState } from 'react';
 import { Grid, Paper, Typography } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
@@ -78,7 +78,7 @@ function SuperForm(props) {
     // Use effect hook for logging corrections!
     useEffect(() => {
         // TODO: Send values to api/correction/
-    }, [state.correctionValues]);  // Only perform effect when correctValues changes
+    }, [state.correctionFields]);  // Only perform effect when correctionFields changes
 
     // Render the specific subform that's currently meant to be on screen
     let elem = null;
@@ -142,6 +142,31 @@ function FormField(props) {
             {...props}
         />
     );
+}
+
+// Component for text fields that need correction in the form
+function ErrorFormField(props) {
+    // Set the anchor element on the menu
+    const [anchor, setAnchor] = React.useState(null);
+    // Functions for setting the menu anchor to the current form field
+    const whenFocused = event => setAnchor(event.currentTarget);
+    const whenLeaving = event => setAnchor(null);
+
+    return (
+    <>
+        <FormField error helperText="This input looks wrong." onClick={whenFocused} {...props}/>
+        <Menu
+            id="simple-menu"
+            anchorEl={anchorEl}
+            keepMounted
+            open={Boolean(anchorEl)}
+            onClose={whenLeaving}
+        >
+            <MenuItem onClick={whenLeaving}>Profile</MenuItem>
+            <MenuItem onClick={whenLeaving}>My account</MenuItem>
+            <MenuItem onClick={whenLeaving}>Logout</MenuItem>
+        </Menu>
+    </>);
 }
 
 function SubmitField(props) {
@@ -259,7 +284,7 @@ function SubFormOne(props) {
             <SubFormTitle>Step 1 of 4</SubFormTitle>
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            <FormField
+            <ErrorFormField
                 id={inputs.buying}
                 label="Buying Party"
                 value={props.fields.buyingParty}
@@ -280,6 +305,7 @@ function SubFormOne(props) {
                 label="Product Name"
                 value={props.fields.productName}
                 onBlur={validateProduct}
+                // {(String(inputs.product) in props.fields.needsCorrection) && error}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>

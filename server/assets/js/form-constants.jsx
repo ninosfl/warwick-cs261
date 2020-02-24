@@ -33,7 +33,8 @@ const initialFormState = {
     "strikePrice": 0.0,
     "currentForm": subForms[1],
     "validationType": validationTypes.none,
-    "correctionValues": []
+    "correctionFields": {},
+    "needsCorrection": {"buyingParty": true}
 };
 
 // All the valid action types
