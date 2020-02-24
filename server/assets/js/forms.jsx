@@ -196,6 +196,29 @@ function ErrorFormField(props) {
     </>);
 }
 
+function FormFieldWrapper(props) {
+    // Display field normally if no suggestions available
+    if (props.suggestions.length === 0) {
+        return (
+            <FormField
+                id={props.id}
+                label={props.label}
+                value={props.value}
+                onBlur={props.onBlur}
+            />);
+
+    } else { // Otherwise, return an error field
+        return (
+            <ErrorFormField
+                id={props.id}
+                label={props.label}
+                value={props.value}
+                onBlur={props.onBlur}
+                suggestions={props.suggestions}
+            />);
+    }
+}
+
 function SubmitField(props) {
     // Get dispatch function from the reducer hook via a context hook
     // TODO: Move this out if this proves expensive
@@ -297,61 +320,14 @@ function SubFormOne(props) {
     };
 
     // Flag for if any corrections are required
-    let needsCorrection = false;
-
-    // Set up buying field
-    let buyingField = null;
-    let buyingCorrections = props.fields.correctionFields[inputs.buying];
-    if (buyingCorrections.length === 0) {
-        // Display buyingField normally
-        buyingField = (
-            <FormField
-                id={inputs.buying}
-                label="Buying Party"
-                value={props.fields.buyingParty}
-                onBlur={validateBuying}
-            />);
-
-    } else {
-        // Make buyingField an error field
-        buyingField = (
-            <ErrorFormField
-                id={inputs.buying}
-                label="Buying Party"
-                value={props.fields.buyingParty}
-                onBlur={validateBuying}
-                suggestions={buyingCorrections}
-            />);
-
-        needsCorrection = true;  // Set flag
-    }
-
-    // Set up selling field
-    let sellingField = null;
-    let sellingCorrections = props.fields.correctionFields[inputs.selling];
-    if (sellingCorrections.length === 0) {
-        // Display sellingField normally
-        sellingField = (
-            <FormField
-                id={inputs.selling}
-                label="Selling Party"
-                value={props.fields.sellingParty}
-                onBlur={validateSelling}
-            />);
-
-    } else {
-        // Make sellingField an error field
-        sellingField = (
-            <ErrorFormField
-                id={inputs.selling}
-                label="Selling Party"
-                value={props.fields.sellingParty}
-                onBlur={validateSelling}
-                suggestions={sellingCorrections}
-            />);
-
-        needsCorrection = true;  // Set flag
-    }
+    let canProgress = (
+        props.fields.correctionFields[inputs.buying].length > 0
+        || props.fields.correctionFields[inputs.selling].length > 0
+        || props.fields.correctionFields[inputs.product].length > 0
+        || props.fields.sellingParty === ""
+        || props.fields.buyingParty === ""
+        || props.fields.productName === ""
+    );
 
     // Render sub-form within a grid
     return (
@@ -368,25 +344,34 @@ function SubFormOne(props) {
             <SubFormTitle>Step 1 of 4</SubFormTitle>
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            {buyingField}
+            <FormFieldWrapper
+                id={inputs.buying}
+                label="Buying Party"
+                value={props.fields.buyingParty}
+                onBlur={validateBuying}
+                suggestions={props.fields.correctionFields[inputs.buying]}
+            />
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            {sellingField}
+            <FormFieldWrapper
+                id={inputs.selling}
+                label="Selling Party"
+                value={props.fields.sellingParty}
+                onBlur={validateSelling}
+                suggestions={props.fields.correctionFields[inputs.selling]}
+            />
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            <FormField
+            <FormFieldWrapper
                 id={inputs.product}
                 label="Product Name"
                 value={props.fields.productName}
                 onBlur={validateProduct}
+                suggestions={props.fields.correctionFields[inputs.product]}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            {(needsCorrection
-                || props.fields.sellingParty === ""
-                || props.fields.buyingParty === ""
-                || props.fields.productName === "")
-                ? <NextButton disabled /> : <NextButton />}
+            {canProgress ? <NextButton disabled /> : <NextButton />}
         </Grid>
     </Grid>
     );
