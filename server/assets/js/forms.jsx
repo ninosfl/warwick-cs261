@@ -71,22 +71,30 @@ function SuperForm(props) {
             case validationTypes.product:
                 // TODO: Validate product!
 
-                // Dispatch validated values to form!
-                dispatch({
-                    input: inputs.buying,
-                    type: actionTypes.new,
-                    newValue: state[inputs.buying] + " (validated by product)"
-                });
-                dispatch({
-                    input: inputs.selling,
-                    type: actionTypes.new,
-                    newValue: state[inputs.selling] + " (validated by product)"
-                });
-                dispatch({
-                    input: inputs.product,
-                    type: actionTypes.new,
-                    newValue: state[inputs.product] + " (validated by product)"
-                });
+                if (state.productName.includes("test")) {
+                    dispatch({
+                        type: actionTypes.provideSuggestions,
+                        field: inputs.product,
+                        suggestions: ["Strange things are", "afoot at", "the Circle-K"]
+                    });
+                } else {
+                    // Dispatch validated values to form!
+                    dispatch({
+                        input: inputs.buying,
+                        type: actionTypes.new,
+                        newValue: state[inputs.buying] + " (validated by product)"
+                    });
+                    dispatch({
+                        input: inputs.selling,
+                        type: actionTypes.new,
+                        newValue: state[inputs.selling] + " (validated by product)"
+                    });
+                    dispatch({
+                        input: inputs.product,
+                        type: actionTypes.new,
+                        newValue: state[inputs.product] + " (validated by product)"
+                    });
+                }                
 
                 break;
 
