@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 def list_years(request):
     """ List all years available. """
-    placeholder_years = [y for y in range(2000, 2020 + 1)]
+    placeholder_years = [y for y in range(2020, 2000 - 1, -1)]
     context = {"years": placeholder_years}
     return render(request, "reports/years.html", context)
 
