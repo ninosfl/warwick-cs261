@@ -2,6 +2,8 @@ from calendar import Calendar
 from django.utils import timezone
 from django.shortcuts import render
 
+from .models import Report
+
 def list_years(request):
     """ List all years available. """
     placeholder_years = [y for y in range(2000, 2020 + 1)]
@@ -49,7 +51,7 @@ def report(request, year: int, month: int, day: int):
     """ Fetch the report for the given day in the given month of the given year. """
 
     result, err = is_day_valid(year, month, day)
-
+	
     if not result:
         context = {"error_message": err}
         return render(request, "errors/errorpage.html", context)
@@ -59,6 +61,9 @@ def report(request, year: int, month: int, day: int):
         "month": month,
         "day": day
     }
+	
+    reports = Report.objects.all()
+    print(reports)
     return render(request, "reports/report.html", context)
 
 
