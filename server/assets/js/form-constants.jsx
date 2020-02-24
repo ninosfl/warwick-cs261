@@ -33,7 +33,17 @@ const initialFormState = {
     "strikePrice": 0.0,
     "currentForm": subForms[1],
     "validationType": validationTypes.none,
-    "correctionFields": {},
+    "correctionFields": {
+        "buyingParty": [],
+        "sellingParty": [],
+        "productName": [],
+        "quantity": [],
+        "underlyingCurrency": [],
+        "underlyingPrice": [],
+        "maturityDate": [],
+        "notionalCurrency": [],
+        "strikePrice": [],
+    },
     "needsCorrection": {"buyingParty": true}
 };
 
@@ -42,6 +52,7 @@ const actionTypes = {
     new: "new",
     validate: "validate",
     correction: "correction",
+    provideSuggestions: "provideSuggestions",
     nextForm: "next"
 };
 
@@ -75,6 +86,10 @@ const reducer = (state, action) => {
         case actionTypes.correction:
             // TODO: Send previous value and new value to API
             return state;
+
+        case actionTypes.provideSuggestions:
+            // Replace state correction values with new ones
+            return { ...state, "correctionFields": {...state.correctionFields, [action.field]: action.suggestions}}
 
         case actionTypes.nextForm:
             switch (state.currentForm) {
