@@ -44,7 +44,6 @@ const initialFormState = {
         "notionalCurrency": [],
         "strikePrice": [],
     },
-    "needsCorrection": {"buyingParty": true}
 };
 
 // All the valid action types
