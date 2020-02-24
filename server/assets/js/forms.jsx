@@ -51,11 +51,20 @@ function SuperForm(props) {
             case validationTypes.selling:
                 // TODO: Validate selling party!
 
-                dispatch({
-                    input: inputs.selling,
-                    type: actionTypes.new,
-                    newValue: state[inputs.selling] + " (validated by selling)"
-                });
+                // TODO: Make this condition actually API-related
+                if (state.sellingParty.includes("test")) {
+                    dispatch({
+                        type: actionTypes.provideSuggestions,
+                        field: inputs.selling,
+                        suggestions: ["Whoa", "Excellent", "*Electric Guitar Noises*"]
+                    });
+                } else { // TODO: Remove, this is just for debugging
+                    dispatch({
+                        input: inputs.selling,
+                        type: actionTypes.new,
+                        newValue: state[inputs.selling] + " (validated by selling)"
+                    });
+                }
 
                 break;
 
@@ -159,10 +168,13 @@ function FormField(props) {
 function ErrorFormField(props) {
     // Set the anchor element on the menu
     const [anchor, setAnchor] = React.useState(null);
+
     // Functions for setting the menu anchor to the current form field
     const whenFocused = event => setAnchor(event.currentTarget);
+    // TODO: When leaving, dispatch with type actionTypes.correction ??
     const whenLeaving = () => setAnchor(null);
 
+    // Make suggestions React elements
     const suggestions = props.suggestions.map((s, i) =>
         <MenuItem onClick={whenLeaving} key={i}>{s}</MenuItem>
     );
@@ -179,7 +191,7 @@ function ErrorFormField(props) {
         >
             <MenuItem disabled={true}>Please select a correction:</MenuItem>
             {suggestions}
-            <MenuItem onClick={whenLeaving}>{props.value} (No Change)</MenuItem>
+            <MenuItem onClick={whenLeaving}>Stick with: {props.value}</MenuItem>
         </Menu>
     </>);
 }
@@ -314,6 +326,33 @@ function SubFormOne(props) {
         needsCorrection = true;  // Set flag
     }
 
+    // Set up selling field
+    let sellingField = null;
+    let sellingCorrections = props.fields.correctionFields[inputs.selling];
+    if (sellingCorrections.length === 0) {
+        // Display sellingField normally
+        sellingField = (
+            <FormField
+                id={inputs.selling}
+                label="Selling Party"
+                value={props.fields.sellingParty}
+                onBlur={validateSelling}
+            />);
+
+    } else {
+        // Make sellingField an error field
+        sellingField = (
+            <ErrorFormField
+                id={inputs.selling}
+                label="Selling Party"
+                value={props.fields.sellingParty}
+                onBlur={validateSelling}
+                suggestions={sellingCorrections}
+            />);
+
+        needsCorrection = true;  // Set flag
+    }
+
     // Render sub-form within a grid
     return (
     <Grid
@@ -332,12 +371,7 @@ function SubFormOne(props) {
             {buyingField}
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            <FormField
-                id={inputs.selling}
-                label="Selling Party"
-                value={props.fields.sellingParty}
-                onBlur={validateSelling}
-            />
+            {sellingField}
         </Grid>
         <Grid item className={classes.formItemContainer}>
             <FormField
