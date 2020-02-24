@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'api.apps.ApiConfig',
     'reports.apps.ReportsConfig',
     'trades.apps.TradesConfig',
     'django.contrib.admin',
