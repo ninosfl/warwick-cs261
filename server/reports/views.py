@@ -62,8 +62,6 @@ def report(request, year: int, month: int, day: int):
         "day": day
     }
 	
-    reports = Report.objects.all()
-    print(reports)
     return render(request, "reports/report.html", context)
 
 
