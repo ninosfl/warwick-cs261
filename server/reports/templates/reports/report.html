@@ -1,9 +1,10 @@
 {% extends "trades/base.html" %}
 
 {% block content %}
+<p>yo</p>
 {% for report in reports %}
-    <h1>{{ report.product }}</h1>
+    <h1>{{ report.product_type }}</h1>
     <p>{{ report.date_of_trade }}</p>
-    <p>{{ report.trade_ID }}</p>
+    <p>{{ report.trade_id }}</p>
 {% endfor %}
 {% endblock content %}

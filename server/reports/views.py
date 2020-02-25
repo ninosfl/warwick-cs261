@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.shortcuts import render
 
 from .models import Report
+from trades.models import DerivativeTrade
 
 def list_years(request):
     """ List all years available. """
@@ -56,7 +57,7 @@ def report(request, year: int, month: int, day: int):
         context = {"error_message": err}
         return render(request, "errors/errorpage.html", context)
 
-    reports = Report.objects.all()
+    reports = DerivativeTrade.objects.filter(trade_id = 'BQZYKXZV35323664')
 
     context = {
         "year": year,
@@ -64,6 +65,7 @@ def report(request, year: int, month: int, day: int):
         "day": day,
         "reports": reports
     }
+
     return render(request, "reports/report.html", context)
 
 
