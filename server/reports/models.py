@@ -1,5 +1,10 @@
 from django.db import models
 
+# FIXME remove: we want to query the database for all the reports on a certain day and get
+# these printed as basic html.
+# FIXME remove: if we're still using 'product_type', do a natural join on Product.seller_company
+# and Report.selling_party
+
 class Report(models.Model):
     date_of_trade = models.DateField()
     trade_id = models.IntegerField()
