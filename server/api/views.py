@@ -4,6 +4,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from trades.models import Company, Product, CurrencyValue
+from learning.models import Correction
+import logging
 
 from jellyfish import damerau_levenshtein_distance as edit_dist
 
@@ -35,13 +37,17 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-def closest_matches(x, ws):
+def closest_matches(x, ws, commonCorrectionField = None, correction_function = min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
     edit distance in order of the closest string first. All strings with edit
     distance > 5 are filtered out.
     """
-    distances = {w: edit_dist(x, w) for w in ws}
+    timesCorrected = {}
+    if commonCorrectionField:
+        for q in Correction.objects.filter(old_val=x,field=commonCorrectionField):
+            timesCorrected[q.new_val] = q.times_corrected
+    distances = {w: correction_function(edit_dist(x,w),  6-timesCorrected.get(w,0)) if commonCorrectionField else edit_dist(x, w)  for w in ws}
     filtered_distances = {w: d for w, d in distances.items() if d <= 5}
     sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
     return sorted_distances[:5]
@@ -160,6 +166,19 @@ def validate_trade(data):
     result["probabilityErroneous"] = ai_magic(data)
     result["success"] = True
     return result
+@csrf_exempt
+def correction(data):
+    print(data)
+    try:
+        corr = Correction.objects.get(old_val=data['oldValue'],new_val=data['newValue'],field=data['field'])
+        corr.times_corrected += 1
+        corr.save()
+    except Correction.DoesNotExist:
+        Correction.objects.create(old_val=data['oldValue'],new_val=data['newValue'],field=data['field'],times_corrected=1)
+    return {
+        'success':'true'
+    }
+
 
 def validate_maturity_date(data):
     """
@@ -198,7 +217,7 @@ def company(_, company_name):
     result = {
         "success": comp is not None,
         "suggestions": closest_matches(
-            company_name, [c.name for c in Company.objects.all()]
+            company_name, [c.name for c in Company.objects.all()],commonCorrectionField='companyName'
         ),
     }
     if comp:
