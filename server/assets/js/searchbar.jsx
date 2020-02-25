@@ -91,11 +91,12 @@ function ScrollTop(props) {
   });
 
   const handleClick = event => {
-    const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
+    // const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
 
-    if (anchor) {
-      anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    // if (anchor) {
+    //   anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // }
+    window.scrollTo(0,0)
   };
 
   return (
@@ -134,6 +135,12 @@ function SearchBar() {
 
   return (
     <div className={classes.root}>
+            {/* This part does the scroll button with the arrow mark */}
+      <ScrollTop > 
+        <Fab color="primary" size="small" aria-label="scroll back to top">
+          <KeyboardArrowUpIcon />  
+        </Fab>
+      </ScrollTop>
       <AppBar position="static">
         <Toolbar  id="back-to-top-anchor"> 
           {/* <IconButton
@@ -185,12 +192,6 @@ function SearchBar() {
           </div>
         </Toolbar>
       </AppBar>
-      {/* This part does the scroll button with the arrow mark */}
-      <ScrollTop > 
-          <Fab color="primary" size="small" aria-label="scroll back to top">
-            <KeyboardArrowUpIcon />  
-          </Fab>
-      </ScrollTop>
     </div>
   );
 }

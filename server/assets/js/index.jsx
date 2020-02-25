@@ -17,12 +17,13 @@ function App() {
 
 // Try different render targets, rendering to the one that appears first
 let target = null;
-if (target = document.querySelector('#react-app')) {
-  ReactDOM.render(<App />, target);
-}
 
 if(target = document.querySelector('#searchbar')){
   ReactDOM.render(<SearchBar />, target)
+}
+
+if (target = document.querySelector('#react-app')) {
+  ReactDOM.render(<App />, target);
 }
 
 if (target = document.querySelector('#report-list-years')) {
