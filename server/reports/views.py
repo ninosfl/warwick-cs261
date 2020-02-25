@@ -56,7 +56,7 @@ def report(request, year: int, month: int, day: int):
         context = {"error_message": err}
         return render(request, "errors/errorpage.html", context)
 
-    reports = DerivativeTrade.objects.filter(trade_id = 'BQZYKXZV35323664')
+    reports = DerivativeTrade.objects.filter(date_of_trade = ("%s-%s-%s" % (str(year), str(month), str(day))))
 
     context = {
         "year": year,
@@ -66,7 +66,6 @@ def report(request, year: int, month: int, day: int):
     }
 
     return render(request, "reports/report.html", context)
-
 
 def is_year_valid(year: int, now=timezone.now()):
     """ Checks if a given year is valid. """
