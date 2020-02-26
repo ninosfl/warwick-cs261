@@ -47,14 +47,29 @@ function ErrorFormField(props) {
     // Set the anchor element on the menu
     const [anchor, setAnchor] = React.useState(null);
 
+    // Get dispatch function from the reducer hook via a context hook
+    const dispatch = useContext(FormDispatch);
+
     // Functions for setting the menu anchor to the current form field
     const whenFocused = event => setAnchor(event.currentTarget);
-    // TODO: When leaving, dispatch with type actionTypes.correction ??
-    const whenLeaving = () => setAnchor(null);
 
-    // Make suggestions React elements
+    const whenLeaving = val => () => {
+        // If there is a correction string, then correct the value!
+        if (val !== null) {
+            dispatch({
+                input: props.id,
+                type: actionTypes.correction,
+                oldValue: props.value,
+                newValue: val
+            });
+        }
+        
+        setAnchor(null); // Make menu go away
+    };
+
+    // Make suggestions React components
     const suggestions = props.suggestions.map((s, i) =>
-        <MenuItem onClick={whenLeaving} key={i}>{s}</MenuItem>
+        <MenuItem onClick={whenLeaving(s)} key={i}>{s}</MenuItem>
     );
 
     return (
@@ -69,7 +84,7 @@ function ErrorFormField(props) {
         >
             <MenuItem disabled={true}>Please select a correction:</MenuItem>
             {suggestions}
-            <MenuItem onClick={whenLeaving}>Stick with: {props.value}</MenuItem>
+            <MenuItem onClick={whenLeaving(props.value)}>Stick with: {props.value}</MenuItem>
         </Menu>
     </>);
 }

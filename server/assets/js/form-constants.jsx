@@ -84,11 +84,12 @@ const reducer = (state, action) => {
 
         case actionTypes.correction:
             // TODO: Send previous value and new value to API
-            return state;
+            let oldVal = action.oldValue;
+            return { ...state, [action.input]: action.newValue, "correctionFields": {...state.correctionFields, [action.input]: []} };
 
         case actionTypes.provideSuggestions:
             // Replace state correction values with new ones
-            return { ...state, "correctionFields": {...state.correctionFields, [action.field]: action.suggestions}}
+            return { ...state, "correctionFields": {...state.correctionFields, [action.input]: action.suggestions}}
 
         case actionTypes.nextForm:
             switch (state.currentForm) {

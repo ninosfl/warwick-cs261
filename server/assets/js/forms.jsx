@@ -30,7 +30,7 @@ function SuperForm(props) {
                 if (state.buyingParty.includes("test")) {
                     dispatch({
                         type: actionTypes.provideSuggestions,
-                        field: inputs.buying,
+                        input: inputs.buying,
                         suggestions: ["Sixty", "Nine", "Dudes!"]
                     });
                 } else { // TODO: Remove, this is just for debugging
@@ -50,7 +50,7 @@ function SuperForm(props) {
                 if (state.sellingParty.includes("test")) {
                     dispatch({
                         type: actionTypes.provideSuggestions,
-                        field: inputs.selling,
+                        input: inputs.selling,
                         suggestions: ["Whoa", "Excellent", "*Electric Guitar Noises*"]
                     });
                 } else { // TODO: Remove, this is just for debugging
@@ -69,7 +69,7 @@ function SuperForm(props) {
                 if (state.productName.includes("test")) {
                     dispatch({
                         type: actionTypes.provideSuggestions,
-                        field: inputs.product,
+                        input: inputs.product,
                         suggestions: ["Strange things are", "afoot at", "the Circle-K"]
                     });
                 } else {
