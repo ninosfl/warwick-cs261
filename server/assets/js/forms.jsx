@@ -181,9 +181,7 @@ function SubFormOne(props) {
 
     // Only let them progress if all fields are non-empty and there are no
     // corrections left
-    // TODO: Make sure this "no corrections left" condition doesn't break stuff
-    // when they pick a correction.
-    let canProgress = (
+    let anyEmptyOrError = (
         props.fields.correctionFields[inputs.buying].length > 0
         || props.fields.correctionFields[inputs.selling].length > 0
         || props.fields.correctionFields[inputs.product].length > 0
@@ -237,7 +235,7 @@ function SubFormOne(props) {
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            {canProgress ? <NextButton disabled /> : <NextButton />}
+            {anyEmptyOrError ? <NextButton disabled /> : <NextButton />}
         </Grid>
     </Grid>
     );
@@ -248,6 +246,10 @@ function SubFormOne(props) {
 function SubmitForm(props) {
     // Fetch defined styling
     const classes = useStyles(props);
+
+    // If any fields are blank, you can't submit!
+    const fields = Object.values(inputs).map(input => props.fields[input]);
+    let anyInputEmpty = fields.some(field => field === "");
 
     // Render sub-form within a grid
     return (
@@ -326,7 +328,7 @@ function SubmitForm(props) {
                 />
             </Grid>
             <Grid item className={classes.submitButton}>
-                <SubmitButton/>
+            {anyInputEmpty ? <SubmitButton disabled/> : <SubmitButton/>}
             </Grid>
         </Grid>
     );
