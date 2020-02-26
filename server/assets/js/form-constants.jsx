@@ -119,8 +119,8 @@ const FormDispatch = React.createContext(null);
 // Mad styling son - mostly to ensure the form goes in the middle of the screen
 const useStyles = makeStyles( theme => ({
     formContainer: {
-        minHeight: "90vh",
-        minWidth: "80vh",
+        height: "90vh",
+        width: "80vh",
         position: 'absolute', 
         left: '50%',
         top: '50%',
@@ -128,21 +128,21 @@ const useStyles = makeStyles( theme => ({
     },
     // submitContainer: {
     //     minHeight: "90vh",
-    //     minWidth: "80vh",
+    //     width: "80vh",
     //     position: 'absolute', 
     //     left: '50%',
     //     top: '50%',
     //     transform: 'translate(-50%, -50%)'
     // },
     submitItemContainer: {
-        minWidth: "60vh",
+        width: "60vh",
     },
     submitButton: {
-        minWidth: "60vh",
+        width: "60vh",
         marginTop: "16px",
     },
     formItemContainer: {
-        minWidth: "60vh",
+        width: "60vh",
     },
     formItem: {
         width: '100%'
