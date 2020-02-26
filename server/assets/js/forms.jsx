@@ -213,6 +213,7 @@ function SubFormOne(props) {
                 value={props.fields.buyingParty}
                 onBlur={validateBuying}
                 suggestions={props.fields.correctionFields[inputs.buying]}
+                helperText="Please enter the buying party."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -222,6 +223,7 @@ function SubFormOne(props) {
                 value={props.fields.sellingParty}
                 onBlur={validateSelling}
                 suggestions={props.fields.correctionFields[inputs.selling]}
+                helperText="Please enter the selling party."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -231,6 +233,7 @@ function SubFormOne(props) {
                 value={props.fields.productName}
                 onBlur={validateProduct}
                 suggestions={props.fields.correctionFields[inputs.product]}
+                helperText="Please enter the product name."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>

@@ -74,7 +74,7 @@ function ErrorFormField(props) {
 
     return (
     <>
-        <FormField error helperText="Click here to see correction values" aria-controls="simple-menu" aria-haspopup="true" onClick={whenFocused} {...props}/>
+        <FormField error helperText="This input looks wrong; Click here to see suggestions." aria-controls="simple-menu" aria-haspopup="true" onClick={whenFocused} {...props}/>
         <Menu
             id="simple-menu"
             anchorEl={anchor}
@@ -99,6 +99,7 @@ function FormFieldWrapper(props) {
                 label={props.label}
                 value={props.value}
                 onBlur={props.onBlur}
+                helperText={props.helperText}
             />);
 
     } else { // Otherwise, return an error field
