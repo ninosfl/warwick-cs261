@@ -23,6 +23,7 @@ const initialFormState = {
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
     "currentForm": subForms[1],
+    "submitNow": false,
     "validationInput": null,
     "correctionFields": {
         "buyingParty": [],
@@ -104,8 +105,8 @@ const reducer = (state, action) => {
                 case subForms[3]:
                     return { ...state, "currentForm": subForms.submit };
                 case subForms.submit:
-                    // TODO: Submit stuffs
-                    return state;
+                    // Tell effect hook to get submitting
+                    return { ...state, "submitNow": true };
                 default:
                     return state;
             }

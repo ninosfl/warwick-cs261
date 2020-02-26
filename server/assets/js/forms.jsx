@@ -111,6 +111,14 @@ function SuperForm(props) {
         // TODO: Send fields to API!
     }, [state.correctionFields.correctionLog]);  // Only perform effect when correctionFields changes
 
+    // Use effect hook for submitting form
+    useEffect(() => {
+        // TODO: Get this to actually do some submitting you muppet
+        if (state.submitNow) {
+            document.write("Submitted! (Obviously not this is debug text)");
+        }
+    }, [state.submitNow]);
+
     // Render the specific subform that's currently meant to be on screen
     let elem = null;
     switch (state.currentForm) {

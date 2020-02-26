@@ -171,6 +171,12 @@ function SubmitButton(props) {
     // Fetch defined styling
     const classes = useStyles(props);
 
+    // Fetch dispatch function from context
+    const dispatch = useContext(FormDispatch);
+
+    // Event function to get the SuperForm to render the next SubForm
+    const goToNextForm = () => dispatch({ type: actionTypes.nextForm });
+
     return (
         <Button
             variant="contained"
@@ -178,6 +184,7 @@ function SubmitButton(props) {
             className={classes.button}
             endIcon={<CloudUploadIcon />}
             // endIcon={<PublishIcon />}
+            onClick={goToNextForm}
             {...props}
         >
             Submit
