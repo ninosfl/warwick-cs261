@@ -33,12 +33,6 @@ function SuperForm(props) {
                         input: inputs.buying,
                         suggestions: ["Sixty", "Nine", "Dudes!"]
                     });
-                } else { // TODO: Remove, this is just for debugging
-                    dispatch({
-                        input: inputs.buying,
-                        type: actionTypes.new,
-                        newValue: state[inputs.buying] + " (validated by buying)"
-                    });
                 }
 
                 break;
@@ -53,12 +47,6 @@ function SuperForm(props) {
                         input: inputs.selling,
                         suggestions: ["Whoa", "Excellent", "*Electric Guitar Noises*"]
                     });
-                } else { // TODO: Remove, this is just for debugging
-                    dispatch({
-                        input: inputs.selling,
-                        type: actionTypes.new,
-                        newValue: state[inputs.selling] + " (validated by selling)"
-                    });
                 }
 
                 break;
@@ -72,24 +60,23 @@ function SuperForm(props) {
                         input: inputs.product,
                         suggestions: ["Strange things are", "afoot at", "the Circle-K"]
                     });
-                } else {
-                    // Dispatch validated values to form!
-                    dispatch({
-                        input: inputs.buying,
-                        type: actionTypes.new,
-                        newValue: state[inputs.buying] + " (validated by product)"
-                    });
-                    dispatch({
-                        input: inputs.selling,
-                        type: actionTypes.new,
-                        newValue: state[inputs.selling] + " (validated by product)"
-                    });
-                    dispatch({
-                        input: inputs.product,
-                        type: actionTypes.new,
-                        newValue: state[inputs.product] + " (validated by product)"
-                    });
-                }                
+                }
+                // // Dispatch validated values to form!
+                // dispatch({
+                //     input: inputs.buying,
+                //     type: actionTypes.new,
+                //     newValue: state[inputs.buying] + " (validated by product)"
+                // });
+                // dispatch({
+                //     input: inputs.selling,
+                //     type: actionTypes.new,
+                //     newValue: state[inputs.selling] + " (validated by product)"
+                // });
+                // dispatch({
+                //     input: inputs.product,
+                //     type: actionTypes.new,
+                //     newValue: state[inputs.product] + " (validated by product)"
+                // });            
 
                 break;
 
