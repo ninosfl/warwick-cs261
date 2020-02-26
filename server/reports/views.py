@@ -4,11 +4,13 @@ from django.shortcuts import render
 
 from trades.models import DerivativeTrade
 
+
 def list_years(request):
     """ List all years available. """
     placeholder_years = [y for y in range(2000, 2020 + 1)]
     context = {"years": placeholder_years}
     return render(request, "reports/years.html", context)
+
 
 def list_months(request, year: int):
     """ List all months available in the given year. """
@@ -27,6 +29,7 @@ def list_months(request, year: int):
         "year": year
     }
     return render(request, "reports/months.html", context)
+
 
 def list_days(request, year: int, month: int):
     """ List all days available in the given month. """
@@ -47,25 +50,31 @@ def list_days(request, year: int, month: int):
     }
     return render(request, "reports/days.html", context)
 
+
 def report(request, year: int, month: int, day: int):
     """ Fetch the report for the given day in the given month of the given year. """
 
     result, err = is_day_valid(year, month, day)
-	
+
     if not result:
         context = {"error_message": err}
         return render(request, "errors/errorpage.html", context)
 
-    reports = DerivativeTrade.objects.filter(date_of_trade = ("%s-%s-%s" % (str(year), str(month), str(day))))
+    reports = DerivativeTrade.objects.filter(date_of_trade=(
+        "%s-%s-%s" % (str(year), str(month), str(day))))
+
+    # prod_names = DerivativeTrade.objects.select_related('Product')
 
     context = {
         "year": year,
         "month": month,
         "day": day,
-        "reports": reports
+        "reports": reports,
+        # "prod_names": prod_names
     }
 
     return render(request, "reports/report.html", context)
+
 
 def is_year_valid(year: int, now=timezone.now()):
     """ Checks if a given year is valid. """
@@ -112,6 +121,7 @@ def is_day_valid(year: int, month: int, day: int, now=timezone.now()):
 
     return True, None
 
+
 def get_months(year: int, now=timezone.now()):
     """ Given a year, get all the valid months within it. """
 
@@ -119,6 +129,7 @@ def get_months(year: int, now=timezone.now()):
         return list(range(1, min(12, now.month) + 1))
 
     return list(range(1, 12 + 1))
+
 
 def get_days(year: int, month: int,
              now=timezone.now(), calendar=Calendar()):
