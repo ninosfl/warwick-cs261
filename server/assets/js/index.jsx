@@ -5,6 +5,8 @@ import ReactDOM from 'react-dom';
 import { YearList, MonthList, DayList } from './list-reports';
 import { ErrorMessage } from './errors';
 import { SearchBar } from './searchbar';
+import { SuperForm } from './forms';
+
 
 // Try different render targets, rendering to the one that appears first
 let target = null;
@@ -23,4 +25,8 @@ if (target = document.querySelector('#report-list-years')) {
 
 if (target = document.querySelector('#error-root')) {
   ReactDOM.render(<ErrorMessage />, target);
-} 
+}
+
+if (target = document.querySelector('#form-root')) {
+  ReactDOM.render(<SuperForm />, target);
+}

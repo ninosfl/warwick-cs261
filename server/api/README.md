@@ -2,7 +2,7 @@
 
 For now, this is wildly incomplete - but you can test it out as it is!
 
-Once you have the web server running, with `python3 manage.py runserver`, you can test out the api with: `curl localhost:8000/api/`, or by making your way to `http://localhost:8000/trades/`.
+Once you have the web server running, with `python3 manage.py runserver`, you can test out the api with: `curl localhost:8000/api/`.
 
 To pass additional arguments to the api view (in order to provide functions that will perform back-end processing), please make the following changes to the main URLconf (which in this case can be found at `server/djangoserver/urls.py`):
 
