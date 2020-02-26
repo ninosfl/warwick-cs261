@@ -21,12 +21,14 @@ const topStyles = makeStyles(theme => ({
     position: 'fixed',
     bottom: theme.spacing(2),
     right: theme.spacing(2),
+    'z-index': 12,
   },
 }));
 
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
+
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -91,17 +93,17 @@ function ScrollTop(props) {
   });
 
   const handleClick = event => {
-    // const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
+    const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
 
-    // if (anchor) {
-    //   anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // }
-    window.scrollTo(0,0)
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    event.stopPropagation()
   };
 
   return (
     <Zoom in={trigger}>
-      <div onClick={handleClick} role="presentation" className={classes.root}>
+      <div onClickCapture={handleClick} className={classes.root}>
         {children}
       </div>
     </Zoom>
@@ -123,7 +125,7 @@ function BarButton(props){
   return (<Button
   variant="contained"
   color="primary"
-  disableElevation="true"
+  disableElevation={true}
   href={props.href}
 >
   {props.text}
