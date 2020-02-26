@@ -80,6 +80,26 @@ function SuperForm(props) {
 
                 break;
 
+            // TODO: Below validations!
+
+            case validationTypes.quantity:
+                break;
+
+            case validationTypes.uCurr:
+                break;
+
+            case validationTypes.uPrice:
+                break;
+            
+            case validationTypes.mDate:
+                break;
+            
+            case validationTypes.nCurr:
+                break;
+            
+            case validationTypes.sPrice:
+                break;
+
             default:
                 break;
         }
@@ -87,8 +107,9 @@ function SuperForm(props) {
 
     // Use effect hook for logging corrections!
     useEffect(() => {
-        // TODO: Send values to api/correction/
-    }, [state.correctionFields]);  // Only perform effect when correctionFields changes
+        const [field, oldVal, newVal] = state.correctionFields.correctionLog.slice(-1);
+        // TODO: Send fields to API!
+    }, [state.correctionFields.correctionLog]);  // Only perform effect when correctionFields changes
 
     // Render the specific subform that's currently meant to be on screen
     let elem = null;

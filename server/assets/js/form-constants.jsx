@@ -12,12 +12,18 @@ const subForms = {
 };
 
 // All the types of validations that can occur
-// TODO: Come up with and implement more!
+// (Should be one for each field that can be entered)
 const validationTypes = {
     none: "None",
     buying: "buyingParty",
     selling: "sellingParty",
-    product: "buyingParty, sellingParty, product"
+    product: "buyingParty, sellingParty, product",
+    quantity: "quantity, product, buyingParty, sellingParty, uPrice",
+    uCurr: "underlyingCurrency",
+    uPrice: "underlyingPrice",
+    mDate: "maturityDate",
+    nCurr: "notionalCurrency",
+    sPrice: "strikePrice, uPrice, quantity, product, buyingParty, sellingParty"
 };
 
 // Contains all the initial form values
@@ -43,6 +49,7 @@ const initialFormState = {
         "maturityDate": [],
         "notionalCurrency": [],
         "strikePrice": [],
+        "correctionLog": []
     },
 };
 
@@ -83,13 +90,24 @@ const reducer = (state, action) => {
             return { ...state, "validationType": action.validationType };
 
         case actionTypes.correction:
-            // TODO: Send previous value and new value to API
-            let oldVal = action.oldValue;
-            return { ...state, [action.input]: action.newValue, "correctionFields": {...state.correctionFields, [action.input]: []} };
+            // Log old and new values, to be sent to API
+            let log = state.correctionFields.correctionLog;
+            log.push([action.input, action.oldValue, action.newValue]);
+
+            // Return modified state with log
+            return {
+                ...state,
+                [action.input]: action.newValue,
+                "correctionFields": {
+                    ...state.correctionFields,
+                    [action.input]: [],
+                    "correctionLog": log
+                }
+            };
 
         case actionTypes.provideSuggestions:
             // Replace state correction values with new ones
-            return { ...state, "correctionFields": {...state.correctionFields, [action.input]: action.suggestions}}
+            return { ...state, "correctionFields": {...state.correctionFields, [action.input]: action.suggestions} };
 
         case actionTypes.nextForm:
             switch (state.currentForm) {
