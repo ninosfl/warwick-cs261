@@ -3,7 +3,7 @@
 import React, { useReducer, useContext, useEffect, useState } from 'react';
 import { Grid, Paper, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { subForms, validationTypes, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles } from './form-constants';
+import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle } from './form-components';
 
 export { SuperForm };
@@ -18,12 +18,12 @@ function SuperForm(props) {
     const [state, dispatch] = useReducer(reducer, initialFormState);
 
     // Use effect hook for api validation
-    // No need to reset validationType to some default value, since this
+    // No need to reset validationInput to some default value, since this
     // effect will only run when it changes.
     useEffect(() => {
         // TODO: Make this do mad fetching to get validated values
-        switch (state.validationType) {
-            case validationTypes.buying:
+        switch (state.validationInput) {
+            case inputs.buying:
                 // TODO: Validate buying party!
 
                 // TODO: Make this condition actually API-related
@@ -37,7 +37,7 @@ function SuperForm(props) {
 
                 break;
 
-            case validationTypes.selling:
+            case inputs.selling:
                 // TODO: Validate selling party!
 
                 // TODO: Make this condition actually API-related
@@ -51,7 +51,7 @@ function SuperForm(props) {
 
                 break;
 
-            case validationTypes.product:
+            case inputs.product:
                 // TODO: Validate product!
 
                 if (state.productName.includes("test")) {
@@ -82,28 +82,28 @@ function SuperForm(props) {
 
             // TODO: Below validations!
 
-            case validationTypes.quantity:
+            case inputs.quantity:
                 break;
 
-            case validationTypes.uCurr:
+            case inputs.uCurr:
                 break;
 
-            case validationTypes.uPrice:
+            case inputs.uPrice:
                 break;
             
-            case validationTypes.mDate:
+            case inputs.mDate:
                 break;
             
-            case validationTypes.nCurr:
+            case inputs.nCurr:
                 break;
             
-            case validationTypes.sPrice:
+            case inputs.sPrice:
                 break;
 
             default:
                 break;
         }
-    }, [state.validationType]);  // Only perform effect when validationType changes
+    }, [state.validationInput]);  // Only perform effect when validationInput changes
 
     // Use effect hook for logging corrections!
     useEffect(() => {
@@ -160,15 +160,15 @@ function SubFormOne(props) {
     // Define functions for validating each field, stating which fields need
     // to be sent and checked
     const validateBuying = () => {
-        dispatch({ type: actionTypes.validate, validationType: validationTypes.buying })
+        dispatch({ type: actionTypes.validate, validationInput: inputs.buying })
     };
 
     const validateSelling = () => {
-        dispatch({ type: actionTypes.validate, validationType: validationTypes.selling })
+        dispatch({ type: actionTypes.validate, validationInput: inputs.selling })
     };
 
     const validateProduct = () => {
-        dispatch({ type: actionTypes.validate, validationType: validationTypes.product })
+        dispatch({ type: actionTypes.validate, validationInput: inputs.product })
     };
 
     // Only let them progress if all fields are non-empty and there are no

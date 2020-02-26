@@ -11,21 +11,6 @@ const subForms = {
     "submit": "Submit"
 };
 
-// All the types of validations that can occur
-// (Should be one for each field that can be entered)
-const validationTypes = {
-    none: "None",
-    buying: "buyingParty",
-    selling: "sellingParty",
-    product: "buyingParty, sellingParty, product",
-    quantity: "quantity, product, buyingParty, sellingParty, uPrice",
-    uCurr: "underlyingCurrency",
-    uPrice: "underlyingPrice",
-    mDate: "maturityDate",
-    nCurr: "notionalCurrency",
-    sPrice: "strikePrice, uPrice, quantity, product, buyingParty, sellingParty"
-};
-
 // Contains all the initial form values
 const initialFormState = {
     "buyingParty": "",
@@ -38,7 +23,7 @@ const initialFormState = {
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
     "currentForm": subForms[1],
-    "validationType": validationTypes.none,
+    "validationInput": null,
     "correctionFields": {
         "buyingParty": [],
         "sellingParty": [],
@@ -86,8 +71,8 @@ const reducer = (state, action) => {
             return { ...state, [action.input]: action.newValue };
 
         case actionTypes.validate:
-            // Change validationType to activate SuperForm effect hook.
-            return { ...state, "validationType": action.validationType };
+            // Change validationInput to activate SuperForm effect hook.
+            return { ...state, "validationInput": action.validationInput };
 
         case actionTypes.correction:
             // Log old and new values, to be sent to API
@@ -173,4 +158,4 @@ const useStyles = makeStyles( theme => ({
     },
 }));
 
-export { subForms, validationTypes, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles };
+export { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles };
