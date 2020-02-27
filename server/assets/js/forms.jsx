@@ -89,6 +89,18 @@ function SuperForm(props) {
                 break;
 
             case inputs.uPrice:
+                if (isNaN(state.underlyingPrice)) {
+                    dispatch({
+                        type: actionTypes.markIncorrect,
+                        input: inputs.uPrice
+                    });
+                } else {
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: inputs.uPrice
+                    });
+                }
+
                 break;
             
             case inputs.mDate:
@@ -198,6 +210,7 @@ function SubFormOne(props) {
                 label="Buying Party"
                 value={props.fields.buyingParty}
                 suggestions={props.fields.correctionFields[inputs.buying]}
+                incorrectField={props.fields.incorrectFields[inputs.buying]}
                 helperText="Please enter the buying party."
             />
         </Grid>
@@ -207,6 +220,7 @@ function SubFormOne(props) {
                 label="Selling Party"
                 value={props.fields.sellingParty}
                 suggestions={props.fields.correctionFields[inputs.selling]}
+                incorrectField={props.fields.incorrectFields[inputs.selling]}
                 helperText="Please enter the selling party."
             />
         </Grid>
@@ -216,6 +230,7 @@ function SubFormOne(props) {
                 label="Product Name"
                 value={props.fields.productName}
                 suggestions={props.fields.correctionFields[inputs.product]}
+                incorrectField={props.fields.incorrectFields[inputs.product]}
                 helperText="Please enter the product name."
             />
         </Grid>
@@ -228,8 +243,6 @@ function SubFormOne(props) {
 
 
 function SubFormTwo(props) {
-
-
     // Fetch defined styling
     const classes = useStyles(props);
 
@@ -271,6 +284,7 @@ function SubFormTwo(props) {
                     label="Underlying Price"
                     value={props.fields.underlyingPrice}
                     suggestions={props.fields.correctionFields[inputs.uPrice]}
+                    incorrectField={props.fields.incorrectFields[inputs.uPrice]}
                     helperText="Please enter the underlying currency and price."
                 />
             </Grid>

@@ -37,6 +37,18 @@ const initialFormState = {
         "strikePrice": [],
         "correctionLog": []
     },
+    "incorrectFields": {
+        "buyingParty": false,
+        "sellingParty": false,
+        "productName": false,
+        "quantity": false,
+        "underlyingCurrency": false,
+        "underlyingPrice": false,
+        "maturityDate": false,
+        "notionalCurrency": false,
+        "strikePrice": false,
+        "correctionLog": false
+    },
     "currencies": [],
 };
 
@@ -46,6 +58,8 @@ const actionTypes = {
     validate: "validate",
     correction: "correction",
     provideSuggestions: "provideSuggestions",
+    markIncorrect: "markIncorrect",
+    markCorrect: "markCorrect",
     nextForm: "next",
     populateCurrencies: "populateCurrencies"
 };
@@ -73,6 +87,7 @@ const reducer = (state, action) => {
             // Return a new object with only the relevant input modified!
             return { ...state, [action.input]: action.newValue };
 
+        // FIXME: Cannot validate the same item multiple times in a row.
         case actionTypes.validate:
             // Change validationInput to activate SuperForm effect hook.
             return { ...state, "validationInput": action.validationInput };
@@ -96,6 +111,14 @@ const reducer = (state, action) => {
         case actionTypes.provideSuggestions:
             // Replace state correction values with new ones
             return { ...state, "correctionFields": {...state.correctionFields, [action.input]: action.suggestions} };
+
+        case actionTypes.markIncorrect:
+            // Mark a specific input as incorrect
+            return { ...state, "incorrectFields": {...state.incorrectFields, [action.input]: true} };
+
+        case actionTypes.markCorrect:
+            // Mark a specific input as correct, wiping it in the process
+            return { ...state, "incorrectFields": {...state.incorrectFields, [action.input]: false} };
 
         case actionTypes.nextForm:
             switch (state.currentForm) {

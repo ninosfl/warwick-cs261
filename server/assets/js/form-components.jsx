@@ -47,12 +47,25 @@ function CurrencyField(props) {
     // Get dispatch function from the reducer hook via a context hook
     const dispatch = useContext(FormDispatch);
 
+    const [open, setOpen] = React.useState(false);
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
     // Function for handling changes
-    const handleChange = e => dispatch({
-        input: props.id,
-        type: actionTypes.new,
-        newValue: e.target.value
-    });
+    const handleChange = e => {
+        dispatch({
+            input: props.id,
+            type: actionTypes.new,
+            newValue: e.target.value
+        });
+        dispatch({ type: actionTypes.validate, validationInput: props.id });
+    };
 
     // Fetch valid currencies for the day!
     useEffect(() => {
@@ -73,6 +86,9 @@ function CurrencyField(props) {
         <InputLabel id="select-label">{props.label}</InputLabel>
         <Select
             labelId="select-label"
+            open={open}
+            onClose={handleClose}
+            onOpen={handleOpen}
             onChange={handleChange}
             {...props}
         >
@@ -82,8 +98,20 @@ function CurrencyField(props) {
 }
 
 
-// Component for text fields that need correction in the form
-function ErrorFormField(props) {
+function ErrorNoSuggestions(props) {
+    // Get dispatch function from the reducer hook via a context hook
+    const dispatch = useContext(FormDispatch);
+
+    // Ignore incorrectField prop on child elements
+    const { incorrectField, ...formProps } = props;
+
+    return <FormField error {...formProps}/>;
+}
+
+
+// Component for text fields that need correction in the form, where
+// suggestions are provided.
+function ErrorWithSuggestions(props) {
     // Set the anchor element on the menu
     const [anchor, setAnchor] = React.useState(null);
 
@@ -140,20 +168,37 @@ function FormFieldWrapper(props) {
         dispatch({ type: actionTypes.validate, validationInput: props.id })
     };
 
-    if (props.suggestions.length === 0) {
-        return (
-            <FormField
-                {...props}
-                onBlur={validate}
-            />);
+    // Ignore incorrectField prop on child elements
+    const { incorrectField, ...inputProps } = props;
 
-    } else { // Otherwise, return an error field
+    // If field is marked as incorrect
+    if (props.incorrectField === true) {
         return (
-            <ErrorFormField
+            <ErrorNoSuggestions
                 { ...props }
                 onBlur={validate}
+                helperText="This input looks wrong; Please try again."  // Needs to go after props!
+            />
+        );
+
+    // If field has no suggestions
+    } else if (props.suggestions.length === 0) {
+        return (
+            <FormField
+                { ...inputProps }
+                onBlur={validate}
+            />
+        );
+
+    // Otherwise, return an error field
+    } else {
+        return (
+            <ErrorWithSuggestions
+                { ...inputProps }
+                onBlur={validate}
                 helperText="This input looks wrong; Click here to see suggestions."  // Needs to go after props!
-            />);
+            />
+        );    
     }
 }
 
