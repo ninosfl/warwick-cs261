@@ -162,23 +162,6 @@ function SubFormOne(props) {
     // Fetch defined styling
     const classes = useStyles(props);
 
-    // Fetch dispatch function from context
-    const dispatch = useContext(FormDispatch);
-
-    // Define functions for validating each field, stating which fields need
-    // to be sent and checked
-    const validateBuying = () => {
-        dispatch({ type: actionTypes.validate, validationInput: inputs.buying })
-    };
-
-    const validateSelling = () => {
-        dispatch({ type: actionTypes.validate, validationInput: inputs.selling })
-    };
-
-    const validateProduct = () => {
-        dispatch({ type: actionTypes.validate, validationInput: inputs.product })
-    };
-
     // Only let them progress if all fields are non-empty and there are no
     // corrections left
     let anyEmptyOrError = (
@@ -209,7 +192,6 @@ function SubFormOne(props) {
                 id={inputs.buying}
                 label="Buying Party"
                 value={props.fields.buyingParty}
-                onBlur={validateBuying}
                 suggestions={props.fields.correctionFields[inputs.buying]}
                 helperText="Please enter the buying party."
             />
@@ -219,7 +201,6 @@ function SubFormOne(props) {
                 id={inputs.selling}
                 label="Selling Party"
                 value={props.fields.sellingParty}
-                onBlur={validateSelling}
                 suggestions={props.fields.correctionFields[inputs.selling]}
                 helperText="Please enter the selling party."
             />
@@ -229,7 +210,6 @@ function SubFormOne(props) {
                 id={inputs.product}
                 label="Product Name"
                 value={props.fields.productName}
-                onBlur={validateProduct}
                 suggestions={props.fields.correctionFields[inputs.product]}
                 helperText="Please enter the product name."
             />

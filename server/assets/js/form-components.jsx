@@ -74,7 +74,7 @@ function ErrorFormField(props) {
 
     return (
     <>
-        <FormField error helperText="This input looks wrong; Click here to see suggestions." aria-controls="simple-menu" aria-haspopup="true" onClick={whenFocused} {...props}/>
+        <FormField error aria-controls="simple-menu" aria-haspopup="true" onClick={whenFocused} {...props}/>
         <Menu
             id="simple-menu"
             anchorEl={anchor}
@@ -91,25 +91,29 @@ function ErrorFormField(props) {
 
 
 function FormFieldWrapper(props) {
+    // Fetch dispatch function from context
+    const dispatch = useContext(FormDispatch);
+
+    // Define functions for validating each field, stating which fields need
+    // to be sent and checked
+    const validate = () => {
+        dispatch({ type: actionTypes.validate, validationInput: props.id })
+    };
+
     // Display field normally if no suggestions available
     if (props.suggestions.length === 0) {
         return (
             <FormField
-                id={props.id}
-                label={props.label}
-                value={props.value}
-                onBlur={props.onBlur}
-                helperText={props.helperText}
+                {...props}
+                onBlur={validate}
             />);
 
     } else { // Otherwise, return an error field
         return (
             <ErrorFormField
-                id={props.id}
-                label={props.label}
-                value={props.value}
-                onBlur={props.onBlur}
-                suggestions={props.suggestions}
+                { ...props }
+                onBlur={validate}
+                helperText="This input looks wrong; Click here to see suggestions."  // Needs to go after props!
             />);
     }
 }
