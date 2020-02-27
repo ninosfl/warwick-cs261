@@ -17,8 +17,8 @@ const initialFormState = {
     "sellingParty": "",
     "productName": "",
     "quantity": 0,
-    "underlyingCurrency": "USD",
-    "underlyingPrice": 0.0,
+    "underlyingCurrency": "",
+    "underlyingPrice": "",
     "maturityDate": "01.01.1970",
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
@@ -37,6 +37,7 @@ const initialFormState = {
         "strikePrice": [],
         "correctionLog": []
     },
+    "currencies": [],
 };
 
 // All the valid action types
@@ -45,7 +46,8 @@ const actionTypes = {
     validate: "validate",
     correction: "correction",
     provideSuggestions: "provideSuggestions",
-    nextForm: "next"
+    nextForm: "next",
+    populateCurrencies: "populateCurrencies"
 };
 
 // All the valid input types - expressed here as an enum to avoid strings
@@ -98,10 +100,10 @@ const reducer = (state, action) => {
         case actionTypes.nextForm:
             switch (state.currentForm) {
                 case subForms[1]:
-                    // TODO: Forward to second subform (once it's made lol)
-                    return { ...state, "currentForm": subForms.submit };
+                    return { ...state, "currentForm": subForms[2] };
                 case subForms[2]:
-                    return { ...state, "currentForm": subForms[3] };
+                    // TODO: Forward to third subform (once it's made lol)
+                    return { ...state, "currentForm": subForms.submit };
                 case subForms[3]:
                     return { ...state, "currentForm": subForms.submit };
                 case subForms.submit:
@@ -111,6 +113,10 @@ const reducer = (state, action) => {
                     return state;
             }
             break;
+        
+        case actionTypes.populateCurrencies:
+            // Given a list of currencies, put it in the form!
+            return { ...state, "currencies": action.currencies };
 
         default:
             return state;
@@ -159,4 +165,12 @@ const useStyles = makeStyles( theme => ({
     },
 }));
 
-export { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles };
+export {
+    subForms,
+    initialFormState,
+    actionTypes,
+    inputs,
+    reducer,
+    FormDispatch,
+    useStyles
+};

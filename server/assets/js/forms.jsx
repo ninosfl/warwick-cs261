@@ -4,7 +4,7 @@ import React, { useReducer, useContext, useEffect, useState } from 'react';
 import { Grid, Paper, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles } from './form-constants';
-import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle } from './form-components';
+import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField } from './form-components';
 
 export { SuperForm };
 
@@ -133,8 +133,13 @@ function SuperForm(props) {
             break;
 
         case subForms[2]:
-            // TODO: Implement sub form 2!
-            elem = null;
+            elem = (
+                <Paper elevation={3} className={classes.formContainer}>
+                    <FormDispatch.Provider value={dispatch}>
+                        <SubFormTwo fields={{...state}} />
+                    </FormDispatch.Provider>
+                </Paper>
+            );
             break;
 
         case subForms[3]:
@@ -219,6 +224,61 @@ function SubFormOne(props) {
         </Grid>
     </Grid>
     );
+}
+
+
+function SubFormTwo(props) {
+
+
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    // Only let them progress if all fields are non-empty and there are no
+    // corrections left
+    let anyEmptyOrError = (
+        props.fields.correctionFields[inputs.uCurr].length > 0
+        || props.fields.correctionFields[inputs.uPrice].length > 0
+        || props.fields.underlyingCurrency === ""
+        || props.fields.underlyingPrice === ""
+    );
+
+    // Render sub-form within a grid
+    return (
+        <Grid
+            container
+            justify="center"
+            alignContent="center"
+            className={classes.formContainer}
+            direction="column"
+            spacing={3}
+        >
+            <CssBaseline />
+            <Grid item>
+                <SubFormTitle>Step 2 of 4</SubFormTitle>
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <CurrencyField
+                    id={inputs.uCurr}
+                    label="Underlying Currency"
+                    value={props.fields.underlyingCurrency}
+                    suggestions={props.fields.correctionFields[inputs.uCurr]}
+                    currencies={props.fields.currencies}
+                />
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <FormFieldWrapper
+                    id={inputs.uPrice}
+                    label="Underlying Price"
+                    value={props.fields.underlyingPrice}
+                    suggestions={props.fields.correctionFields[inputs.uPrice]}
+                    helperText="Please enter the underlying currency and price."
+                />
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                {anyEmptyOrError ? <NextButton disabled /> : <NextButton />}
+            </Grid>
+        </Grid>
+        );
 }
 
 

@@ -1,7 +1,7 @@
 /* jshint esversion: 9 */
 
-import React, { useContext } from 'react';
-import { Typography } from '@material-ui/core';
+import React, { useContext, useEffect } from 'react';
+import { Typography, Select } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
@@ -9,9 +9,10 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import PublishIcon from '@material-ui/icons/Publish';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@material-ui/core/InputLabel';
 import { actionTypes, FormDispatch, useStyles } from './form-constants';
 
-export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle };
+export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField };
 
 
 // Component for text fields in the form
@@ -39,6 +40,45 @@ function FormField(props) {
             {...props}
         />
     );
+}
+
+
+function CurrencyField(props) {
+    // Get dispatch function from the reducer hook via a context hook
+    const dispatch = useContext(FormDispatch);
+
+    // Function for handling changes
+    const handleChange = e => dispatch({
+        input: props.id,
+        type: actionTypes.new,
+        newValue: e.target.value
+    });
+
+    // Fetch valid currencies for the day!
+    useEffect(() => {
+        if (props.currencies.length === 0) {
+            // TODO: Fetch list of valid currencies for that day from API!
+            dispatch({
+                type: actionTypes.populateCurrencies,
+                currencies: [1,2,3,4,5,6,7,8,9,11,12,13,14,15,45,667,5,56,6,7,7,56,56,4,34,54,54,3,3,234,42,42,5,65,65,67,7676]
+            });
+        }
+    }, []);  // Will only run when the component mounts!
+
+    const currencyComponents = props.currencies.map((curr, i) =>
+        <MenuItem key={i} value={curr}>{curr}</MenuItem>
+    );
+
+    return (<>
+        <InputLabel id="select-label">{props.label}</InputLabel>
+        <Select
+            labelId="select-label"
+            onChange={handleChange}
+            {...props}
+        >
+            {currencyComponents}
+        </Select>
+    </>);
 }
 
 
@@ -100,7 +140,6 @@ function FormFieldWrapper(props) {
         dispatch({ type: actionTypes.validate, validationInput: props.id })
     };
 
-    // Display field normally if no suggestions available
     if (props.suggestions.length === 0) {
         return (
             <FormField
