@@ -69,21 +69,16 @@ function SuperForm(props) {
 
                 break;
 
-            // TODO: Below validations!
-
-            case inputs.quantity:
-                break;
-
-            case inputs.uCurr:
-                break;
-
             case inputs.uPrice:
+                // Check if price entered is a number
                 if (isNaN(state.underlyingPrice)) {
                     dispatch({
                         type: actionTypes.markIncorrect,
                         input: inputs.uPrice
                     });
+
                 } else {
+                    // TODO: Validate with API!
                     dispatch({
                         type: actionTypes.markCorrect,
                         input: inputs.uPrice
@@ -108,10 +103,49 @@ function SuperForm(props) {
 
                 break;
             
-            case inputs.nCurr:
+            case inputs.quantity:
+                // Check that input quantity is an integer, consisting of
+                // only digit characters.
+                const int_re = /^\d+$/;
+                if (int_re.text(state.quantity) !== true) {
+                    dispatch({
+                        type: actionTypes.markIncorrect,
+                        input: inputs.quantity
+                    });
+                } else {
+                    // TODO: Validate with API!
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: inputs.quantity
+                    });
+                }
+
+                break;
+
+            case inputs.sPrice:
+                // Check if price entered is a number
+                if (isNaN(state.underlyingPrice)) {
+                    dispatch({
+                        type: actionTypes.markIncorrect,
+                        input: inputs.uPrice
+                    });
+
+                } else {
+                    // TODO: Validate with API!
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: inputs.uPrice
+                    });
+                }
+
+                break;
+
+            // TODO: Below validations!
+
+            case inputs.uCurr:
                 break;
             
-            case inputs.sPrice:
+            case inputs.nCurr:
                 break;
 
             default:
