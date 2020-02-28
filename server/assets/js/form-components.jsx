@@ -99,9 +99,6 @@ function CurrencyField(props) {
 
 
 function ErrorNoSuggestions(props) {
-    // Get dispatch function from the reducer hook via a context hook
-    const dispatch = useContext(FormDispatch);
-
     // Ignore incorrectField prop on child elements
     const { incorrectField, ...formProps } = props;
 
@@ -175,7 +172,8 @@ function FormFieldWrapper(props) {
     if (props.incorrectField === true) {
         return (
             <ErrorNoSuggestions
-                { ...props }
+                { ...inputProps }
+                incorrectField={props.incorrectField}
                 onBlur={validate}
                 helperText={props.errorMessage}  // Needs to go after props!
             />
