@@ -19,7 +19,7 @@ const initialFormState = {
     "quantity": 0,
     "underlyingCurrency": "",
     "underlyingPrice": "",
-    "maturityDate": "01.01.1970",
+    "maturityDate": "",
     "notionalCurrency": "USD",
     "strikePrice": 0.0,
     "currentForm": subForms[1],

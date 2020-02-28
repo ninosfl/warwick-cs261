@@ -24,7 +24,6 @@ function SuperForm(props) {
         let input = null;
         if (state.validationInputs.length > 0) {
             input = state.validationInputs[state.validationInputs.length - 1];
-            document.title = state.validationInputs.length;  // Proves it is being run!
         }
         
         // TODO: Make this do mad fetching to get validated values
@@ -94,6 +93,19 @@ function SuperForm(props) {
                 break;
             
             case inputs.mDate:
+                const date_format_re = /^\d{2}\/\d{2}\/\d{4}$/;
+                if (date_format_re.test(state.maturityDate) !== true) {
+                    dispatch({
+                        type: actionTypes.markIncorrect,
+                        input: inputs.mDate
+                    });
+                } else {
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: inputs.mDate
+                    });
+                }
+
                 break;
             
             case inputs.nCurr:
@@ -208,6 +220,7 @@ function SubFormOne(props) {
                 suggestions={props.fields.correctionFields[inputs.buying]}
                 incorrectField={props.fields.incorrectFields[inputs.buying]}
                 helperText="Please enter the buying party."
+                errorMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -218,6 +231,7 @@ function SubFormOne(props) {
                 suggestions={props.fields.correctionFields[inputs.selling]}
                 incorrectField={props.fields.incorrectFields[inputs.selling]}
                 helperText="Please enter the selling party."
+                errorMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -228,6 +242,7 @@ function SubFormOne(props) {
                 suggestions={props.fields.correctionFields[inputs.product]}
                 incorrectField={props.fields.incorrectFields[inputs.product]}
                 helperText="Please enter the product name."
+                errorMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -247,10 +262,14 @@ function SubFormTwo(props) {
     let anyEmptyOrError = (
         props.fields.correctionFields[inputs.uCurr].length > 0
         || props.fields.correctionFields[inputs.uPrice].length > 0
+        || props.fields.correctionFields[inputs.mDate].length > 0
         || props.fields.incorrectFields[inputs.uCurr]
         || props.fields.incorrectFields[inputs.uPrice]
+        || props.fields.incorrectFields[inputs.mDate]
         || props.fields.underlyingCurrency === ""
         || props.fields.underlyingPrice === ""
+        || props.fields.maturityDate === ""
+        
     );
 
     // Render sub-form within a grid
@@ -283,7 +302,19 @@ function SubFormTwo(props) {
                     value={props.fields.underlyingPrice}
                     suggestions={props.fields.correctionFields[inputs.uPrice]}
                     incorrectField={props.fields.incorrectFields[inputs.uPrice]}
-                    helperText="Please enter the underlying currency and price."
+                    helperText="Please enter the underlying price, in the currency above."
+                    errorMessage="This input must be a number; Please try again."
+                />
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <FormFieldWrapper
+                    id={inputs.mDate}
+                    label="Maturity Date"
+                    value={props.fields.maturityDate}
+                    suggestions={props.fields.correctionFields[inputs.mDate]}
+                    incorrectField={props.fields.incorrectFields[inputs.mDate]}
+                    helperText="Please enter the maturity date, in dd/mm/yyyy format."
+                    errorMessage="This input must be in dd/mm/yyyy format; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
