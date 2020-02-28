@@ -24,7 +24,7 @@ const initialFormState = {
     "strikePrice": 0.0,
     "currentForm": subForms[1],
     "submitNow": false,
-    "validationInput": null,
+    "validationInputs": [],
     "correctionFields": {
         "buyingParty": [],
         "sellingParty": [],
@@ -90,21 +90,20 @@ const reducer = (state, action) => {
         // FIXME: Cannot validate the same item multiple times in a row.
         case actionTypes.validate:
             // Change validationInput to activate SuperForm effect hook.
-            return { ...state, "validationInput": action.validationInput };
+            return { ...state, "validationInputs": [...state.validationInputs, action.validationInput] };
 
         case actionTypes.correction:
-            // Log old and new values, to be sent to API
-            let log = state.correctionFields.correctionLog;
-            log.push([action.input, action.oldValue, action.newValue]);
-
-            // Return modified state with log
+            // Return modified state with log - get effect hook to send values
+            // to API!
             return {
                 ...state,
                 [action.input]: action.newValue,
                 "correctionFields": {
                     ...state.correctionFields,
                     [action.input]: [],
-                    "correctionLog": log
+                    "correctionLog": [...state.correctionFields.correctionLog,
+                                      [action.input, action.oldValue, action.newValue]
+                                     ]
                 }
             };
 

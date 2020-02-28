@@ -1,7 +1,7 @@
 /* jshint esversion: 9 */
 
-import React, { useReducer, useContext, useEffect, useState } from 'react';
-import { Grid, Paper, Typography } from '@material-ui/core';
+import React, { useReducer, useEffect } from 'react';
+import { Grid, Paper } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField } from './form-components';
@@ -18,11 +18,17 @@ function SuperForm(props) {
     const [state, dispatch] = useReducer(reducer, initialFormState);
 
     // Use effect hook for api validation
-    // No need to reset validationInput to some default value, since this
+    // No need to reset validationInputs to some default value, since this
     // effect will only run when it changes.
     useEffect(() => {
+        let input = null;
+        if (state.validationInputs.length > 0) {
+            input = state.validationInputs[state.validationInputs.length - 1];
+            document.title = state.validationInputs.length;  // Proves it is being run!
+        }
+        
         // TODO: Make this do mad fetching to get validated values
-        switch (state.validationInput) {
+        switch (input) {
             case inputs.buying:
                 // TODO: Validate buying party!
 
@@ -60,23 +66,7 @@ function SuperForm(props) {
                         input: inputs.product,
                         suggestions: ["Strange things are", "afoot at", "the Circle-K"]
                     });
-                }
-                // // Dispatch validated values to form!
-                // dispatch({
-                //     input: inputs.buying,
-                //     type: actionTypes.new,
-                //     newValue: state[inputs.buying] + " (validated by product)"
-                // });
-                // dispatch({
-                //     input: inputs.selling,
-                //     type: actionTypes.new,
-                //     newValue: state[inputs.selling] + " (validated by product)"
-                // });
-                // dispatch({
-                //     input: inputs.product,
-                //     type: actionTypes.new,
-                //     newValue: state[inputs.product] + " (validated by product)"
-                // });            
+                }          
 
                 break;
 
@@ -115,11 +105,14 @@ function SuperForm(props) {
             default:
                 break;
         }
-    }, [state.validationInput]);  // Only perform effect when validationInput changes
+    }, [state.validationInputs]);  // Only perform effect when validationInputs changes
 
     // Use effect hook for logging corrections!
     useEffect(() => {
-        const [field, oldVal, newVal] = state.correctionFields.correctionLog.slice(-1);
+        const log = state.correctionFields.correctionLog;
+        if (log.length > 0) {
+            const [field, oldVal, newVal] = log[log.length - 1];
+        }
         // TODO: Send fields to API!
     }, [state.correctionFields.correctionLog]);  // Only perform effect when correctionFields changes
 
@@ -185,6 +178,9 @@ function SubFormOne(props) {
         props.fields.correctionFields[inputs.buying].length > 0
         || props.fields.correctionFields[inputs.selling].length > 0
         || props.fields.correctionFields[inputs.product].length > 0
+        || props.fields.incorrectFields[inputs.buying]
+        || props.fields.incorrectFields[inputs.selling]
+        || props.fields.incorrectFields[inputs.product]
         || props.fields.sellingParty === ""
         || props.fields.buyingParty === ""
         || props.fields.productName === ""
@@ -251,6 +247,8 @@ function SubFormTwo(props) {
     let anyEmptyOrError = (
         props.fields.correctionFields[inputs.uCurr].length > 0
         || props.fields.correctionFields[inputs.uPrice].length > 0
+        || props.fields.incorrectFields[inputs.uCurr]
+        || props.fields.incorrectFields[inputs.uPrice]
         || props.fields.underlyingCurrency === ""
         || props.fields.underlyingPrice === ""
     );
