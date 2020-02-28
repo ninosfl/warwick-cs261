@@ -138,6 +138,7 @@ dmypy.json
 # Node.js modules/packages
 server/node_modules/
 server/node_modules/**
+node_modules/
 
 # Webpack build files
 server/assets/bundles/
