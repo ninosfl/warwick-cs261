@@ -60,10 +60,13 @@ def report(request, year: int, month: int, day: int):
         context = {"error_message": err}
         return render(request, "errors/errorpage.html", context)
 
-    reports = DerivativeTrade.objects.filter(date_of_trade=(
+    # reports = DerivativeTrade.objects.filter(date_of_trade=(
+    #     "%s-%s-%s" % (str(year), str(month), str(day))))
+
+    reports = DerivativeTrade.objects.select_related('traded_product').filter(date_of_trade=(
         "%s-%s-%s" % (str(year), str(month), str(day))))
 
-    # prod_names = DerivativeTrade.objects.select_related('Product')
+
 
     context = {
         "year": year,

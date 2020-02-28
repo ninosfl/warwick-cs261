@@ -5,7 +5,11 @@
 {% for report in reports %}
     <p>Date of Trade: {{ report.date_of_trade }}</p>
     <p>Trade ID: {{ report.trade_id }}</p>
-    <p>Product Type: {{ report.product_type }}</p> <!-- FIXME: FULL Product Name needed -->
+    {% if report.product_type == "S" %}
+        <p>Product Name: Stocks</p>
+    {% else %}
+        <p>Product Name: {{ report.traded_product.product }}</p>
+    {% endif %}
     <p>Buying Party: {{ report.buying_party }}</p>
     <p>Selling Party: {{ report.selling_party }}</p>
     <p>Notional Amount: {{ report.notional_currency}} {{ report.notional_amount }}</p>
