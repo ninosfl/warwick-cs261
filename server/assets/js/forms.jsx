@@ -450,3 +450,19 @@ function SubmitForm(props) {
         </Grid>
     );
 }
+
+/* FOR PROGRESS INDICATORS WHILE MAKING API REQUESTS
+<Grid container direction="row">
+    <FormFieldWrapper
+        id={inputs.uPrice}
+        label="Underlying Price"
+        value={props.fields.underlyingPrice}
+        suggestions={props.fields.correctionFields[inputs.uPrice]}
+        incorrectField={props.fields.incorrectFields[inputs.uPrice]}
+        helperText="Please enter the underlying price, in the currency above."
+        errorMessage="This input must be a number; Please try again."
+        disabled={props.fields.requestingFields[inputs.uPrice]}
+    />
+    {props.fields.requestingFields[inputs.uPrice] && <CircularProgress />}
+</Grid>
+*/
