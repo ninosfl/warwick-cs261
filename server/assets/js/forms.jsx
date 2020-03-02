@@ -40,7 +40,8 @@ function SuperForm(props) {
                         suggestions: ["Sixty", "Nine", "Dudes!"]
                     });
                 }
-
+                
+                dispatch({ type: actionTypes.markRequestComplete, input: inputs.buying });
                 break;
 
             case inputs.selling:
@@ -55,6 +56,7 @@ function SuperForm(props) {
                     });
                 }
 
+                dispatch({ type: actionTypes.markRequestComplete, input: inputs.selling });
                 break;
 
             case inputs.product:
@@ -68,6 +70,7 @@ function SuperForm(props) {
                     });
                 }          
 
+                dispatch({ type: actionTypes.markRequestComplete, input: inputs.product });
                 break;
 
             case inputs.uPrice:
@@ -86,6 +89,7 @@ function SuperForm(props) {
                     });
                 }
 
+                dispatch({ type: actionTypes.markRequestComplete, input: inputs.uPrice });
                 break;
             
             case inputs.mDate:
@@ -102,6 +106,7 @@ function SuperForm(props) {
                     });
                 }
 
+                dispatch({ type: actionTypes.markRequestComplete, input: inputs.mDate });
                 break;
             
             case inputs.quantity:
@@ -121,6 +126,7 @@ function SuperForm(props) {
                     });
                 }
 
+                dispatch({ type: actionTypes.markRequestComplete, input: inputs.quantity });
                 break;
 
             case inputs.sPrice:
@@ -139,6 +145,7 @@ function SuperForm(props) {
                     });
                 }
 
+                dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
                 break;
 
             // TODO: Below validations!
@@ -228,6 +235,9 @@ function SubFormOne(props) {
         || props.fields.incorrectFields[inputs.buying]
         || props.fields.incorrectFields[inputs.selling]
         || props.fields.incorrectFields[inputs.product]
+        || props.fields.requestingFields[inputs.buying]
+        || props.fields.requestingFields[inputs.selling]
+        || props.fields.requestingFields[inputs.product]
         || props.fields.sellingParty === ""
         || props.fields.buyingParty === ""
         || props.fields.productName === ""
@@ -254,6 +264,7 @@ function SubFormOne(props) {
                 value={props.fields.buyingParty}
                 suggestions={props.fields.correctionFields[inputs.buying]}
                 incorrectField={props.fields.incorrectFields[inputs.buying]}
+                disabled={props.fields.requestingFields[inputs.buying]}
                 helperText="Please enter the buying party."
                 errorMessage="This input looks wrong; Click here to see suggestions."
             />
@@ -265,7 +276,7 @@ function SubFormOne(props) {
                 value={props.fields.sellingParty}
                 suggestions={props.fields.correctionFields[inputs.selling]}
                 incorrectField={props.fields.incorrectFields[inputs.selling]}
-                disabled={props.fields.validatingFields[inputs.selling]}
+                disabled={props.fields.requestingFields[inputs.selling]}
                 helperText="Please enter the selling party."
                 errorMessage="This input looks wrong; Click here to see suggestions."
             />
@@ -277,6 +288,7 @@ function SubFormOne(props) {
                 value={props.fields.productName}
                 suggestions={props.fields.correctionFields[inputs.product]}
                 incorrectField={props.fields.incorrectFields[inputs.product]}
+                disabled={props.fields.requestingFields[inputs.product]}
                 helperText="Please enter the product name."
                 errorMessage="This input looks wrong; Click here to see suggestions."
             />
@@ -302,6 +314,9 @@ function SubFormTwo(props) {
         || props.fields.incorrectFields[inputs.uCurr]
         || props.fields.incorrectFields[inputs.uPrice]
         || props.fields.incorrectFields[inputs.mDate]
+        || props.fields.requestingFields[inputs.uCurr]
+        || props.fields.requestingFields[inputs.uPrice]
+        || props.fields.requestingFields[inputs.mDate]
         || props.fields.underlyingCurrency === ""
         || props.fields.underlyingPrice === ""
         || props.fields.maturityDate === ""
@@ -338,6 +353,7 @@ function SubFormTwo(props) {
                     value={props.fields.underlyingPrice}
                     suggestions={props.fields.correctionFields[inputs.uPrice]}
                     incorrectField={props.fields.incorrectFields[inputs.uPrice]}
+                    disabled={props.fields.requestingFields[inputs.uPrice]}
                     helperText="Please enter the underlying price, in the currency above."
                     errorMessage="This input must be a number; Please try again."
                 />
@@ -349,6 +365,7 @@ function SubFormTwo(props) {
                     value={props.fields.maturityDate}
                     suggestions={props.fields.correctionFields[inputs.mDate]}
                     incorrectField={props.fields.incorrectFields[inputs.mDate]}
+                    disabled={props.fields.requestingFields[inputs.mDate]}
                     helperText="Please enter the maturity date, in dd/mm/yyyy format."
                     errorMessage="This input must be in dd/mm/yyyy format; Please try again."
                 />

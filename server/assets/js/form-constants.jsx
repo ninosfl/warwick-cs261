@@ -48,7 +48,7 @@ const initialFormState = {
         "notionalCurrency": false,
         "strikePrice": false,
     },
-    "validatingFields": {
+    "requestingFields": {
         "buyingParty": false,
         "sellingParty": false,
         "productName": false,
@@ -71,7 +71,9 @@ const actionTypes = {
     markIncorrect: "markIncorrect",
     markCorrect: "markCorrect",
     nextForm: "next",
-    populateCurrencies: "populateCurrencies"
+    populateCurrencies: "populateCurrencies",
+    markRequesting: "markRequesting",
+    markRequestComplete: "markRequestComplete",
 };
 
 // All the valid input types - expressed here as an enum to avoid strings
@@ -128,6 +130,12 @@ const reducer = (state, action) => {
         case actionTypes.markCorrect:
             // Mark a specific input as correct, wiping it in the process
             return { ...state, "incorrectFields": {...state.incorrectFields, [action.input]: false} };
+
+        case actionTypes.markRequesting:
+            return { ...state, "requestingFields": {...state.requestingFields, [action.input]: true} };
+
+        case actionTypes.markRequestComplete:
+            return { ...state, "requestingFields": {...state.requestingFields, [action.input]: false} };
 
         case actionTypes.nextForm:
             switch (state.currentForm) {

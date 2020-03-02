@@ -162,7 +162,8 @@ function FormFieldWrapper(props) {
     // Define functions for validating each field, stating which fields need
     // to be sent and checked
     const validate = () => {
-        dispatch({ type: actionTypes.validate, validationInput: props.id })
+        dispatch({ type: actionTypes.markRequesting, input: props.id });
+        dispatch({ type: actionTypes.validate, validationInput: props.id });
     };
 
     // Ignore incorrectField prop on child elements
