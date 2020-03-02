@@ -74,8 +74,14 @@ function SuperForm(props) {
                 break;
 
             case inputs.uPrice:
-                // Check if price entered is a number
-                if (decimal_re.test(state.underlyingPrice) !== true) {
+                // Check if price entered is a positive price
+                if (all_zeroes.test(state.underlyingPrice) === true) {
+                    dispatch({
+                        type: actionTypes.markIncorrect,
+                        input: inputs.uPrice
+                    });
+
+                } else if (decimal_re.test(state.underlyingPrice) !== true) {
                     dispatch({
                         type: actionTypes.markIncorrect,
                         input: inputs.uPrice
@@ -134,7 +140,13 @@ function SuperForm(props) {
 
             case inputs.sPrice:
                 // Check if price entered is a number
-                if (decimal_re.test(state.strikePrice) !== true) {
+                if (all_zeroes.test(state.strikePrice) === true) {
+                    dispatch({
+                        type: actionTypes.markIncorrect,
+                        input: inputs.sPrice
+                    });
+
+                } else if (decimal_re.test(state.strikePrice) !== true) {
                     dispatch({
                         type: actionTypes.markIncorrect,
                         input: inputs.sPrice
@@ -363,7 +375,7 @@ function SubFormTwo(props) {
                     incorrectField={props.fields.incorrectFields[inputs.uPrice]}
                     disabled={props.fields.requestingFields[inputs.uPrice]}
                     helperText="Please enter the underlying price, in the currency above."
-                    errorMessage="This input must be a valid price; Please try again."
+                    errorMessage="This input must be a positive, valid price; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -431,7 +443,7 @@ function SubFormThree(props) {
                     incorrectField={props.fields.incorrectFields[inputs.sPrice]}
                     disabled={props.fields.requestingFields[inputs.sPrice]}
                     helperText={"Please enter the strike price, in: " + props.fields.underlyingCurrency}
-                    errorMessage="This input must be a valid price; Please try again."
+                    errorMessage="This input must be a positive, valid price; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
