@@ -1,3 +1,5 @@
+import random
+import string
 from django.utils import timezone
 from django.db import models
 
@@ -39,13 +41,25 @@ stockPrices
     stockPrice
 """
 
+def generate_company_id():
+    while True:
+        new_id = ''.join(
+            [random.choice(string.ascii_uppercase) for _ in range(4)]
+            + [str(random.choice(string.digits)) for _ in range(2)]
+        )
+        try:
+            Company.objects.get(id=new_id)
+        except Company.DoesNotExist:
+            return new_id
+
 class Company(models.Model):
-    id = models.CharField(primary_key=True, max_length=6)
+    id = models.CharField(primary_key=True, max_length=6, default=generate_company_id)
     # 36 max name length found in data
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return f"{self.name} Company"
+
 
 class Product(models.Model):
     # 39 max name length found in data, and unique
