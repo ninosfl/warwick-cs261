@@ -126,7 +126,7 @@ class DerivativeTrade(models.Model):
             raise RuntimeError("Catastrophic failure no conversion possible from"
                                + f" underlying currency {self.underlying_currency}"
                                + f" to notional currency {self.notional_currency}")
-        return self.underlying_price * notional_per_usd / underlying_per_usd
+        return self.quantity * self.underlying_price * notional_per_usd / underlying_per_usd
 
 class ProductPrice(models.Model):
     date = models.DateField()
