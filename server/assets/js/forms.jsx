@@ -1,7 +1,7 @@
 /* jshint esversion: 9 */
 
 import React, { useReducer, useEffect } from 'react';
-import { Grid, Paper } from '@material-ui/core';
+import { Grid, Paper, CircularProgress } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField } from './form-components';
@@ -257,8 +257,8 @@ function SubFormOne(props) {
                 errorMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
-        <Grid item className={classes.formItemContainer}>
-            <FormFieldWrapper
+        <Grid item container direction="row" alignItems="center" className={classes.formItemContainer}>
+            <Grid item xs={10}><FormFieldWrapper
                 id={inputs.selling}
                 label="Selling Party"
                 value={props.fields.sellingParty}
@@ -266,7 +266,9 @@ function SubFormOne(props) {
                 incorrectField={props.fields.incorrectFields[inputs.selling]}
                 helperText="Please enter the selling party."
                 errorMessage="This input looks wrong; Click here to see suggestions."
-            />
+                disabled={props.fields.validatingFields[inputs.selling]}
+            /></Grid>
+            <Grid item>{props.fields.validatingFields[inputs.selling] && <CircularProgress size={30}/>}</Grid>
         </Grid>
         <Grid item className={classes.formItemContainer}>
             <FormFieldWrapper
