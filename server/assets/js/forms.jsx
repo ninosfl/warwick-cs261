@@ -3,7 +3,7 @@
 import React, { useReducer, useEffect } from 'react';
 import { Grid, Paper, CircularProgress, InputAdornment } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, int_re, decimal_re, date_format_re } from './form-constants';
+import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField } from './form-components';
 import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
 
@@ -109,9 +109,14 @@ function SuperForm(props) {
                 break;
             
             case inputs.quantity:
-                // Check that input quantity is an integer, consisting of
-                // only digit characters.
-                if (int_re.test(state.quantity) !== true) {
+                // Check that input quantity is a positive integer, consisting
+                // of only digit characters.
+                if (all_zeroes.test(state.quantity) === true) {
+                    dispatch({
+                        type: actionTypes.markIncorrect,
+                        input: inputs.quantity
+                    });
+                } else if (int_re.test(state.quantity) !== true) {
                     dispatch({
                         type: actionTypes.markIncorrect,
                         input: inputs.quantity

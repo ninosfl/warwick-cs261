@@ -204,6 +204,7 @@ const useStyles = makeStyles( theme => ({
     },
 }));
 
+const all_zeroes = /^0+$/;
 const int_re = /^\d+$/;
 const decimal_re = /^\d+(\.\d{1,2})?$/;
 const date_format_re = /^\d{2}\/\d{2}\/\d{4}$/;
@@ -216,6 +217,7 @@ export {
     reducer,
     FormDispatch,
     useStyles,
+    all_zeroes,
     int_re,
     decimal_re,
     date_format_re
