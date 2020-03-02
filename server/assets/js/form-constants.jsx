@@ -47,7 +47,17 @@ const initialFormState = {
         "maturityDate": false,
         "notionalCurrency": false,
         "strikePrice": false,
-        "correctionLog": false
+    },
+    "validatingFields": {
+        "buyingParty": false,
+        "sellingParty": false,
+        "productName": false,
+        "quantity": false,
+        "underlyingCurrency": false,
+        "underlyingPrice": false,
+        "maturityDate": false,
+        "notionalCurrency": false,
+        "strikePrice": false,
     },
     "currencies": [],
 };
