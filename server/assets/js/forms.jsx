@@ -1,10 +1,11 @@
 /* jshint esversion: 9 */
 
 import React, { useReducer, useEffect } from 'react';
-import { Grid, Paper, CircularProgress } from '@material-ui/core';
+import { Grid, Paper, CircularProgress, InputAdornment } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField } from './form-components';
+import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
 
 export { SuperForm };
 
@@ -258,17 +259,16 @@ function SubFormOne(props) {
             />
         </Grid>
         <Grid item container direction="row" alignItems="center" className={classes.formItemContainer}>
-            <Grid item xs={10}><FormFieldWrapper
+            <FormFieldWrapper
                 id={inputs.selling}
                 label="Selling Party"
                 value={props.fields.sellingParty}
                 suggestions={props.fields.correctionFields[inputs.selling]}
                 incorrectField={props.fields.incorrectFields[inputs.selling]}
+                disabled={props.fields.validatingFields[inputs.selling]}
                 helperText="Please enter the selling party."
                 errorMessage="This input looks wrong; Click here to see suggestions."
-                disabled={props.fields.validatingFields[inputs.selling]}
-            /></Grid>
-            <Grid item>{props.fields.validatingFields[inputs.selling] && <CircularProgress size={30}/>}</Grid>
+            />
         </Grid>
         <Grid item className={classes.formItemContainer}>
             <FormFieldWrapper
