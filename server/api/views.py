@@ -199,11 +199,17 @@ def validate_maturity_date(data):
     return result
 
 def currencies(_, date_str=None):
+    """
+    Returns currencies for a specific date. If no date is specified the current
+    server date is used. Date str must be in YYYY-MM-DD format.
+    """
     if not date_str:
         date = timezone.now().date()
     else:
         date = datetime.strptime(date_str, "%Y-%m-%d").date()
-    return JsonResponse({"currencies":[c.currency for c in CurrencyValue.objects.filter(date=date)]})
+    return JsonResponse({
+        "currencies": [c.currency for c in CurrencyValue.objects.filter(date=date)]
+    })
 
 ### Additional stuff below ###
 
