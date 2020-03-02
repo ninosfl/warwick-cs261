@@ -142,8 +142,7 @@ const reducer = (state, action) => {
                 case subForms[1]:
                     return { ...state, "currentForm": subForms[2] };
                 case subForms[2]:
-                    // TODO: Forward to third subform (once it's made lol)
-                    return { ...state, "currentForm": subForms.submit };
+                    return { ...state, "currentForm": subForms[3] };
                 case subForms[3]:
                     return { ...state, "currentForm": subForms.submit };
                 case subForms.submit:
@@ -205,6 +204,10 @@ const useStyles = makeStyles( theme => ({
     },
 }));
 
+const int_re = /^\d+$/;
+const decimal_re = /^\d+(\.\d{1,2})?$/;
+const date_format_re = /^\d{2}\/\d{2}\/\d{4}$/;
+
 export {
     subForms,
     initialFormState,
@@ -212,5 +215,8 @@ export {
     inputs,
     reducer,
     FormDispatch,
-    useStyles
+    useStyles,
+    int_re,
+    decimal_re,
+    date_format_re
 };

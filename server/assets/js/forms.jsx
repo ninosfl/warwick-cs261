@@ -3,7 +3,7 @@
 import React, { useReducer, useEffect } from 'react';
 import { Grid, Paper, CircularProgress, InputAdornment } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles } from './form-constants';
+import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, int_re, decimal_re, date_format_re } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField } from './form-components';
 import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
 
@@ -75,7 +75,7 @@ function SuperForm(props) {
 
             case inputs.uPrice:
                 // Check if price entered is a number
-                if (isNaN(state.underlyingPrice)) {
+                if (decimal_re.test(state.underlyingPrice) !== true) {
                     dispatch({
                         type: actionTypes.markIncorrect,
                         input: inputs.uPrice
@@ -93,7 +93,6 @@ function SuperForm(props) {
                 break;
             
             case inputs.mDate:
-                const date_format_re = /^\d{2}\/\d{2}\/\d{4}$/;
                 if (date_format_re.test(state.maturityDate) !== true) {
                     dispatch({
                         type: actionTypes.markIncorrect,
@@ -112,8 +111,7 @@ function SuperForm(props) {
             case inputs.quantity:
                 // Check that input quantity is an integer, consisting of
                 // only digit characters.
-                const int_re = /^\d+$/;
-                if (int_re.text(state.quantity) !== true) {
+                if (int_re.test(state.quantity) !== true) {
                     dispatch({
                         type: actionTypes.markIncorrect,
                         input: inputs.quantity
@@ -131,17 +129,17 @@ function SuperForm(props) {
 
             case inputs.sPrice:
                 // Check if price entered is a number
-                if (isNaN(state.underlyingPrice)) {
+                if (decimal_re.test(state.strikePrice) !== true) {
                     dispatch({
                         type: actionTypes.markIncorrect,
-                        input: inputs.uPrice
+                        input: inputs.sPrice
                     });
 
                 } else {
                     // TODO: Validate with API!
                     dispatch({
                         type: actionTypes.markCorrect,
-                        input: inputs.uPrice
+                        input: inputs.sPrice
                     });
                 }
 
@@ -202,8 +200,13 @@ function SuperForm(props) {
             break;
 
         case subForms[3]:
-            // TODO: Implement sub form 3!
-            elem = null;
+            elem = (
+                <Paper elevation={3} className={classes.formContainer}>
+                    <FormDispatch.Provider value={dispatch}>
+                        <SubFormThree fields={{...state}} />
+                    </FormDispatch.Provider>
+                </Paper>
+            );
             break;
 
         case subForms.submit:
@@ -294,7 +297,7 @@ function SubFormOne(props) {
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
-            {anyEmptyOrError ? <NextButton disabled /> : <NextButton />}
+            <NextButton disabled={anyEmptyOrError}/>
         </Grid>
     </Grid>
     );
@@ -355,7 +358,7 @@ function SubFormTwo(props) {
                     incorrectField={props.fields.incorrectFields[inputs.uPrice]}
                     disabled={props.fields.requestingFields[inputs.uPrice]}
                     helperText="Please enter the underlying price, in the currency above."
-                    errorMessage="This input must be a number; Please try again."
+                    errorMessage="This input must be a valid price; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -371,7 +374,84 @@ function SubFormTwo(props) {
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
-                {anyEmptyOrError ? <NextButton disabled /> : <NextButton />}
+                <NextButton disabled={anyEmptyOrError}/>
+            </Grid>
+        </Grid>
+        );
+}
+
+
+function SubFormThree(props) {
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    // Only let them progress if all fields are non-empty and there are no
+    // corrections left
+    let anyEmptyOrError = (
+        props.fields.correctionFields[inputs.quantity].length > 0
+        || props.fields.correctionFields[inputs.nCurr].length > 0
+        || props.fields.correctionFields[inputs.sPrice].length > 0
+        || props.fields.incorrectFields[inputs.quantity]
+        || props.fields.incorrectFields[inputs.nCurr]
+        || props.fields.incorrectFields[inputs.sPrice]
+        || props.fields.requestingFields[inputs.quantity]
+        || props.fields.requestingFields[inputs.nCurr]
+        || props.fields.requestingFields[inputs.sPrice]
+        || props.fields.underlyingCurrency === ""
+        || props.fields.underlyingPrice === ""
+        || props.fields.maturityDate === ""
+        
+    );
+
+    // Render sub-form within a grid
+    return (
+        <Grid
+            container
+            justify="center"
+            alignContent="center"
+            className={classes.formContainer}
+            direction="column"
+            spacing={3}
+        >
+            <CssBaseline />
+            <Grid item>
+                <SubFormTitle>Step 3 of 4</SubFormTitle>
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <FormFieldWrapper
+                    id={inputs.sPrice}
+                    label="Strike Price"
+                    value={props.fields.strikePrice}
+                    suggestions={props.fields.correctionFields[inputs.sPrice]}
+                    incorrectField={props.fields.incorrectFields[inputs.sPrice]}
+                    disabled={props.fields.requestingFields[inputs.sPrice]}
+                    helperText={"Please enter the strike price, in: " + props.fields.underlyingCurrency}
+                    errorMessage="This input must be a valid price; Please try again."
+                />
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <FormFieldWrapper
+                    id={inputs.quantity}
+                    label="Quantity"
+                    value={props.fields.quantity}
+                    suggestions={props.fields.correctionFields[inputs.quantity]}
+                    incorrectField={props.fields.incorrectFields[inputs.quantity]}
+                    disabled={props.fields.requestingFields[inputs.quantity]}
+                    helperText="Please enter the quantity of products sold."
+                    errorMessage="This input must be a positive integer; Please try again."
+                />
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <CurrencyField
+                    id={inputs.nCurr}
+                    label="Notional Currency"
+                    value={props.fields.notionalCurrency}
+                    suggestions={props.fields.correctionFields[inputs.nCurr]}
+                    currencies={props.fields.currencies}
+                />
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <NextButton disabled={anyEmptyOrError}/>
             </Grid>
         </Grid>
         );
@@ -469,19 +549,3 @@ function SubmitForm(props) {
         </Grid>
     );
 }
-
-/* FOR PROGRESS INDICATORS WHILE MAKING API REQUESTS
-<Grid container direction="row">
-    <FormFieldWrapper
-        id={inputs.uPrice}
-        label="Underlying Price"
-        value={props.fields.underlyingPrice}
-        suggestions={props.fields.correctionFields[inputs.uPrice]}
-        incorrectField={props.fields.incorrectFields[inputs.uPrice]}
-        helperText="Please enter the underlying price, in the currency above."
-        errorMessage="This input must be a number; Please try again."
-        disabled={props.fields.requestingFields[inputs.uPrice]}
-    />
-    {props.fields.requestingFields[inputs.uPrice] && <CircularProgress />}
-</Grid>
-*/
