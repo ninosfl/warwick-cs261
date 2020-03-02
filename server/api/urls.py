@@ -13,5 +13,6 @@ urlpatterns = [
     path("currencies/", currencies),
     path("company/<company_name>/product/<product_name>/", company_product),
     path("company/<company_name>/", company),
+    path("corrections/", api_main, {"func": correction}, name="api-correction"),
     path("product/<product_name>/", product),
 ]
