@@ -3,9 +3,7 @@ from pathlib import Path
 from datetime import datetime
 from decimal import Decimal
 
-from django.utils import timezone
-from trades.models import (Product, Company, CurrencyValue, DerivativeTrade,
-                           ProductPrice, StockPrice, TradeProduct)
+from trades.models import CurrencyValue
 
 DATA_DIR = Path("../data")
 
@@ -24,11 +22,6 @@ def clear_data():
         print("No data was altered")
         return False
     CurrencyValue.objects.all().delete()
-    Company.objects.all().delete()
-    Product.objects.all().delete()
-    DerivativeTrade.objects.all().delete()
-    ProductPrice.objects.all().delete()
-    StockPrice.objects.all().delete()
     print("Cleared data from all tables.")
     return True
 
