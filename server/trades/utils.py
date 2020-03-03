@@ -3,7 +3,7 @@ from pathlib import Path
 import random
 from .models import CurrencyValue
 
-DATA_DIR = Path("../../data")
+DATA_DIR = Path("../data")
 
 SAMPLE_CURRENCY_VALUES_CACHE = None
 
