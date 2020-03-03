@@ -40,6 +40,7 @@ def get_currency_values(date):
         c: round(Decimal(random.uniform(0.9, 1.1)) * v, 6) # max 6 decimal places
         for c, v in _get_sample_currency_values().items()
     }
+    generated_values["USD"] = 1
     CurrencyValue.objects.bulk_create([
         CurrencyValue(currency=c, value=v, date=date)
         for c, v in generated_values.items()
@@ -59,9 +60,9 @@ def convert_currency(date, value, currency1, currency2):
     What is stored in CurrencyValue table is valueInUSD hence value is USD/currency
     To convert value V from currency C1 to currency C2:
 
-                C1      USD              USD     USD    
-    V * C1 = V ----- * ----- * C2 = V * ----- : ----- * C2 
-                USD     C2               C2      C1     
+                  C1              C1      USD              USD     USD    
+    V * C1 = V * ---- * C2 = V * ----- * ----- * C2 = V * ----- : ----- * C2 
+                  C2              USD     C2               C2      C1     
     
     Ignoring final C2 which is the units (i.e. the resulting currency) and
     with USD/C2 and USD/C1 being what's stored in CurrencyValues it is a simple
