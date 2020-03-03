@@ -54,6 +54,18 @@ def get_currencies(date):
     return list(get_currency_values(date).keys())
 
 def convert_currency(date, value, currency1, currency2):
-    """ Convert a value from currency1 to currency2 based on specified date's rate """
+    """
+    Convert a value from currency1 to currency2 based on specified date's rate.
+    What is stored in CurrencyValue table is valueInUSD hence value is USD/currency
+    To convert value V from currency C1 to currency C2:
+
+                C1      USD              USD     USD    
+    V * C1 = V ----- * ----- * C2 = V * ----- : ----- * C2 
+                USD     C2               C2      C1     
+    
+    Ignoring final C2 which is the units (i.e. the resulting currency) and
+    with USD/C2 and USD/C1 being what's stored in CurrencyValues it is a simple
+    matter of multiplication and to perform the conversion. Result is a Decimal
+    """
     currencyvals = get_currency_values(date)
-    return Decimal(value) * currencyvals[currency1] / currencyvals[currency2]
+    return Decimal(value) * currencyvals[currency2] / currencyvals[currency1]
