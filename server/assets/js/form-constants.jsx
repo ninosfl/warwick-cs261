@@ -68,8 +68,8 @@ const actionTypes = {
     validate: "validate",
     correction: "correction",
     provideSuggestions: "provideSuggestions",
-    markIncorrect: "markIncorrect",
-    markCorrect: "markCorrect",
+    markNoSuggestions: "markNoSuggestions",
+    markPotentialSuggestions: "markPotentialSuggestions",
     nextForm: "next",
     prevForm: "prev",
     populateCurrencies: "populateCurrencies",
@@ -124,11 +124,11 @@ const reducer = (state, action) => {
             // Replace state correction values with new ones
             return { ...state, "correctionFields": {...state.correctionFields, [action.input]: action.suggestions} };
 
-        case actionTypes.markIncorrect:
+        case actionTypes.markNoSuggestions:
             // Mark a specific input as incorrect
             return { ...state, "incorrectFields": {...state.incorrectFields, [action.input]: true} };
 
-        case actionTypes.markCorrect:
+        case actionTypes.markPotentialSuggestions:
             // Mark a specific input as correct, wiping it in the process
             return { ...state, "incorrectFields": {...state.incorrectFields, [action.input]: false} };
 
