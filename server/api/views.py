@@ -3,7 +3,7 @@ from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from trades.models import Company, Product, CurrencyValue
+from trades.models import Company, Product, CurrencyValue, DerivativeTrade, TradeProduct
 from learning.models import Correction
 from sklearn.metrics import mean_squared_error
 from keras.models import load_model
@@ -79,6 +79,37 @@ def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
+
+def create_trade(data):
+    required_data = {
+        "product", "sellingParty", "buyingParty",
+        "quantity", "underlyingCurrency", "underlyingPrice",
+        "maturityDate", "notionalCurrency", "strikePrice"
+    }
+    not_specified = required_data.difference(data)
+    if not_specified:
+        return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
+    # Create the trade object and (possibly) the associated product
+    new_trade = DerivativeTrade(
+        product_type='S' if data["product"] == "Stocks" else 'P',
+        selling_party__name=data["sellingParty"],
+        buying_party__name=data["buyingParty"],
+        quantity=data["quantity"],
+        underlying_currency=data["underlyingCurrency"],
+        underlying_price=data["underlyingPrice"],
+        maturity_date=data["maturityDate"],
+        notional_currency=data["notionalCurrency"],
+        strike_price=data["strikePrice"],
+    )
+    new_trade.save()
+    if new_trade.product_type == 'P':
+        TradeProduct(trade=new_trade, product__name=data["product"])
+    # Add generated fields
+    data["tradeID"] = new_trade.id
+    data["dateOfTrade"] = new_trade.date_of_trade
+    data["notionalAmount"] = new_trade.notional_amount
+    # Return success and the created object
+    return {"success": True, "trade": data}
 
 def mean_squared_error(x,y):
     return np.mean([(x-y)**2 for x,y in zip(x,y)])
