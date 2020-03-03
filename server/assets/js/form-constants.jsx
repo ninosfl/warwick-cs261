@@ -71,6 +71,7 @@ const actionTypes = {
     markIncorrect: "markIncorrect",
     markCorrect: "markCorrect",
     nextForm: "next",
+    prevForm: "prev",
     populateCurrencies: "populateCurrencies",
     markRequesting: "markRequesting",
     markRequestComplete: "markRequestComplete",
@@ -151,7 +152,19 @@ const reducer = (state, action) => {
                 default:
                     return state;
             }
-            break;
+        
+        case actionTypes.prevForm:
+            switch (state.currentForm) {
+                case subForms[2]:
+                    return { ...state, "currentForm": subForms[1] };
+                case subForms[3]:
+                    return { ...state, "currentForm": subForms[2] };
+                case subForms.submit:
+                    // Tell effect hook to get submitting
+                    return { ...state, "currentForm": subForms[3] };
+                default:
+                    return state;
+            }
         
         case actionTypes.populateCurrencies:
             // Given a list of currencies, put it in the form!
@@ -168,30 +181,30 @@ const FormDispatch = React.createContext(null);
 // Mad styling son - mostly to ensure the form goes in the middle of the screen
 const useStyles = makeStyles( theme => ({
     formContainer: {
-        height: "90vh",
-        width: "80vh",
+        height: "90vmin",
+        width: "80vmin",
         position: 'absolute', 
         left: '50%',
         top: '50%',
         transform: 'translate(-50%, -50%)'
     },
     // submitContainer: {
-    //     minHeight: "90vh",
-    //     width: "80vh",
+    //     minHeight: "90vmin",
+    //     width: "80vmin",
     //     position: 'absolute', 
     //     left: '50%',
     //     top: '50%',
     //     transform: 'translate(-50%, -50%)'
     // },
     submitItemContainer: {
-        width: "60vh",
+        width: "60vmin",
     },
     submitButton: {
-        width: "60vh",
+        width: "60vmin",
         marginTop: "16px",
     },
     formItemContainer: {
-        width: "60vh",
+        width: "60vmin",
     },
     formItem: {
         width: '100%'

@@ -289,7 +289,7 @@ function SubFormOne(props) {
                 errorMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
-        <Grid item container direction="row" alignItems="center" className={classes.formItemContainer}>
+        <Grid item className={classes.formItemContainer}>
             <FormFieldWrapper
                 id={inputs.selling}
                 label="Selling Party"
