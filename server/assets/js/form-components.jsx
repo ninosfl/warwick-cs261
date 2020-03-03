@@ -167,7 +167,7 @@ function FormFieldWrapper(props) {
     };
 
     // Ignore incorrectField prop on child elements
-    const { incorrectField, errorMessage, ...inputProps } = props;
+    const { incorrectField, errorMessage, suggestionMessage, ...inputProps } = props;
 
     // If field is marked as incorrect
     if (props.incorrectField === true) {
@@ -195,7 +195,7 @@ function FormFieldWrapper(props) {
             <ErrorWithSuggestions
                 { ...inputProps }
                 onBlur={validate}
-                helperText={props.errorMessage}  // Needs to go after props!
+                helperText={props.suggestionMessage}  // Needs to go after props!
             />
         );    
     }
