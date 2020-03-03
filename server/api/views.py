@@ -1,21 +1,23 @@
-import json
 from datetime import datetime
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils import timezone
-from trades.models import Company, Product, CurrencyValue, DerivativeTrade, TradeProduct
-from learning.models import Correction
-from keras.models import load_model
-import tensorflow as tf
-from keras import backend as K
-import datetime
 from math import floor
-import numpy as np
-import pickle
+import datetime
+import json
 import logging
-
-from jellyfish import damerau_levenshtein_distance as edit_dist
 import os
+import pickle
+
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from jellyfish import damerau_levenshtein_distance as edit_dist
+from keras import backend as K
+from keras.models import load_model
+import numpy as np
+import tensorflow as tf
+
+from learning.models import Correction
+from trades.models import Company, Product, CurrencyValue, DerivativeTrade, TradeProduct
+
 try:
     print(os.getcwd())
 except KeyError:
