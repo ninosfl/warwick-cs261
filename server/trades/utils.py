@@ -45,7 +45,10 @@ def get_currency_values(date):
     return generated_values
 
 def get_currencies(date):
-    """ Returns all currencies that exist on a specified day """
+    """
+    Returns all currencies that exist on a specified day, if none exist 
+    currencies for that date they will be generated as per get_currency_values
+    """
     return list(get_currency_values(date).keys())
 
 def convert_currency(date, val, currency1, currency2):
