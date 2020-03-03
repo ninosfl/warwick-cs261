@@ -100,7 +100,7 @@ def load_all(years_to_load, months_to_load):
                         product_type=('S' if l[2] == "Stocks" else 'P'),
                         buying_party_id=l[3],
                         selling_party_id=l[4],
-                        notional_amount=Decimal(l[5]),
+                        # notional_amount=Decimal(l[5]),
                         notional_currency=l[6],
                         quantity=int(l[7]),
                         maturity_date=datetime.strptime(l[8], "%d/%m/%Y"),

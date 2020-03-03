@@ -1,0 +1,11 @@
+{% extends "trades/base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block content %}
+    {# React root for error message #}
+    <div id="error-root"></div>
+    {# Transfer error message from Django to React #}
+    {{error_message | json_script:"error_message"}}
+
+    {% render_bundle 'main' %}
+{% endblock content %}

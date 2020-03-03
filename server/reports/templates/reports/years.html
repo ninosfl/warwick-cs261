@@ -1,0 +1,13 @@
+{% extends "trades/base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block content %}
+    {# Store current url! #}
+    <base href="{{ request.path }}" />
+    {# React root! #}
+    <div id="report-list-years"></div>
+    {# Transfer data from Django template to React #}
+    {{years | json_script:"list-data"}}
+    {# Get react to do some rendering! #}
+    {% render_bundle 'main' %}
+{% endblock content %}
