@@ -1,12 +1,14 @@
 # Instructions To Run Server
 
-Make sure python 3.8+ and npm 6.13+ are both installed on your system.
+Make sure python 3.7+ and npm 6.13+ are both installed on your system.
 
 ## Windows
 
 ### Install requirements
 In terminal execute 
-`pip install django jellyfish`
+`pip install jellyfish django django-webpack-loader tensorflow keras`
+
+Note: `tensorflow-gpu` can be used on systems with GPU(s) to speed tensorflow operation
 
 
 ### Run server
