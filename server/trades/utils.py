@@ -69,4 +69,4 @@ def convert_currency(date, value, currency1, currency2):
     matter of multiplication and to perform the conversion. Result is a Decimal
     """
     currencyvals = get_currency_values(date)
-    return Decimal(value) * currencyvals[currency2] / currencyvals[currency1]
+    return Decimal(value) * currencyvals[currency1] / currencyvals[currency2]
