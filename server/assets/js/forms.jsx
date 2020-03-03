@@ -30,33 +30,100 @@ function SuperForm(props) {
         // TODO: Make this do mad fetching to get validated values
         switch (input) {
             case inputs.buying:
-                // TODO: Validate buying party!
+                // Validate buying party via API
+                // curl --request POST --data '{"name": "Axon"}' localhost:8000/api/validate/company/
+                console.log("Currently fetching buying party: ", state.buyingParty);
+                fetch('http://localhost:8000/api/validate/company/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ "name": state.buyingParty }),
+                })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Network response not ok!");
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log('Success:', data);
+                    if (data.success === false) {
 
-                // TODO: Make this condition actually API-related
-                if (state.buyingParty.includes("test")) {
-                    dispatch({
-                        type: actionTypes.provideSuggestions,
-                        input: inputs.buying,
-                        suggestions: ["Sixty", "Nine", "Dudes!"]
-                    });
-                }
+                        let suggestions = data.names;
+                        // If suggestions available, pass them to form
+                        if (suggestions.length > 0) {
+                            dispatch({
+                                type: actionTypes.markPotentialSuggestions,
+                                input: inputs.buying
+                            });
+                            dispatch({
+                                type: actionTypes.provideSuggestions,
+                                input: inputs.buying,
+                                suggestions: suggestions
+                            });
+                        } else {  // No suggestions - just mark as incorrect
+                            dispatch({
+                                type: actionTypes.markNoSuggestions,
+                                input: inputs.buying
+                            });
+                        }
+                    }
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.buying });
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.buying });
+                });
                 
-                dispatch({ type: actionTypes.markRequestComplete, input: inputs.buying });
                 break;
 
             case inputs.selling:
-                // TODO: Validate selling party!
+                // Validate selling party using API
 
-                // TODO: Make this condition actually API-related
-                if (state.sellingParty.includes("test")) {
-                    dispatch({
-                        type: actionTypes.provideSuggestions,
-                        input: inputs.selling,
-                        suggestions: ["Whoa", "Excellent", "*Electric Guitar Noises*"]
-                    });
-                }
+                console.log("Currently fetching selling party: ", state.sellingParty);
+                fetch('http://localhost:8000/api/validate/company/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ "name": state.sellingParty }),
+                })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Network response not ok!");
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log('Success:', data);
+                    if (data.success === false) {
 
-                dispatch({ type: actionTypes.markRequestComplete, input: inputs.selling });
+                        let suggestions = data.names;
+                        // If suggestions available, pass them to form
+                        if (suggestions.length > 0) {
+                            dispatch({
+                                type: actionTypes.markPotentialSuggestions,
+                                input: inputs.selling
+                            });
+                            dispatch({
+                                type: actionTypes.provideSuggestions,
+                                input: inputs.selling,
+                                suggestions: suggestions
+                            });
+                        } else {  // No suggestions - mark as such
+                            dispatch({
+                                type: actionTypes.markNoSuggestions,
+                                input: inputs.selling
+                            });
+                        }
+                    }
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.selling });
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.selling });
+                });
                 break;
 
             case inputs.product:
@@ -77,20 +144,20 @@ function SuperForm(props) {
                 // Check if price entered is a positive price
                 if (all_zeroes.test(state.underlyingPrice) === true) {
                     dispatch({
-                        type: actionTypes.markIncorrect,
+                        type: actionTypes.markNoSuggestions,
                         input: inputs.uPrice
                     });
 
                 } else if (decimal_re.test(state.underlyingPrice) !== true) {
                     dispatch({
-                        type: actionTypes.markIncorrect,
+                        type: actionTypes.markNoSuggestions,
                         input: inputs.uPrice
                     });
 
                 } else {
                     // TODO: Validate with API!
                     dispatch({
-                        type: actionTypes.markCorrect,
+                        type: actionTypes.markPotentialSuggestions,
                         input: inputs.uPrice
                     });
                 }
@@ -101,12 +168,12 @@ function SuperForm(props) {
             case inputs.mDate:
                 if (date_format_re.test(state.maturityDate) !== true) {
                     dispatch({
-                        type: actionTypes.markIncorrect,
+                        type: actionTypes.markNoSuggestions,
                         input: inputs.mDate
                     });
                 } else {
                     dispatch({
-                        type: actionTypes.markCorrect,
+                        type: actionTypes.markPotentialSuggestions,
                         input: inputs.mDate
                     });
                 }
@@ -119,18 +186,18 @@ function SuperForm(props) {
                 // of only digit characters.
                 if (all_zeroes.test(state.quantity) === true) {
                     dispatch({
-                        type: actionTypes.markIncorrect,
+                        type: actionTypes.markNoSuggestions,
                         input: inputs.quantity
                     });
                 } else if (int_re.test(state.quantity) !== true) {
                     dispatch({
-                        type: actionTypes.markIncorrect,
+                        type: actionTypes.markNoSuggestions,
                         input: inputs.quantity
                     });
                 } else {
                     // TODO: Validate with API!
                     dispatch({
-                        type: actionTypes.markCorrect,
+                        type: actionTypes.markPotentialSuggestions,
                         input: inputs.quantity
                     });
                 }
@@ -142,20 +209,20 @@ function SuperForm(props) {
                 // Check if price entered is a number
                 if (all_zeroes.test(state.strikePrice) === true) {
                     dispatch({
-                        type: actionTypes.markIncorrect,
+                        type: actionTypes.markNoSuggestions,
                         input: inputs.sPrice
                     });
 
                 } else if (decimal_re.test(state.strikePrice) !== true) {
                     dispatch({
-                        type: actionTypes.markIncorrect,
+                        type: actionTypes.markNoSuggestions,
                         input: inputs.sPrice
                     });
 
                 } else {
                     // TODO: Validate with API!
                     dispatch({
-                        type: actionTypes.markCorrect,
+                        type: actionTypes.markPotentialSuggestions,
                         input: inputs.sPrice
                     });
                 }
@@ -286,7 +353,8 @@ function SubFormOne(props) {
                 incorrectField={props.fields.incorrectFields[inputs.buying]}
                 disabled={props.fields.requestingFields[inputs.buying]}
                 helperText="Please enter the buying party."
-                errorMessage="This input looks wrong; Click here to see suggestions."
+                errorMessage="This input is not a valid company; Please try again."
+                suggestionMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -298,7 +366,8 @@ function SubFormOne(props) {
                 incorrectField={props.fields.incorrectFields[inputs.selling]}
                 disabled={props.fields.requestingFields[inputs.selling]}
                 helperText="Please enter the selling party."
-                errorMessage="This input looks wrong; Click here to see suggestions."
+                errorMessage="This input is not a valid company; Please try again."
+                suggestionMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -310,7 +379,8 @@ function SubFormOne(props) {
                 incorrectField={props.fields.incorrectFields[inputs.product]}
                 disabled={props.fields.requestingFields[inputs.product]}
                 helperText="Please enter the product name."
-                errorMessage="This input looks wrong; Click here to see suggestions."
+                errorMessage="This input is not a valid product; Please try again."
+                suggestionMessage="This input looks wrong; Click here to see suggestions."
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
