@@ -5,10 +5,24 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from trades.models import Company, Product, CurrencyValue
 from learning.models import Correction
+from sklearn.metrics import mean_squared_error
+from keras.models import load_model
+import tensorflow as tf
+from keras import backend as K
+import datetime
+from math import floor
+import numpy as np
+import pickle
 import logging
 
 from jellyfish import damerau_levenshtein_distance as edit_dist
-
+import os
+try:
+    print(os.getcwd())
+except KeyError:
+    print("failed")
+    user_paths = []
+runningMetaData = pickle.load(open(r'server\api\runningMetaData.p','rb'))
 @csrf_exempt
 def api_main(request, func):
     """
@@ -20,6 +34,7 @@ def api_main(request, func):
     try:
         json_dict = json.loads(request.body.decode("utf-8"))
     except json.decoder.JSONDecodeError:
+        print(request.body.decode("utf-8"))
         return JsonResponse({"success": False, "error": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
@@ -37,7 +52,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-def closest_matches(x, ws):
+def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
     edit distance in order of the closest string first. All strings with edit
@@ -65,9 +80,73 @@ def currency_exists(currency_code):
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
 
+def mean_squared_error(x,y):
+    return np.mean([(x-y)**2 for x,y in zip(x,y)])
+def _load_model_from_path(path):
+    graph = tf.get_default_graph()
+    model = load_model(path)  # keras function
+    return graph, model
+def estimateErrorRatio(errorValue):
+    values = {0.95:0.037751311451393696,
+    0.8:0.02520727266310019,
+    0.6:0.01780338673080255}
+    if errorValue > values[0.6] and errorValue < values[0.8]:
+        return 0.6 + (0.2*((errorValue - values[0.6])/(values[0.8]-values[0.6])))
+    if errorValue > values[0.8] and errorValue < values[0.95]:
+        return 0.8 + (0.15*((errorValue - values[0.8])/(values[0.95]-values[0.8])))
+    if errorValue > values[0.95]:
+        return 1
+    if errorValue < values[0.6]:
+        return 0
 def ai_magic(data):
-    # TODO by Michael
-    return 0
+    graph, autoencoder = _load_model_from_path(r'server\api\mlModels\AutoEncoder\1176207.h5')
+    def funcOrNone(x, func):
+        try:
+            return func(x)
+        except:
+            return None
+    d = [int(x) for x in data['date'].split(',')]
+    d = datetime.date(d[2],d[1],d[0])
+    maturityDate = [int(x) for x in data['maturityDate'].split(',')]
+    maturityDate = datetime.date(maturityDate[2],maturityDate[1],maturityDate[0])
+    data['date'] = d
+    data['maturityDate'] = maturityDate
+    isStock = (data['product'] == 'Stocks')
+    key = data['sellingParty'] if isStock else data['product']
+    md = runningMetaData[key]
+    hp = runningMetaData[key]['historicalPrice']
+    smaPeriod = 20 # Time period for SMA calculations
+    tp = 20 # Time period to calculate max and min price for price for
+    day = runningMetaData['INFO_DAY'] # Running counter of which day for use in time period
+    dmd = {'20DaySD': np.std(hp[-smaPeriod:]),'SMA': np.mean(hp[-smaPeriod:]),'UP': {'dayDifference': hp[-1] - hp[-2],'periodHigh': funcOrNone(hp[floor(day / tp) * tp:], max),'periodLow': funcOrNone(hp[floor(day / tp) * tp:], min)}}
+    #print(dmd)
+    #print(md)
+    d = (
+        (data['date'] - data['maturityDate']).days,
+        data['quantity'],
+        data['underLyingPrice'],
+        data['strikePrice'] / dmd['SMA'],
+        md['runningAvgClosePrice'],
+        md['runningAvgQuantity'],
+        md['runningAvgTradePrice'],
+        dmd['20DaySD'],
+        dmd['SMA'],
+        dmd['UP']['dayDifference'],
+        dmd['UP']['periodHigh'],
+        dmd['UP']['periodLow'])
+    minDay =-2191.0
+    maxStrikePrice = 1.4
+    normalizedData = (d[0] / minDay,
+             d[1] / d[5],
+             (d[2] / d[8] - 1) * 15,
+             d[3] / maxStrikePrice,
+             (d[7] / d[8] * 40) - 1,
+             # (d[8] / d[6]) / maxSmaSD,
+             (d[9] / d[8]) * 10,
+             (d[10] / d[8] - 1) * 15,
+             (d[11] / d[8] - 1) * 15)
+    with graph.as_default():
+        return {'success':True,'probability':estimateErrorRatio(mean_squared_error(autoencoder.predict(np.array([normalizedData]))[0],normalizedData))}
 
 def validate_company(data):
     """ Validate single company. Expected data: name """
