@@ -5,7 +5,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from trades.models import Company, Product, CurrencyValue, DerivativeTrade, TradeProduct
 from learning.models import Correction
-from sklearn.metrics import mean_squared_error
 from keras.models import load_model
 import tensorflow as tf
 from keras import backend as K
@@ -22,7 +21,7 @@ try:
 except KeyError:
     print("failed")
     user_paths = []
-runningMetaData = pickle.load(open(r'server\api\runningMetaData.p','rb'))
+runningMetaData = pickle.load(open('api/runningMetaData.p','rb'))
 @csrf_exempt
 def api_main(request, func):
     """
