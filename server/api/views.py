@@ -24,6 +24,7 @@ except KeyError:
     print("failed")
     user_paths = []
 runningMetaData = pickle.load(open('api/runningMetaData.p','rb'))
+
 @csrf_exempt
 def api_main(request, func):
     """
@@ -284,7 +285,7 @@ def validate_trade(data):
     result["probabilityErroneous"] = ai_magic(data)
     result["success"] = True
     return result
-@csrf_exempt
+
 def correction(data):
     print(data)
     try:
