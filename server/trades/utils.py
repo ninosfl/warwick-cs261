@@ -7,11 +7,13 @@ DATA_DIR = Path("../data")
 
 SAMPLE_CURRENCY_VALUES_CACHE = None
 
-def get_sample_currency_values():
+def _get_sample_currency_values():
     """
     Loads the default list of currencies and their values from 
     DATA_DIR/sample_currencies.csv. This file is only accessed once when the
     function is first called and subsequent executions return a cached version.
+    This function should not be called directly but through the
+    get_currency_values below.
     """
     global SAMPLE_CURRENCY_VALUES_CACHE # pylint: disable=global-statement
     if SAMPLE_CURRENCY_VALUES_CACHE is None:
@@ -36,7 +38,7 @@ def get_currency_values(date):
         return {cv.currency:cv.value for cv in retrieved_currencies}
     generated_values = {
         c: round(Decimal(random.uniform(0.9, 1.1)) * v, 6) # max 6 decimal places
-        for c, v in get_sample_currency_values().items()
+        for c, v in _get_sample_currency_values().items()
     }
     CurrencyValue.objects.bulk_create([
         CurrencyValue(currency=c, value=v, date=date)
