@@ -56,4 +56,4 @@ def get_currencies(date):
 def convert_currency(date, value, currency1, currency2):
     """ Convert a value from currency1 to currency2 based on specified date's rate """
     currencyvals = get_currency_values(date)
-    return value * currencyvals[currency1] / currencyvals[currency2]
+    return Decimal(value) * currencyvals[currency1] / currencyvals[currency2]
