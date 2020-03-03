@@ -2,6 +2,7 @@ import random
 import string
 from django.utils import timezone
 from django.db import models
+from .utils import convert_currency
 
 """
 Permanent-ish data found in main data directory
@@ -122,17 +123,14 @@ class DerivativeTrade(models.Model):
 
     @property
     def notional_amount(self):
-        """ Notional amount is a calculated field. """
-        try:
-            underlying_per_usd = CurrencyValue.objects.get(
-                date=self.date_of_trade.date(), currency=self.underlying_currency).value
-            notional_per_usd = CurrencyValue.objects.get(
-                date=self.date_of_trade.date(), currency=self.notional_currency).value
-        except CurrencyValue.DoesNotExist:
-            raise RuntimeError("Catastrophic failure no conversion possible from"
-                               + f" underlying currency {self.underlying_currency}"
-                               + f" to notional currency {self.notional_currency}")
-        return self.quantity * self.underlying_price * notional_per_usd / underlying_per_usd
+        """
+        Notional amount is a calculated field based on quantity and underlying
+        price. Must then be converted to notional currency.
+        """
+        return convert_currency(
+            self.date_of_trade.date(),
+            self.quantity * self.underlying_price,
+            self.underlying_currency, self.notional_currency)
 
 class ProductPrice(models.Model):
     date = models.DateField()
