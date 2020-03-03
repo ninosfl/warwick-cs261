@@ -27,7 +27,7 @@ Stop server using `Ctrl+C`
 
 ### Install django
 In terminal execute 
-`pip3 install django`
+`pip3 install django jellyfish`
 
 ### Run server
 `cd` to this directory (`cs261db/server/`)
