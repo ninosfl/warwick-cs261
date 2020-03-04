@@ -357,6 +357,7 @@ def validate_product(data):
         return result
 
     result["success"] = True
+    result["sellingParty"] = data["sellingParty"]
     return result
 
 def validate_trade(data):
