@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.test import TestCase
@@ -6,7 +6,7 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 
 from trades.models import Company, CurrencyValue, DerivativeTrade, Product
-from api.views import create_trade
+from api.views import create_trade, validate_maturity_date, validate_company
 
 class TestSubmit(TestCase):
     def test_url_correct(self):
@@ -44,3 +44,33 @@ class TestSubmit(TestCase):
         self.assertEqual(new_trade["maturityDate"], datetime.strptime(trade_data["maturityDate"], "%Y-%m-%d").date())
         self.assertEqual(new_trade["notionalCurrency"], trade_data["notionalCurrency"])
         self.assertEqual(new_trade["strikePrice"], Decimal(trade_data["strikePrice"]))
+
+class TestMaturityDateValidation(TestCase):
+    def test_url_correct(self):
+        self.assertEqual(reverse("api-validate-maturitydate"), "/api/validate/maturitydate/")
+    def test_correct_function_chosen(self):
+        self.assertEqual(resolve("/api/validate/maturitydate/").kwargs["func"], validate_maturity_date)
+    def test_past(self):
+        """ Yesterday and any dates in the past should not be valid maturity dates """
+        test_date = (timezone.now().date() - timedelta(days=1)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+        test_date = (timezone.now().date() - timedelta(days=10)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+        test_date = (timezone.now().date() - timedelta(days=100)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+        test_date = (timezone.now().date() - timedelta(days=1000)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+    def test_today(self):
+        """ Today should be a valid maturity date """
+        test_date = timezone.now().date().strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+    def test_future(self):
+        """ Tomorrow and all dates in the future should be valid maturity date """
+        test_date = (timezone.now().date() + timedelta(days=1)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+        test_date = (timezone.now().date() + timedelta(days=10)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+        test_date = (timezone.now().date() + timedelta(days=100)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+        test_date = (timezone.now().date() + timedelta(days=1000)).strftime("%Y-%m-%d")
+        self.assertFalse(validate_maturity_date({"date":test_date})["success"])
