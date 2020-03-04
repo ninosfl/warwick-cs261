@@ -61,7 +61,7 @@ def generate_trade_id():
             + [random.choice(string.digits) for _ in range(8)]
         )
         try:
-            DerivativeTrade.objects.get(id=new_id)
+            DerivativeTrade.objects.get(trade_id=new_id)
         except DerivativeTrade.DoesNotExist:
             return new_id
 

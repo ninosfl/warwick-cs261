@@ -51,7 +51,7 @@ i=0
 rr = []
 for x in range(2010,2020):
     for month in months:
-        path = r'D:\Users\jinxsimpson\Downloads\アニプログ\Softeng\derivativeTrades\{}\{}'.format(x,month)
+        path = '../../derivativeTrades/{}/{}'.format(x,month)
         onlyfiles = sorted([join(path,f) for f in listdir(path) if isfile(join(path, f))])
         print(onlyfiles)
         for csv in onlyfiles:
@@ -63,16 +63,16 @@ for x in range(2010,2020):
                 runningMetaData['INFO_DAY'] += 1
                 day = runningMetaData['INFO_DAY']
                 currencyValues = {}
-                with open(r'D:\Users\jinxsimpson\Downloads\アニプログ\Softeng\currencyValues\{}\{}\{}'.format(x,month,date)) as c:
+                with open('../../data/currencyValues/{}/{}/{}'.format(x,month,date)) as c:
                     b = c.readlines()[1:]
                     currencyValues = {line[1]:float(line[2]) for line in [x.split(",") for x in b]}
                 lines = f.readlines()[1:]
                 v = [line.split(",") for line in lines]
                 productClosePrices = {}
                 stockClosePrices = {}
-                with open(r'D:\Users\jinxsimpson\Downloads\アニプログ\Softeng\productPrices\{}\{}\{}'.format(x,month,date)) as c:
+                with open(r'../../data/productPrices/{}/{}/{}'.format(x,month,date)) as c:
                     productClosePrices = {l.split(',')[1]:float(l.split(',')[2].rstrip('\n')) for l in c.readlines()[1:]}
-                with open(r'D:\Users\jinxsimpson\Downloads\アニプログ\Softeng\stockPrices\{}\{}\{}'.format(x,month,date)) as c:
+                with open('../../data/stockPrices/{}/{}/{}'.format(x,month,date)) as c:
                     stockClosePrices = {l.split(',')[1]:float(l.split(',')[2].rstrip('\n')) for l in c.readlines()[1:]}
                 dayMetaData = keydefaultdict(lambda key: {'20DaySD':0,
                                                           'SMA': np.mean(runningMetaData[key]['historicalPrice'][-smaPeriod:]),

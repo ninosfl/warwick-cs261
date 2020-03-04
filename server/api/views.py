@@ -1,28 +1,30 @@
 import json
 from datetime import datetime
+from math import floor
+import datetime
+import json
+import logging
+import os
+import pickle
+from decimal import Decimal
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from trades.models import Company, Product, CurrencyValue
-from learning.models import Correction
-from sklearn.metrics import mean_squared_error
+from django.views.decorators.csrf import csrf_exempt
+from jellyfish import damerau_levenshtein_distance as edit_dist
+from trades.models import Company, Product, CurrencyValue,DerivativeTrade,StockPrice,ProductPrice,TradeProduct
+from learning.models import Correction,TrainData, MetaData
+from currency_converter import CurrencyConverter
 from keras.models import load_model
 import tensorflow as tf
-from keras import backend as K
 import datetime
 from math import floor
 import numpy as np
 import pickle
 import logging
-
 from jellyfish import damerau_levenshtein_distance as edit_dist
-import os
-try:
-    print(os.getcwd())
-except KeyError:
-    print("failed")
-    user_paths = []
-runningMetaData = pickle.load(open(r'server\api\runningMetaData.p','rb'))
+c = CurrencyConverter(fallback_on_missing_rate=True)
+
 @csrf_exempt
 def api_main(request, func):
     """
@@ -75,10 +77,188 @@ def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
 #     currencies_today = get_currencies(timezone.now().date())
 #     return currency_code in currencies_today
 
+def funcOrNone(x, func):
+    try:
+        return func(x)
+    except:
+        return None
+def getPricesTraded(product,n_last,todayDate,key,isStock,adjustedUnderlying):
+    prices = {
+        todayDate:adjustedUnderlying
+    }
+    earliestDate = todayDate - datetime.timedelta(days=n_last)
+    #lastTraded = DatesTraded.filter(key=key,date__lt=earliestDate.strftime('%Y-%m-%d')).order_by('-date')
+    if isStock:
+        for q in StockPrice.objects.filter(company__name=key, date__range=[
+            (todayDate - datetime.timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
+            todayDate.strftime('%Y-%m-%d')]):
+            prices[q.date] = q.price
+    else:
+        a = ProductPrice.objects.all()
+        for q in ProductPrice.objects.filter(product__name=key, date__range=[
+            (todayDate - datetime.timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
+            todayDate.strftime('%Y-%m-%d')]):
+            prices[q.date] = q.price
+    pricesList = prices.items()
+    interpolated = []
+    for day in range(n_last):
+        day = todayDate - datetime.timedelta(days=day)
+        if day not in prices:
+            try:
+                earliestAfter = min([x for x in pricesList if x[0] >= todayDate],key=lambda x:x[0])
+                lastestBefore = max([x for x in pricesList if x[0] <= todayDate],key=lambda x:x[0])
+                interpolated.append((day, (
+                            (day - lastestBefore[0]).days / (earliestAfter[0] - lastestBefore[0]).days) * (
+                                                 lastestBefore[1] - earliestAfter[1])))
+            except:
+                pass
+                #print("Couldn't interpolate")
+    for day,price in interpolated:
+        prices[day] = price
+    prices = [d[1] for d in sorted(prices.items(),key=lambda x:x[0]) if (todayDate - d[0]).days < n_last][:-1]
+    return prices
+
+def normalizeTrade(md,quantity,key,todayDate,maturityDate,adjustedStrike,adjustedUnderlying,isStock):
+    hp = getPricesTraded(key, 31,todayDate,key,isStock,adjustedUnderlying)
+    smaPeriod = 20
+    tp = 20
+    if len(hp) < 20:
+        return False
+    dayMetaData = {'20DaySD': np.std(hp),
+                   'SMA': np.mean(hp[-smaPeriod:]),
+                   'UP': {'dayDifference': hp[-1] - hp[-2],
+                          'periodHigh': funcOrNone(
+                              hp[-tp:],
+                              max),
+                          'periodLow': funcOrNone(
+                              hp[-tp:],
+                              min)
+                          }}
+    d = (
+        (maturityDate - todayDate).days,
+        quantity,
+        adjustedUnderlying,
+        float(adjustedStrike) / float(dayMetaData['SMA']),
+        md.runningAvgClosePrice,
+        md.runningAvgQuantity,
+        md.runningAvgTradePrice,
+        dayMetaData['20DaySD'],
+        dayMetaData['SMA'],
+        dayMetaData['UP']['dayDifference'],
+        dayMetaData['UP']['periodHigh'],
+        dayMetaData['UP']['periodLow'])
+    d = [float(x) for x in d]
+    minDay = 2191.0
+    maxStrikePrice = 1.4
+    normalizedData = (d[0] / minDay,
+                      d[1] / d[5],
+                      (d[2] / d[8] - 1) * 15,
+                      d[3] / maxStrikePrice,
+                      (d[7] / d[8] * 40) - 1,
+                      (d[9] / d[8]) * 10,
+                      (d[10] / d[8] - 1) * 15,
+                      (d[11] / d[8] - 1) * 15)
+    return normalizedData
+def getCurrencyValue(x,todayDate): # Will get currency, will enter the currency in currencies table if not existent yet for future reference
+    try:
+        return CurrencyValue.objects.get(
+        date=todayDate,
+        currency=x).value
+    except CurrencyValue.DoesNotExist:
+        print(f"CurrencyDidNotExist {x}")
+        try:
+            newCurrency = CurrencyValue(date=todayDate,currency=x,value=c.convert(1,x,'USD',date=todayDate))
+            newCurrency.save()
+        except: # Doesn't have that recent data, need a new module or better yet, live currency conversion
+            return 1
+        return newCurrency.value
+def recordLearningTrade(trade):
+    isStock = trade.product_type == 'S'
+    todayDate = datetime.date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
+    maturityDate = datetime.date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
+    key = trade.selling_party if isStock else trade.traded_product.product
+    md = MetaData.objects.get_or_create(key=key,defaults={"runningAvgClosePrice": 0,"runningAvgTradePrice":0,"runningAvgQuantity":0,"totalEntries":0,"totalQuantity":0, "trades":0})[0]
+    adjustedUnderlying = trade.underlying_price / getCurrencyValue(trade.underlying_currency,todayDate)
+    if isStock:
+        p = StockPrice.objects.get_or_create(date=todayDate, company=key, defaults={'price':adjustedUnderlying})
+    else:
+        p = ProductPrice.objects.get_or_create(date=todayDate, product=key, defaults={'price':adjustedUnderlying})
+    if p[1]:
+        p = float(md.runningAvgClosePrice)
+        q = float(md.totalEntries)
+        md.runningAvgClosePrice = ((p * q) + float(adjustedUnderlying)) / (q + 1)
+        md.totalEntries = q + 1
+    #Reminder: retrain with adjusted TP system
+    p = float(md.runningAvgTradePrice)
+    n = float(md.totalQuantity)
+    md.totalQuantity = Decimal(n) + trade.quantity
+    md.runningAvgTradePrice =  ((p * n) + float(adjustedUnderlying) * float(trade.quantity)) / (n + trade.quantity)
+    q = float(md.runningAvgQuantity)
+    n = float(md.trades)
+    md.runningAvgQuantity = ((q * n) + float(trade.quantity)) / (n + 1)
+    md.trades = md.trades + 1
+    md.save()
+    cv2=float(getCurrencyValue(trade.notional_currency,todayDate))
+    adjustedStrike = float(trade.strike_price) / cv2
+    normalizedData = normalizeTrade(trade,md,key,todayDate,maturityDate,adjustedStrike,adjustedUnderlying,isStock)
+    if normalizedData:
+        TrainData(val1=normalizedData[0],val2=normalizedData[1],val3=normalizedData[2],val4=normalizedData[3],val5=normalizedData[4],val6=normalizedData[5],val7=normalizedData[6],val8=normalizedData[7]).save()
+    return True
+
+def enterDummyTrade():
+    recordLearningTrade(DerivativeTrade(
+        date_of_trade=datetime.date(2010,1,18),
+        trade_id='IDQYGGFS26417970',
+        product_type='P',
+        buying_party_id='VVXA11',
+        selling_party_id='QBAP68',
+        notional_currency='MXN',
+        quantity=4000,
+        maturity_date=datetime.date(2013,1,3),
+        underlying_price=615,
+        underlying_currency='CRC',
+        strike_price=1882))
+    return {"a":True}
+
+
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
+
+def create_trade(data):
+    required_data = {
+        "product", "sellingParty", "buyingParty",
+        "quantity", "underlyingCurrency", "underlyingPrice",
+        "maturityDate", "notionalCurrency", "strikePrice"
+    }
+    not_specified = required_data.difference(data)
+    if not_specified:
+        return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
+    md = [int(x) for x in data['maturityDate'].split("-")]
+    data["maturityDate"] = datetime.date(md[0],md[1],md[2])
+    # Create the trade object and (possibly) the associated product
+    new_trade = DerivativeTrade(
+        product_type='S' if data["product"] == "Stocks" else 'P',
+        selling_party_id=data["sellingParty"],
+        buying_party_id=data["buyingParty"],
+        quantity=data["quantity"],
+        underlying_currency=data["underlyingCurrency"],
+        underlying_price=data["underlyingPrice"],
+        maturity_date=data["maturityDate"],
+        notional_currency=data["notionalCurrency"],
+        strike_price=data["strikePrice"],
+    )
+    new_trade.save()
+    if new_trade.product_type == 'P':
+        TradeProduct(trade=new_trade, product_id=data["product"])
+    recordLearningTrade(new_trade)
+    # Add generated fields
+    data["tradeID"] = new_trade.trade_id
+    data["dateOfTrade"] = new_trade.date_of_trade
+    data["notionalAmount"] = new_trade.notional_amount
+    # Return success and the created object
+    return {"success": True, "trade": data}
 
 def mean_squared_error(x,y):
     return np.mean([(x-y)**2 for x,y in zip(x,y)])
@@ -90,6 +270,9 @@ def estimateErrorRatio(errorValue):
     values = {0.95:0.037751311451393696,
     0.8:0.02520727266310019,
     0.6:0.01780338673080255}
+    #values = {0.95: 0.0222104888613782,
+    #         0.8: 0.01099924408732379,
+    #        0.6: 0.007205673670873156}
     if errorValue > values[0.6] and errorValue < values[0.8]:
         return 0.6 + (0.2*((errorValue - values[0.6])/(values[0.8]-values[0.6])))
     if errorValue > values[0.8] and errorValue < values[0.95]:
@@ -97,54 +280,22 @@ def estimateErrorRatio(errorValue):
     if errorValue > values[0.95]:
         return 1
     if errorValue < values[0.6]:
-        return 0
+        return ((values[0.6] - errorValue) / values[0.6])*0.6
+
 def ai_magic(data):
-    graph, autoencoder = _load_model_from_path(r'server\api\mlModels\AutoEncoder\1176207.h5')
-    def funcOrNone(x, func):
-        try:
-            return func(x)
-        except:
-            return None
-    d = [int(x) for x in data['date'].split(',')]
-    d = datetime.date(d[2],d[1],d[0])
-    maturityDate = [int(x) for x in data['maturityDate'].split(',')]
-    maturityDate = datetime.date(maturityDate[2],maturityDate[1],maturityDate[0])
+    graph, autoencoder = _load_model_from_path(r'api\mlModels\AutoEncoder\2217570.h5')
+    d = [int(x) for x in data['date'].split('-')]
+    d = datetime.date(d[0],d[1],d[2])
+    maturityDate = [int(x) for x in data['maturityDate'].split('-')]
+    maturityDate = datetime.date(maturityDate[0],maturityDate[1],maturityDate[2])
     data['date'] = d
     data['maturityDate'] = maturityDate
     isStock = (data['product'] == 'Stocks')
     key = data['sellingParty'] if isStock else data['product']
-    md = runningMetaData[key]
-    hp = runningMetaData[key]['historicalPrice']
-    smaPeriod = 20 # Time period for SMA calculations
-    tp = 20 # Time period to calculate max and min price for price for
-    day = runningMetaData['INFO_DAY'] # Running counter of which day for use in time period
-    dmd = {'20DaySD': np.std(hp[-smaPeriod:]),'SMA': np.mean(hp[-smaPeriod:]),'UP': {'dayDifference': hp[-1] - hp[-2],'periodHigh': funcOrNone(hp[floor(day / tp) * tp:], max),'periodLow': funcOrNone(hp[floor(day / tp) * tp:], min)}}
-    #print(dmd)
-    #print(md)
-    d = (
-        (data['date'] - data['maturityDate']).days,
-        data['quantity'],
-        data['underLyingPrice'],
-        data['strikePrice'] / dmd['SMA'],
-        md['runningAvgClosePrice'],
-        md['runningAvgQuantity'],
-        md['runningAvgTradePrice'],
-        dmd['20DaySD'],
-        dmd['SMA'],
-        dmd['UP']['dayDifference'],
-        dmd['UP']['periodHigh'],
-        dmd['UP']['periodLow'])
-    minDay =-2191.0
-    maxStrikePrice = 1.4
-    normalizedData = (d[0] / minDay,
-             d[1] / d[5],
-             (d[2] / d[8] - 1) * 15,
-             d[3] / maxStrikePrice,
-             (d[7] / d[8] * 40) - 1,
-             # (d[8] / d[6]) / maxSmaSD,
-             (d[9] / d[8]) * 10,
-             (d[10] / d[8] - 1) * 15,
-             (d[11] / d[8] - 1) * 15)
+    adjustedStrikePrice = data['strikePrice'] / float(getCurrencyValue(data['notionalCurrency'],d))
+    adjustedUnderlyingPrice = data['underlyingPrice'] / float(getCurrencyValue(data['underlyingCurrency'],d))
+    md = MetaData.objects.get(key=key)
+    normalizedData = normalizeTrade(md,data['quantity'],key,d,maturityDate,adjustedStrikePrice,adjustedUnderlyingPrice,isStock)
     with graph.as_default():
         return {'success':True,'probability':estimateErrorRatio(mean_squared_error(autoencoder.predict(np.array([normalizedData]))[0],normalizedData))}
 
@@ -252,7 +403,7 @@ def validate_trade(data):
     result["probabilityErroneous"] = ai_magic(data)
     result["success"] = True
     return result
-@csrf_exempt
+
 def correction(data):
     print(data)
     try:
