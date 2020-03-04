@@ -226,13 +226,14 @@ def create_trade(data):
     not_specified = required_data.difference(data)
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
-    md = [int(x) for x in data['maturityDate'].split("-")]
-    data["maturityDate"] = datetime.date(md[0],md[1],md[2])
+    data["maturityDate"] = datetime.strptime(data["maturityDate"], "%Y-%m-%d").date()
     # Create the trade object and (possibly) the associated product
+    selling_company = get_company(data["sellingParty"])
+    buying_company = get_company(data["buyingParty"])
     new_trade = DerivativeTrade(
         product_type='S' if data["product"] == "Stocks" else 'P',
-        selling_party_id=data["sellingParty"],
-        buying_party_id=data["buyingParty"],
+        selling_party_id=selling_company.id,
+        buying_party_id=buying_company.id,
         quantity=data["quantity"],
         underlying_currency=data["underlyingCurrency"],
         underlying_price=data["underlyingPrice"],
@@ -242,7 +243,8 @@ def create_trade(data):
     )
     new_trade.save()
     if new_trade.product_type == 'P':
-        TradeProduct(trade=new_trade, product_id=data["product"])
+        traded_product = get_product(data["product"])
+        TradeProduct.objects.create(trade=new_trade, product_id=traded_product.name)
     recordLearningTrade(new_trade)
     # Add generated fields
     data["tradeID"] = new_trade.trade_id
