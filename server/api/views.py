@@ -1,5 +1,6 @@
 import json
-from datetime import datetime, date, timedelta, strptime
+from datetime import date, timedelta
+import datetime
 from decimal import Decimal
 
 from django.http import JsonResponse
@@ -228,7 +229,7 @@ def create_trade(data):
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
     # Convert values to their appropriate type
-    data["maturityDate"] = strptime(data["maturityDate"], "%Y-%m-%d").date()
+    data["maturityDate"] = datetime.strptime(data["maturityDate"], "%Y-%m-%d").date()
     data["underlyingPrice"] = Decimal(data["underlyingPrice"])
     data["strikePrice"] = Decimal(data["strikePrice"])
     data["quantity"] = int(data["quantity"])
@@ -431,7 +432,7 @@ def validate_maturity_date(data):
 
     # Attempt to parse given date string
     try:
-        date = strptime(data["date"], "%d/%m/%Y").date()
+        date = datetime.strptime(data["date"], "%d/%m/%Y").date()
     except ValueError:
         result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
         return result
@@ -452,7 +453,7 @@ def currencies(_, date_str=None):
     if not date_str:
         date = timezone.now().date()
     else:
-        date = strptime(date_str, "%Y-%m-%d").date()
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
     return JsonResponse({
         "currencies": [c.currency for c in CurrencyValue.objects.filter(date=date)]
     })
