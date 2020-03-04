@@ -283,7 +283,7 @@ def estimateErrorRatio(errorValue):
         return ((values[0.6] - errorValue) / values[0.6])*0.6
 
 def ai_magic(data):
-    graph, autoencoder = _load_model_from_path(r'api\mlModels\AutoEncoder\2217570.h5')
+    graph, autoencoder = _load_model_from_path(r'api/mlModels/AutoEncoder/2217570.h5')
     d = [int(x) for x in data['date'].split('-')]
     d = datetime.date(d[0],d[1],d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
