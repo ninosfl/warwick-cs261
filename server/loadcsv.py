@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 from datetime import datetime
 from decimal import Decimal
-from api.views import recordLearningTrade
+from api.views import record_learning_trade
 from django.utils import timezone
 from trades.models import (Product, Company, CurrencyValue, DerivativeTrade,
                            ProductPrice, StockPrice, TradeProduct)
