@@ -27,7 +27,6 @@ function SuperForm(props) {
             input = state.validationInputs[state.validationInputs.length - 1];
         }
         
-        // TODO: Make this do mad fetching to get validated values
         switch (input) {
             case inputs.buying:
                 // Validate buying party via API
@@ -127,9 +126,8 @@ function SuperForm(props) {
                 break;
 
             case inputs.product:
-                // TODO: Validate product!
 
-                console.log("Currently fetching selling party: ", state.sellingParty);
+                console.log("Currently fetching product: ", state.productName);
                 fetch('http://localhost:8000/api/validate/product/', {
                     method: 'POST',
                     headers: {
