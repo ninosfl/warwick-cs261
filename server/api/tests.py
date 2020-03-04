@@ -74,3 +74,23 @@ class TestMaturityDateValidation(TestCase):
         self.assertFalse(validate_maturity_date({"date":test_date})["success"])
         test_date = (timezone.now().date() + timedelta(days=1000)).strftime("%Y-%m-%d")
         self.assertFalse(validate_maturity_date({"date":test_date})["success"])
+
+class TestCompanyValidation(TestCase):
+    def test_url_correct(self):
+        self.assertEqual(reverse("api-validate-company"), "/api/validate/company/")
+    def test_correct_function_chosen(self):
+        self.assertEqual(resolve("/api/validate/company/").kwargs["func"], validate_company)
+    def setUp(self):
+        companies = ["A", "B", "ABC", "ZZZZZZ"]
+        for company_name in companies:
+            Company.objects.create(name=company_name)
+    def test_existing(self):
+        self.assertTrue(validate_company({"name":"A"})["success"])
+        self.assertTrue(validate_company({"name":"B"})["success"])
+        self.assertTrue(validate_company({"name":"ABC"})["success"])
+        self.assertTrue(validate_company({"name":"ZZZZZZ"})["success"])
+    def test_non_existing(self):
+        self.assertFalse(validate_company({"name":"AA"})["success"])
+        self.assertFalse(validate_company({"name":"C"})["success"])
+        self.assertFalse(validate_company({"name":"ADD"})["success"])
+        self.assertFalse(validate_company({"name":"ZZZZZZEEEEE"})["success"])
