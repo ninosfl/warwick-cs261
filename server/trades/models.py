@@ -132,6 +132,14 @@ class DerivativeTrade(models.Model):
             self.quantity * self.underlying_price,
             self.underlying_currency, self.notional_currency)
 
+    def __str__(self):
+        return ', '.join([
+            str(self.date_of_trade.time()),
+            self.buying_party.name,
+            self.selling_party.name,
+            'Stocks' if self.product_type == 'S' else self.traded_product.product.name
+        ])
+
 class ProductPrice(models.Model):
     date = models.DateField()
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
