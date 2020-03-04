@@ -10,7 +10,7 @@ import PublishIcon from '@material-ui/icons/Publish';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
-import { actionTypes, FormDispatch, useStyles } from './form-constants';
+import { actionTypes, FormDispatch, useStyles, inputs } from './form-constants';
 
 export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField };
 
@@ -127,6 +127,12 @@ function ErrorWithSuggestions(props) {
                 oldValue: props.value,
                 newValue: val
             });
+
+            // If a product suggestion has been picked, mark it for re-validation
+            if (props.id === inputs.product) {
+                dispatch({ type: actionTypes.markRequesting, input: props.id });
+                dispatch({ type: actionTypes.validate, validationInput: props.id }); 
+            }
         }
         
         setAnchor(null); // Make menu go away
