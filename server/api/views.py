@@ -1,9 +1,19 @@
-from decimal import Decimal
 import json
 from datetime import datetime
+from math import floor
+import datetime
+import json
+import logging
+import os
+import pickle
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from jellyfish import damerau_levenshtein_distance as edit_dist
+from keras import backend as K
+from keras.models import load_model
 from trades.models import Company, Product, CurrencyValue,DerivativeTrade,StockPrice,ProductPrice
 from learning.models import Correction,TrainData, MetaData
 from currency_converter import CurrencyConverter
@@ -26,10 +36,9 @@ def api_main(request, func):
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid method"})
     try:
-        print("a")
         json_dict = json.loads(request.body.decode("utf-8"))
     except json.decoder.JSONDecodeError:
-        print("b")
+        print(request.body.decode("utf-8"))
         return JsonResponse({"success": False, "error": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
@@ -219,6 +228,37 @@ def currency_exists(currency_code):
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
 
+def create_trade(data):
+    required_data = {
+        "product", "sellingParty", "buyingParty",
+        "quantity", "underlyingCurrency", "underlyingPrice",
+        "maturityDate", "notionalCurrency", "strikePrice"
+    }
+    not_specified = required_data.difference(data)
+    if not_specified:
+        return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
+    # Create the trade object and (possibly) the associated product
+    new_trade = DerivativeTrade(
+        product_type='S' if data["product"] == "Stocks" else 'P',
+        selling_party__name=data["sellingParty"],
+        buying_party__name=data["buyingParty"],
+        quantity=data["quantity"],
+        underlying_currency=data["underlyingCurrency"],
+        underlying_price=data["underlyingPrice"],
+        maturity_date=data["maturityDate"],
+        notional_currency=data["notionalCurrency"],
+        strike_price=data["strikePrice"],
+    )
+    new_trade.save()
+    if new_trade.product_type == 'P':
+        TradeProduct(trade=new_trade, product__name=data["product"])
+    # Add generated fields
+    data["tradeID"] = new_trade.id
+    data["dateOfTrade"] = new_trade.date_of_trade
+    data["notionalAmount"] = new_trade.notional_amount
+    # Return success and the created object
+    return {"success": True, "trade": data}
+
 def mean_squared_error(x,y):
     return np.mean([(x-y)**2 for x,y in zip(x,y)])
 def _load_model_from_path(path):
@@ -243,6 +283,8 @@ def ai_magic(data):
     d = datetime.date(d[2],d[1],d[0])
     maturityDate = [int(x) for x in data['maturityDate'].split(',')]
     maturityDate = datetime.date(maturityDate[2],maturityDate[1],maturityDate[0])
+    data['date'] = d
+    data['maturityDate'] = maturityDate
     isStock = (data['product'] == 'Stocks')
     key = data['sellingParty'] if isStock else data['product']
     adjustedStrikePrice = data['strikePrice'] / float(getCurrencyValue(data['notionalCurrency'],d))
