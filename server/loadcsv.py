@@ -27,7 +27,7 @@ def clear_data():
         return False
     CurrencyValue.objects.all().delete()
     Company.objects.all().delete()
-    Correction.objects.all().delete()
+    #Correction.objects.all().delete()
     Product.objects.all().delete()
     TrainData.objects.all().delete()
     MetaData.objects.all().delete()

@@ -54,9 +54,10 @@ def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
     distance > 5 are filtered out.
     """
     times_corrected = {}
+    '''
     if commonCorrectionField:
         for q in Correction.objects.filter(old_val=x, field=commonCorrectionField):
-            times_corrected[q.new_val] = q.times_corrected
+            times_corrected[q.new_val] = q.times_corrected'''
     distances = {
         w: correction_function(edit_dist(x, w), 6 - times_corrected.get(w, 0)) if commonCorrectionField else edit_dist(
             x,
