@@ -434,6 +434,9 @@ def validate_maturity_date(data):
         result["error"] = f"Date cannot be in the past. Server date is {today.strftime('%d/%m/%Y')}"
         return result
 
+    if date.year - today.year >= 50:
+        result["probabilityUnlikely"] = 1
+
     result["success"] = True
     return result
 
