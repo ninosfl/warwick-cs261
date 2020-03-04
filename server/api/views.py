@@ -1,28 +1,19 @@
 import json
 from datetime import datetime
-from math import floor
-import datetime
-import json
-import logging
-import os
-import pickle
 from decimal import Decimal
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from jellyfish import damerau_levenshtein_distance as edit_dist
-from trades.models import Company, Product, CurrencyValue,DerivativeTrade,StockPrice,ProductPrice,TradeProduct
-from learning.models import Correction,TrainData, MetaData
 from currency_converter import CurrencyConverter
 from keras.models import load_model
 import tensorflow as tf
-import datetime
-from math import floor
 import numpy as np
-import pickle
-import logging
-from jellyfish import damerau_levenshtein_distance as edit_dist
+
+from learning.models import Correction, TrainData, MetaData
+from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
+                           StockPrice, ProductPrice, TradeProduct)
 c = CurrencyConverter(fallback_on_missing_rate=True)
 
 @csrf_exempt
@@ -54,7 +45,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
+def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
     edit distance in order of the closest string first. All strings with edit
