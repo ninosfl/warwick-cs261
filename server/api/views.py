@@ -270,6 +270,9 @@ def estimateErrorRatio(errorValue):
     values = {0.95:0.037751311451393696,
     0.8:0.02520727266310019,
     0.6:0.01780338673080255}
+    #values = {0.95: 0.0222104888613782,
+    #         0.8: 0.01099924408732379,
+    #        0.6: 0.007205673670873156}
     if errorValue > values[0.6] and errorValue < values[0.8]:
         return 0.6 + (0.2*((errorValue - values[0.6])/(values[0.8]-values[0.6])))
     if errorValue > values[0.8] and errorValue < values[0.95]:
@@ -277,14 +280,14 @@ def estimateErrorRatio(errorValue):
     if errorValue > values[0.95]:
         return 1
     if errorValue < values[0.6]:
-        return 0
+        return ((values[0.6] - errorValue) / values[0.6])*0.6
 
 def ai_magic(data):
-    graph, autoencoder = _load_model_from_path(r'api\mlModels\AutoEncoder\1176207.h5')
-    d = [int(x) for x in data['date'].split(',')]
-    d = datetime.date(d[2],d[1],d[0])
-    maturityDate = [int(x) for x in data['maturityDate'].split(',')]
-    maturityDate = datetime.date(maturityDate[2],maturityDate[1],maturityDate[0])
+    graph, autoencoder = _load_model_from_path(r'api\mlModels\AutoEncoder\2217570.h5')
+    d = [int(x) for x in data['date'].split('-')]
+    d = datetime.date(d[0],d[1],d[2])
+    maturityDate = [int(x) for x in data['maturityDate'].split('-')]
+    maturityDate = datetime.date(maturityDate[0],maturityDate[1],maturityDate[2])
     data['date'] = d
     data['maturityDate'] = maturityDate
     isStock = (data['product'] == 'Stocks')
