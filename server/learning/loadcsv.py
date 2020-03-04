@@ -70,7 +70,7 @@ for x in range(2010,2020):
                 v = [line.split(",") for line in lines]
                 productClosePrices = {}
                 stockClosePrices = {}
-                with open(r'../../data/productPrices/{}/{}/{}'.format(x,month,date)) as c:
+                with open('../../data/productPrices/{}/{}/{}'.format(x,month,date)) as c:
                     productClosePrices = {l.split(',')[1]:float(l.split(',')[2].rstrip('\n')) for l in c.readlines()[1:]}
                 with open('../../data/stockPrices/{}/{}/{}'.format(x,month,date)) as c:
                     stockClosePrices = {l.split(',')[1]:float(l.split(',')[2].rstrip('\n')) for l in c.readlines()[1:]}

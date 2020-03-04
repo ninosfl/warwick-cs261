@@ -1,28 +1,19 @@
 import json
-from datetime import datetime
-from math import floor
-import datetime
-import json
-import logging
-import os
-import pickle
+from datetime import datetime, date, timedelta
 from decimal import Decimal
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from jellyfish import damerau_levenshtein_distance as edit_dist
-from trades.models import Company, Product, CurrencyValue,DerivativeTrade,StockPrice,ProductPrice,TradeProduct
-from learning.models import Correction,TrainData, MetaData
 from currency_converter import CurrencyConverter
 from keras.models import load_model
 import tensorflow as tf
-import datetime
-from math import floor
 import numpy as np
-import pickle
-import logging
-from jellyfish import damerau_levenshtein_distance as edit_dist
+
+from learning.models import Correction, TrainData, MetaData
+from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
+                           StockPrice, ProductPrice, TradeProduct)
 c = CurrencyConverter(fallback_on_missing_rate=True)
 
 @csrf_exempt
@@ -54,7 +45,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
+def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
     edit distance in order of the closest string first. All strings with edit
@@ -86,23 +77,23 @@ def getPricesTraded(product,n_last,todayDate,key,isStock,adjustedUnderlying):
     prices = {
         todayDate:adjustedUnderlying
     }
-    earliestDate = todayDate - datetime.timedelta(days=n_last)
+    earliestDate = todayDate - timedelta(days=n_last)
     #lastTraded = DatesTraded.filter(key=key,date__lt=earliestDate.strftime('%Y-%m-%d')).order_by('-date')
     if isStock:
         for q in StockPrice.objects.filter(company__name=key, date__range=[
-            (todayDate - datetime.timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
+            (todayDate - timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
             todayDate.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     else:
         a = ProductPrice.objects.all()
         for q in ProductPrice.objects.filter(product__name=key, date__range=[
-            (todayDate - datetime.timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
+            (todayDate - timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
             todayDate.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     pricesList = prices.items()
     interpolated = []
     for day in range(n_last):
-        day = todayDate - datetime.timedelta(days=day)
+        day = todayDate - timedelta(days=day)
         if day not in prices:
             try:
                 earliestAfter = min([x for x in pricesList if x[0] >= todayDate],key=lambda x:x[0])
@@ -174,8 +165,8 @@ def getCurrencyValue(x,todayDate): # Will get currency, will enter the currency 
         return newCurrency.value
 def recordLearningTrade(trade):
     isStock = trade.product_type == 'S'
-    todayDate = datetime.date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
-    maturityDate = datetime.date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
+    todayDate = date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
+    maturityDate = date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
     key = trade.selling_party if isStock else trade.traded_product.product
     md = MetaData.objects.get_or_create(key=key,defaults={"runningAvgClosePrice": 0,"runningAvgTradePrice":0,"runningAvgQuantity":0,"totalEntries":0,"totalQuantity":0, "trades":0})[0]
     adjustedUnderlying = trade.underlying_price / getCurrencyValue(trade.underlying_currency,todayDate)
@@ -207,14 +198,14 @@ def recordLearningTrade(trade):
 
 def enterDummyTrade():
     recordLearningTrade(DerivativeTrade(
-        date_of_trade=datetime.date(2010,1,18),
+        date_of_trade=date(2010,1,18),
         trade_id='IDQYGGFS26417970',
         product_type='P',
         buying_party_id='VVXA11',
         selling_party_id='QBAP68',
         notional_currency='MXN',
         quantity=4000,
-        maturity_date=datetime.date(2013,1,3),
+        maturity_date=date(2013,1,3),
         underlying_price=615,
         underlying_currency='CRC',
         strike_price=1882))
@@ -227,6 +218,7 @@ def currency_exists(currency_code):
     return currency_code in currencies_today
 
 def create_trade(data):
+    # Verify all data keys exist
     required_data = {
         "product", "sellingParty", "buyingParty",
         "quantity", "underlyingCurrency", "underlyingPrice",
@@ -235,13 +227,18 @@ def create_trade(data):
     not_specified = required_data.difference(data)
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
-    md = [int(x) for x in data['maturityDate'].split("-")]
-    data["maturityDate"] = datetime.date(md[0],md[1],md[2])
+    # Convert values to their appropriate type
+    data["maturityDate"] = datetime.strptime(data["maturityDate"], "%Y-%m-%d").date()
+    data["underlyingPrice"] = Decimal(data["underlyingPrice"])
+    data["strikePrice"] = Decimal(data["strikePrice"])
+    data["quantity"] = int(data["quantity"])
     # Create the trade object and (possibly) the associated product
+    selling_company = get_company(data["sellingParty"])
+    buying_company = get_company(data["buyingParty"])
     new_trade = DerivativeTrade(
         product_type='S' if data["product"] == "Stocks" else 'P',
-        selling_party_id=data["sellingParty"],
-        buying_party_id=data["buyingParty"],
+        selling_party_id=selling_company.id,
+        buying_party_id=buying_company.id,
         quantity=data["quantity"],
         underlying_currency=data["underlyingCurrency"],
         underlying_price=data["underlyingPrice"],
@@ -251,7 +248,8 @@ def create_trade(data):
     )
     new_trade.save()
     if new_trade.product_type == 'P':
-        TradeProduct(trade=new_trade, product_id=data["product"])
+        traded_product = get_product(data["product"])
+        TradeProduct.objects.create(trade=new_trade, product_id=traded_product.name)
     recordLearningTrade(new_trade)
     # Add generated fields
     data["tradeID"] = new_trade.trade_id
@@ -283,11 +281,11 @@ def estimateErrorRatio(errorValue):
         return ((values[0.6] - errorValue) / values[0.6])*0.6
 
 def ai_magic(data):
-    graph, autoencoder = _load_model_from_path(r'api/mlModels/AutoEncoder/2217570.h5')
+    graph, autoencoder = _load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
     d = [int(x) for x in data['date'].split('-')]
-    d = datetime.date(d[0],d[1],d[2])
+    d = date(d[0],d[1],d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
-    maturityDate = datetime.date(maturityDate[0],maturityDate[1],maturityDate[2])
+    maturityDate = date(maturityDate[0],maturityDate[1],maturityDate[2])
     data['date'] = d
     data['maturityDate'] = maturityDate
     isStock = (data['product'] == 'Stocks')
