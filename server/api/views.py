@@ -353,6 +353,7 @@ def validate_product(data):
             result["canSwap"] = True
         else:
             result["canSwap"] = False
+            result["sellingParty"] = prod.seller_company.name
         return result
 
     result["success"] = True
