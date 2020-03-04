@@ -127,6 +127,12 @@ function ErrorWithSuggestions(props) {
                 oldValue: props.value,
                 newValue: val
             });
+
+            // If a product suggestion has been picked, mark it for re-validation
+            if (props.id === inputs.product) {
+                dispatch({ type: actionTypes.markRequesting, input: props.id });
+                dispatch({ type: actionTypes.validate, validationInput: props.id }); 
+            }
         }
         
         setAnchor(null); // Make menu go away
