@@ -6,15 +6,13 @@ import json
 import logging
 import os
 import pickle
-
+from decimal import Decimal
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from jellyfish import damerau_levenshtein_distance as edit_dist
-from keras import backend as K
-from keras.models import load_model
-from trades.models import Company, Product, CurrencyValue,DerivativeTrade,StockPrice,ProductPrice
+from trades.models import Company, Product, CurrencyValue,DerivativeTrade,StockPrice,ProductPrice,TradeProduct
 from learning.models import Correction,TrainData, MetaData
 from currency_converter import CurrencyConverter
 from keras.models import load_model
@@ -168,9 +166,12 @@ def getCurrencyValue(x,todayDate): # Will get currency, will enter the currency 
         currency=x).value
     except CurrencyValue.DoesNotExist:
         print(f"CurrencyDidNotExist {x}")
-        c = CurrencyValue(date=todayDate,currency=x,value=c.convert(1,x,'USD',date=todayDate))
-        c.save()
-        return c.value
+        try:
+            newCurrency = CurrencyValue(date=todayDate,currency=x,value=c.convert(1,x,'USD',date=todayDate))
+            newCurrency.save()
+        except: # Doesn't have that recent data, need a new module or better yet, live currency conversion
+            return 1
+        return newCurrency.value
 def recordLearningTrade(trade):
     isStock = trade.product_type == 'S'
     todayDate = datetime.date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
@@ -187,8 +188,6 @@ def recordLearningTrade(trade):
         q = float(md.totalEntries)
         md.runningAvgClosePrice = ((p * q) + float(adjustedUnderlying)) / (q + 1)
         md.totalEntries = q + 1
-    day = (datetime.date.today() - datetime.date(2010,1,1)).days
-    hp = getPricesTraded(key,31)
     #Reminder: retrain with adjusted TP system
     p = float(md.runningAvgTradePrice)
     n = float(md.totalQuantity)
@@ -202,7 +201,8 @@ def recordLearningTrade(trade):
     cv2=float(getCurrencyValue(trade.notional_currency,todayDate))
     adjustedStrike = float(trade.strike_price) / cv2
     normalizedData = normalizeTrade(trade,md,key,todayDate,maturityDate,adjustedStrike,adjustedUnderlying,isStock)
-    TrainData(val1=normalizedData[0],val2=normalizedData[1],val3=normalizedData[2],val4=normalizedData[3],val5=normalizedData[4],val6=normalizedData[5],val7=normalizedData[6],val8=normalizedData[7]).save()
+    if normalizedData:
+        TrainData(val1=normalizedData[0],val2=normalizedData[1],val3=normalizedData[2],val4=normalizedData[3],val5=normalizedData[4],val6=normalizedData[5],val7=normalizedData[6],val8=normalizedData[7]).save()
     return True
 
 def enterDummyTrade():
@@ -220,8 +220,6 @@ def enterDummyTrade():
         strike_price=1882))
     return {"a":True}
 
-def enterTrade(x):
-    return enterDummyTrade()
 
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
@@ -237,11 +235,13 @@ def create_trade(data):
     not_specified = required_data.difference(data)
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
+    md = [int(x) for x in data['maturityDate'].split("-")]
+    data["maturityDate"] = datetime.date(md[0],md[1],md[2])
     # Create the trade object and (possibly) the associated product
     new_trade = DerivativeTrade(
         product_type='S' if data["product"] == "Stocks" else 'P',
-        selling_party__name=data["sellingParty"],
-        buying_party__name=data["buyingParty"],
+        selling_party_id=data["sellingParty"],
+        buying_party_id=data["buyingParty"],
         quantity=data["quantity"],
         underlying_currency=data["underlyingCurrency"],
         underlying_price=data["underlyingPrice"],
@@ -251,9 +251,10 @@ def create_trade(data):
     )
     new_trade.save()
     if new_trade.product_type == 'P':
-        TradeProduct(trade=new_trade, product__name=data["product"])
+        TradeProduct(trade=new_trade, product_id=data["product"])
+    recordLearningTrade(new_trade)
     # Add generated fields
-    data["tradeID"] = new_trade.id
+    data["tradeID"] = new_trade.trade_id
     data["dateOfTrade"] = new_trade.date_of_trade
     data["notionalAmount"] = new_trade.notional_amount
     # Return success and the created object
@@ -277,6 +278,7 @@ def estimateErrorRatio(errorValue):
         return 1
     if errorValue < values[0.6]:
         return 0
+
 def ai_magic(data):
     graph, autoencoder = _load_model_from_path(r'api\mlModels\AutoEncoder\1176207.h5')
     d = [int(x) for x in data['date'].split(',')]
