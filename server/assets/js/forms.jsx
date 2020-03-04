@@ -129,15 +129,84 @@ function SuperForm(props) {
             case inputs.product:
                 // TODO: Validate product!
 
-                if (state.productName.includes("test")) {
-                    dispatch({
-                        type: actionTypes.provideSuggestions,
-                        input: inputs.product,
-                        suggestions: ["Strange things are", "afoot at", "the Circle-K"]
-                    });
-                }          
+                console.log("Currently fetching selling party: ", state.sellingParty);
+                fetch('http://localhost:8000/api/validate/product/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        "product": state.productName,
+                        "sellingParty": state.sellingParty,
+                        "buyingParty": state.buyingParty
+                    }),
+                })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Network response not ok!");
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log('Success: ', data);
+                    if (data.success === false) {
 
-                dispatch({ type: actionTypes.markRequestComplete, input: inputs.product });
+                        if (data.canSwap === true) {
+                            console.log("Swapping buying and selling parties.");
+                            let buying = state.buyingParty;
+                            let selling = state.sellingParty;
+                            dispatch({
+                                type: actionTypes.new,
+                                input: inputs.buying,
+                                newValue: selling
+                            });
+                            dispatch({
+                                type: actionTypes.new,
+                                input: inputs.selling,
+                                newValue: buying
+                            });
+                        } else if (data.sellingParty !== state.sellingParty) {
+                            // TODO: Maybe correct automatically rather than suggesting??
+                            dispatch({
+                                type: actionTypes.markPotentialSuggestions,
+                                input: inputs.selling
+                            });
+                            dispatch({
+                                type: actionTypes.provideSuggestions,
+                                input: inputs.selling,
+                                suggestions: [data.sellingParty]
+                            });
+                        } else {
+                            let suggestions = [];
+                            if ("products" in data) {
+                                suggestions = data.products;
+                            }
+                            // If suggestions available, pass them to form
+                            if (suggestions.length > 0) {
+                                dispatch({
+                                    type: actionTypes.markPotentialSuggestions,
+                                    input: inputs.product
+                                });
+                                dispatch({
+                                    type: actionTypes.provideSuggestions,
+                                    input: inputs.product,
+                                    suggestions: suggestions
+                                });
+                            } else {  // No suggestions - mark as such
+                                dispatch({
+                                    type: actionTypes.markNoSuggestions,
+                                    input: inputs.product
+                                });
+                            }
+                        }
+
+                    }
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.product });
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.product });
+                });
                 break;
 
             case inputs.uPrice:
@@ -246,10 +315,24 @@ function SuperForm(props) {
     // Use effect hook for logging corrections!
     useEffect(() => {
         const log = state.correctionFields.correctionLog;
+        // If there are corrections to be logged
         if (log.length > 0) {
             const [field, oldVal, newVal] = log[log.length - 1];
+            console.log("Sending correction: " + field + " " + oldVal + " " + newVal);
+
+            fetch('http://localhost:8000/api/corrections/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "field": field,
+                    "oldValue": oldVal,
+                    "newValue": newVal
+                }),
+            });
+
         }
-        // TODO: Send fields to API!
     }, [state.correctionFields.correctionLog]);  // Only perform effect when correctionFields changes
 
     // Use effect hook for submitting form
