@@ -1,6 +1,6 @@
 # Instructions To Run Server
 
-Make sure python 3.7+ and npm 6.13+ are both installed on your system.
+Make sure python 3.7 and npm 6.13+ are both installed on your system.
 
 ## Windows
 

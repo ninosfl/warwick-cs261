@@ -1,31 +1,22 @@
 import json
-from datetime import datetime
-from math import floor
-import datetime
-import json
-import logging
-import os
-import pickle
+from datetime import datetime, date, timedelta
 from decimal import Decimal
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from jellyfish import damerau_levenshtein_distance as edit_dist
-from trades.models import Company, Product, CurrencyValue, DerivativeTrade, StockPrice, ProductPrice, TradeProduct
-from learning.models import Correction, TrainData, MetaData
+
 from currency_converter import CurrencyConverter
 from keras.models import load_model
 import tensorflow as tf
 import datetime
 from math import floor
 import numpy as np
-import pickle
-import logging
-from jellyfish import damerau_levenshtein_distance as edit_dist
-
+from learning.models import Correction, TrainData, MetaData
+from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
+                           StockPrice, ProductPrice, TradeProduct)
 c = CurrencyConverter(fallback_on_missing_rate=True)
-
 
 @csrf_exempt
 def api_main(request, func):
@@ -42,14 +33,12 @@ def api_main(request, func):
         return JsonResponse({"success": False, "error": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
-
 def get_company(name):
     """ Returns the Company with that exact name or None if it does not exist """
     try:
         return Company.objects.get(name=name)
     except Company.DoesNotExist:
         return None
-
 
 def get_product(name):
     """ Returns the Product with that exact name or None if it does not exist """
@@ -58,8 +47,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-
-def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
+def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
     edit distance in order of the closest string first. All strings with edit
@@ -77,7 +65,6 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     filtered_distances = {w: d for w, d in distances.items() if d <= 5}
     sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
     return sorted_distances[:5]
-
 
 # TODO Optimisation when insertion of new CurrencyValues is sorted out
 # @functools.lru_cache
@@ -231,14 +218,14 @@ def record_learning_trade(trade):
 '''
 def enter_dummy_trade():
     recordLearningTrade(DerivativeTrade(
-        date_of_trade=datetime.date(2010, 1, 18),
+        date_of_trade=datetime.date(2010,1,18),
         trade_id='IDQYGGFS26417970',
         product_type='P',
         buying_party_id='VVXA11',
         selling_party_id='QBAP68',
         notional_currency='MXN',
         quantity=4000,
-        maturity_date=datetime.date(2013, 1, 3),
+        maturity_date=datetime.date(2013,1,3),
         underlying_price=615,
         underlying_currency='CRC',
         strike_price=1882))
@@ -251,8 +238,8 @@ def currency_exists(currency_code):
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
 
-
 def create_trade(data):
+    # Verify all data keys exist
     required_data = {
         "product", "sellingParty", "buyingParty",
         "quantity", "underlyingCurrency", "underlyingPrice",
@@ -261,13 +248,18 @@ def create_trade(data):
     not_specified = required_data.difference(data)
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
-    md = [int(x) for x in data['maturityDate'].split("-")]
-    data["maturityDate"] = datetime.date(md[0], md[1], md[2])
+    # Convert values to their appropriate type
+    data["maturityDate"] = datetime.strptime(data["maturityDate"], "%Y-%m-%d").date()
+    data["underlyingPrice"] = Decimal(data["underlyingPrice"])
+    data["strikePrice"] = Decimal(data["strikePrice"])
+    data["quantity"] = int(data["quantity"])
     # Create the trade object and (possibly) the associated product
+    selling_company = get_company(data["sellingParty"])
+    buying_company = get_company(data["buyingParty"])
     new_trade = DerivativeTrade(
         product_type='S' if data["product"] == "Stocks" else 'P',
-        selling_party_id=data["sellingParty"],
-        buying_party_id=data["buyingParty"],
+        selling_party_id=selling_company.id,
+        buying_party_id=buying_company.id,
         quantity=data["quantity"],
         underlying_currency=data["underlyingCurrency"],
         underlying_price=data["underlyingPrice"],
@@ -277,8 +269,9 @@ def create_trade(data):
     )
     new_trade.save()
     if new_trade.product_type == 'P':
-        TradeProduct(trade=new_trade, product_id=data["product"])
-    record_learning_trade(new_trade)
+        traded_product = get_product(data["product"])
+        TradeProduct.objects.create(trade=new_trade, product_id=traded_product.name)
+    recordLearningTrade(new_trade)
     # Add generated fields
     data["tradeID"] = new_trade.trade_id
     data["dateOfTrade"] = new_trade.date_of_trade
@@ -340,9 +333,8 @@ def estimate_error_ratio(errorValue):
     if errorValue < values[0.6]:
         return ((values[0.6] - errorValue) / values[0.6]) * 0.6
 
-
 def ai_magic(data):
-    graph, autoencoder = load_model_from_path(r'api\mlModels\AutoEncoder\2217570.h5')
+    graph, autoencoder = _load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
     d = [int(x) for x in data['date'].split('-')]
     d = datetime.date(d[0], d[1], d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
@@ -514,7 +506,6 @@ def validate_maturity_date(data):
     result["success"] = True
     return result
 
-
 def currencies(_, date_str=None):
     """
     Returns currencies for a specific date. If no date is specified the current
@@ -527,7 +518,6 @@ def currencies(_, date_str=None):
     return JsonResponse({
         "currencies": [c.currency for c in CurrencyValue.objects.filter(date=date)]
     })
-
 
 ### Additional stuff below ###
 
@@ -547,7 +537,6 @@ def company(_, company_name):
         }
     return JsonResponse(result)
 
-
 def product(_, product_name):
     """ View of a single product at path 'product/<product_name>' """
     prod = get_product(product_name)
@@ -559,7 +548,6 @@ def product(_, product_name):
         }
     result["suggestions"] = closest_matches(product_name, [p.name for p in Product.objects.all()])
     return JsonResponse(result)
-
 
 def company_product(_, company_name, product_name):
     """
