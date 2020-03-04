@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, date, timedelta, strptime
 from decimal import Decimal
 
 from django.http import JsonResponse
@@ -77,23 +77,23 @@ def getPricesTraded(product,n_last,todayDate,key,isStock,adjustedUnderlying):
     prices = {
         todayDate:adjustedUnderlying
     }
-    earliestDate = todayDate - datetime.timedelta(days=n_last)
+    earliestDate = todayDate - timedelta(days=n_last)
     #lastTraded = DatesTraded.filter(key=key,date__lt=earliestDate.strftime('%Y-%m-%d')).order_by('-date')
     if isStock:
         for q in StockPrice.objects.filter(company__name=key, date__range=[
-            (todayDate - datetime.timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
+            (todayDate - timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
             todayDate.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     else:
         a = ProductPrice.objects.all()
         for q in ProductPrice.objects.filter(product__name=key, date__range=[
-            (todayDate - datetime.timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
+            (todayDate - timedelta(days=n_last+10)).strftime('%Y-%m-%d'),
             todayDate.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     pricesList = prices.items()
     interpolated = []
     for day in range(n_last):
-        day = todayDate - datetime.timedelta(days=day)
+        day = todayDate - timedelta(days=day)
         if day not in prices:
             try:
                 earliestAfter = min([x for x in pricesList if x[0] >= todayDate],key=lambda x:x[0])
@@ -165,8 +165,8 @@ def getCurrencyValue(x,todayDate): # Will get currency, will enter the currency 
         return newCurrency.value
 def recordLearningTrade(trade):
     isStock = trade.product_type == 'S'
-    todayDate = datetime.date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
-    maturityDate = datetime.date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
+    todayDate = date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
+    maturityDate = date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
     key = trade.selling_party if isStock else trade.traded_product.product
     md = MetaData.objects.get_or_create(key=key,defaults={"runningAvgClosePrice": 0,"runningAvgTradePrice":0,"runningAvgQuantity":0,"totalEntries":0,"totalQuantity":0, "trades":0})[0]
     adjustedUnderlying = trade.underlying_price / getCurrencyValue(trade.underlying_currency,todayDate)
@@ -198,14 +198,14 @@ def recordLearningTrade(trade):
 
 def enterDummyTrade():
     recordLearningTrade(DerivativeTrade(
-        date_of_trade=datetime.date(2010,1,18),
+        date_of_trade=date(2010,1,18),
         trade_id='IDQYGGFS26417970',
         product_type='P',
         buying_party_id='VVXA11',
         selling_party_id='QBAP68',
         notional_currency='MXN',
         quantity=4000,
-        maturity_date=datetime.date(2013,1,3),
+        maturity_date=date(2013,1,3),
         underlying_price=615,
         underlying_currency='CRC',
         strike_price=1882))
@@ -218,6 +218,7 @@ def currency_exists(currency_code):
     return currency_code in currencies_today
 
 def create_trade(data):
+    # Verify all data keys exist
     required_data = {
         "product", "sellingParty", "buyingParty",
         "quantity", "underlyingCurrency", "underlyingPrice",
@@ -226,7 +227,11 @@ def create_trade(data):
     not_specified = required_data.difference(data)
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
-    data["maturityDate"] = datetime.strptime(data["maturityDate"], "%Y-%m-%d").date()
+    # Convert values to their appropriate type
+    data["maturityDate"] = strptime(data["maturityDate"], "%Y-%m-%d").date()
+    data["underlyingPrice"] = Decimal(data["underlyingPrice"])
+    data["strikePrice"] = Decimal(data["strikePrice"])
+    data["quantity"] = int(data["quantity"])
     # Create the trade object and (possibly) the associated product
     selling_company = get_company(data["sellingParty"])
     buying_company = get_company(data["buyingParty"])
@@ -278,9 +283,9 @@ def estimateErrorRatio(errorValue):
 def ai_magic(data):
     graph, autoencoder = _load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
     d = [int(x) for x in data['date'].split('-')]
-    d = datetime.date(d[0],d[1],d[2])
+    d = date(d[0],d[1],d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
-    maturityDate = datetime.date(maturityDate[0],maturityDate[1],maturityDate[2])
+    maturityDate = date(maturityDate[0],maturityDate[1],maturityDate[2])
     data['date'] = d
     data['maturityDate'] = maturityDate
     isStock = (data['product'] == 'Stocks')
@@ -426,7 +431,7 @@ def validate_maturity_date(data):
 
     # Attempt to parse given date string
     try:
-        date = datetime.strptime(data["date"], "%d/%m/%Y").date()
+        date = strptime(data["date"], "%d/%m/%Y").date()
     except ValueError:
         result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
         return result
@@ -447,7 +452,7 @@ def currencies(_, date_str=None):
     if not date_str:
         date = timezone.now().date()
     else:
-        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        date = strptime(date_str, "%Y-%m-%d").date()
     return JsonResponse({
         "currencies": [c.currency for c in CurrencyValue.objects.filter(date=date)]
     })
