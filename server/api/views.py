@@ -22,7 +22,7 @@ try:
 except KeyError:
     print("failed")
     user_paths = []
-runningMetaData = pickle.load(open(r'server\api\runningMetaData.p','rb'))
+runningMetaData = pickle.load(open(r'api/runningMetaData.p','rb'))
 @csrf_exempt
 def api_main(request, func):
     """
@@ -99,7 +99,7 @@ def estimateErrorRatio(errorValue):
     if errorValue < values[0.6]:
         return 0
 def ai_magic(data):
-    graph, autoencoder = _load_model_from_path(r'server\api\mlModels\AutoEncoder\1176207.h5')
+    graph, autoencoder = _load_model_from_path(r'api/mlModels/AutoEncoder/1176207.h5')
     def funcOrNone(x, func):
         try:
             return func(x)
@@ -169,6 +169,8 @@ def validate_product(data):
     """ Validate single product. Expected data: product, buyingParty, sellingParty"""
     result = {"success": False}
 
+    result["sellingParty"] = data["sellingParty"]
+
     # Shape of request is as expected (all necessary data is given)
     not_specified = {"product", "sellingParty", "buyingParty"}.difference(data)
     if not_specified:
@@ -204,6 +206,7 @@ def validate_product(data):
             result["canSwap"] = True
         else:
             result["canSwap"] = False
+            result["sellingParty"] = prod.seller_company.name
         return result
 
     result["success"] = True
