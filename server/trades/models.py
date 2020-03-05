@@ -65,6 +65,7 @@ def generate_trade_id():
         except DerivativeTrade.DoesNotExist:
             return new_id
 
+
 class Company(models.Model):
     id = models.CharField(primary_key=True, max_length=6, default=generate_company_id)
     # 36 max name length found in data
@@ -83,6 +84,7 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+
 class CurrencyValue(models.Model):
     date = models.DateField()
     # 3 letter code
@@ -92,6 +94,7 @@ class CurrencyValue(models.Model):
     
     class Meta:
         unique_together = ("date", "currency")
+
 
 class DerivativeTrade(models.Model):
     class ProductTypes(models.TextChoices):

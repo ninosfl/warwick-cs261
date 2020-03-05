@@ -15,7 +15,17 @@ import numpy as np
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
                            StockPrice, ProductPrice, TradeProduct)
+
+
+def load_model_from_path(path):
+    graph = tf.get_default_graph()
+    model = load_model(path)
+    return graph, model
+
+
 c = CurrencyConverter(fallback_on_missing_rate=True)
+graph, autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
+
 
 @csrf_exempt
 def api_main(request, func):
@@ -82,13 +92,13 @@ def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=Non
         prices[today_date] = adjusted_underlying
     if is_stock:
         for q in StockPrice.objects.filter(company__name=key, date__range=[
-            (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
-            today_date.strftime('%Y-%m-%d')]):
+                (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
+                today_date.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     else:
         for q in ProductPrice.objects.filter(product__name=key, date__range=[
-            (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
-            today_date.strftime('%Y-%m-%d')]):
+                (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
+                today_date.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     prices_list = prices.items()
     interpolated = []
@@ -252,7 +262,7 @@ def create_trade(data):
     if new_trade.product_type == 'P':
         traded_product = get_product(data["product"])
         TradeProduct.objects.create(trade=new_trade, product_id=traded_product.name)
-    recordLearningTrade(new_trade)
+    record_learning_trade(new_trade)
     # Add generated fields
     data["tradeID"] = new_trade.trade_id
     data["dateOfTrade"] = new_trade.date_of_trade
@@ -261,22 +271,12 @@ def create_trade(data):
     return {"success": True, "trade": data}
 
 
-# Stolen snippet
-def softmax(x):
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum()
-
-
 def squared_errors(x, y):
     return [(x - y) ** 2 for x, y in zip(x, y)]
 
 
-def mean_squared_error(x, y):
-    return np.mean(squared_errors(x, y))
-
-
 def determine_error(x, y):
-    mse = softmax(squared_errors(x, y))
+    mse = squared_errors(x, y)
     return max(range(len(mse)), key=lambda x: mse[x])
 
 
@@ -291,11 +291,6 @@ def error_message(index):
             "Check proximity to recent minimum price"
             ][index]
 
-
-def load_model_from_path(path):
-    graph = tf.get_default_graph()
-    model = load_model(path)  # keras function
-    return graph, model
 
 
 def estimate_error_ratio(errorValue):
@@ -315,7 +310,6 @@ def estimate_error_ratio(errorValue):
         return ((values[0.6] - errorValue) / values[0.6]) * 0.6
 
 def ai_magic(data):
-    graph, autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
     d = [int(x) for x in data['date'].split('-')]
     d = date(d[0], d[1], d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
@@ -445,7 +439,6 @@ def validate_trade(data):
 
 
 def correction(data):
-    print(data)
     try:
         corr = Correction.objects.get(old_val=data['oldValue'], new_val=data['newValue'], field=data['field'])
         corr.times_corrected += 1

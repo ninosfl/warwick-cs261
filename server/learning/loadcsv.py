@@ -18,13 +18,46 @@ class keydefaultdict(defaultdict):
         else:
             ret = self[key] = self.default_factory(key)
             return ret
+
+
+def iterateData(data_path=''):
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+              'November', 'December']
+    for x in range(2010,2020):
+        for month in months:
+            path = f'{data_path}/derivativeTrades/{x}/{month}'
+            onlyfiles = sorted([join(path, f) for f in listdir(path) if isfile(join(path, f))])
+            for csv in onlyfiles:
+                with open(csv,'r') as f:
+                    date = csv.split('\\')[-1] # My file system uses \ maybe yours uses /
+                    lines = f.readlines()[1:]
+                    currencyValues = {}
+                    with open(f'{data_path}/currencyValues/{x}/{month}/{date}') as c:
+                        b = c.readlines()[1:]
+                        currencyValues = {line[1]: float(line[2]) for line in [x.split(",") for x in b]}
+                    v = [line.split(",") for line in lines]
+                    for line in v:
+                        dt = [int(x) for x in line[0].split(' ')[0].split('/')]
+                        mdt = [int(x) for x in line[8].split('/')]
+                        data = {'date':datetime.date(dt[2],dt[1],dt[0]),
+                                'tradeID':line[1],
+                                'product':line[2],
+                                'buyingParty':line[3],
+                                'sellingParty':line[4],
+                                'notionalAmount':float(line[5])/float(currencyValues[line[6]]),
+                                'notionalCurrency':line[6],
+                                'quantity':int(line[7]),
+                                'maturityDate':datetime.date(mdt[2],mdt[1],mdt[0]),
+                                'underLyingPrice':float(line[9])/currencyValues[line[10]],
+                                'underLyingCurrency':line[10],
+                                'strikePrice':float(line[11])/currencyValues[line[6]]
+                                }
+                        yield data
+
 def main():
     productMetaData = {
 
     }
-
-
-
     runningMetaData = defaultdict(lambda : {'historicalPrice':[],'runningAvgClosePrice':0,'totalEntries':0,'runningAvgTradePrice':0,'runningAvgQuantity':0,'totalQuantity':0,'trades':0,'day':0})
     runningMetaData['INFO_DAY'] = 0
 
@@ -181,5 +214,6 @@ def main():
 
     pickle.dump(dict(runningMetaData),open('runningMetaData.p','wb'))
     np.array(trainingData).dump('train.np')
+
 if __name__ == "__main__":
     main()
