@@ -22,6 +22,7 @@ from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
 graph = tf.get_default_graph()
 t_session = tf.Session(graph=tf.Graph())
 
+
 def load_model_from_path(path):
     global model
     with t_session.graph.as_default():
@@ -30,11 +31,11 @@ def load_model_from_path(path):
         return model
 
 
-
 c = CurrencyConverter(fallback_on_missing_rate=True)
 autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
 
 date_format_parse = "%d/%m/%Y"  # Was "%Y-%m-%d"
+
 
 @csrf_exempt
 def api_main(request, func):
@@ -51,6 +52,7 @@ def api_main(request, func):
         return JsonResponse({"success": False, "error": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
+
 def get_company(name):
     """ Returns the Company with that exact name or None if it does not exist """
     try:
@@ -58,12 +60,14 @@ def get_company(name):
     except Company.DoesNotExist:
         return None
 
+
 def get_product(name):
     """ Returns the Product with that exact name or None if it does not exist """
     try:
         return Product.objects.get(name=name)
     except Product.DoesNotExist:
         return None
+
 
 def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     """
@@ -84,6 +88,7 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     filtered_distances = {w: d for w, d in distances.items() if d <= 5}
     sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
     return sorted_distances[:5]
+
 
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
     """ n_last: number of days to look back on, today_date: as datetime latest date """
@@ -224,10 +229,12 @@ def record_learning_trade(trade):
                   val5=normalizedData[4], val6=normalizedData[5], val7=normalizedData[6], val8=normalizedData[7]).save()
     return True
 
+
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
+
 
 def create_trade(data):
     # Verify all data keys exist
@@ -274,8 +281,10 @@ def create_trade(data):
 def squared_errors(x, y):
     return [(x - y) ** 2 for x, y in zip(x, y)]
 
+
 def mean_squared_error(x,y):
     return np.average(squared_errors(x,y))
+
 
 def determine_error(x, y):
     mse = squared_errors(x, y)
@@ -307,6 +316,7 @@ def estimate_error_ratio(errorValue):
         return 1
     if errorValue < values[0.6]:
         return ((values[0.6] - errorValue) / values[0.6]) * 0.6
+
 
 def ai_magic(data):
     d = [int(x) for x in data['date'].split('-')]
@@ -502,6 +512,7 @@ def validate_maturity_date(data):
     result["success"] = True
     return result
 
+
 @csrf_exempt
 def currencies(_, date_str=None):
     """
@@ -515,6 +526,7 @@ def currencies(_, date_str=None):
     return JsonResponse({
         "currencies": get_currencies(request_date)
     })
+
 
 ### Additional stuff below ###
 
@@ -534,6 +546,7 @@ def company(_, company_name):
         }
     return JsonResponse(result)
 
+
 def product(_, product_name):
     """ View of a single product at path 'product/<product_name>' """
     prod = get_product(product_name)
@@ -545,6 +558,7 @@ def product(_, product_name):
         }
     result["suggestions"] = closest_matches(product_name, [p.name for p in Product.objects.all()])
     return JsonResponse(result)
+
 
 def company_product(_, company_name, product_name):
     """
