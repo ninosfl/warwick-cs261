@@ -56,7 +56,7 @@ function SuperForm(props) {
                         // If suggestions available, pass them to form
                         if (suggestions.length > 0) {
                             dispatch({
-                                type: actionTypes.markPotentialSuggestions,
+                                type: actionTypes.markCorrect,
                                 input: inputs.buying
                             });
                             dispatch({
@@ -105,7 +105,7 @@ function SuperForm(props) {
                         // If suggestions available, pass them to form
                         if (suggestions.length > 0) {
                             dispatch({
-                                type: actionTypes.markPotentialSuggestions,
+                                type: actionTypes.markCorrect,
                                 input: inputs.selling
                             });
                             dispatch({
@@ -173,7 +173,7 @@ function SuperForm(props) {
                             if (wrongSelling) {
                                 // TODO: Maybe correct automatically rather than suggesting??
                                 dispatch({
-                                    type: actionTypes.markPotentialSuggestions,
+                                    type: actionTypes.markCorrect,
                                     input: inputs.selling
                                 });
                                 dispatch({
@@ -196,7 +196,7 @@ function SuperForm(props) {
                                 // If suggestions available, pass them to form
                                 if (suggestions.length > 0) {
                                     dispatch({
-                                        type: actionTypes.markPotentialSuggestions,
+                                        type: actionTypes.markCorrect,
                                         input: inputs.product
                                     });
                                     dispatch({
@@ -239,7 +239,7 @@ function SuperForm(props) {
                 } else {
                     // TODO: Validate with API!
                     dispatch({
-                        type: actionTypes.markPotentialSuggestions,
+                        type: actionTypes.markCorrect,
                         input: inputs.uPrice
                     });
                 }
@@ -254,9 +254,37 @@ function SuperForm(props) {
                         input: inputs.mDate
                     });
                 } else {
-                    dispatch({
-                        type: actionTypes.markPotentialSuggestions,
-                        input: inputs.mDate
+                    console.log("Validating maturity date: ", state.maturityDate)
+                    fetch('http://localhost:8000/api/validate/maturitydate/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            "date": state.maturityDate
+                        }),
+                    })
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error("Network response not ok!");
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        if (data.success === true) {
+                            dispatch({
+                                type: actionTypes.markCorrect,
+                                input: inputs.mDate
+                            });
+                        } else {
+                            dispatch({
+                                type: actionTypes.markNoSuggestions,
+                                input: inputs.mDate
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
                     });
                 }
 
@@ -279,7 +307,7 @@ function SuperForm(props) {
                 } else {
                     // TODO: Validate with API!
                     dispatch({
-                        type: actionTypes.markPotentialSuggestions,
+                        type: actionTypes.markCorrect,
                         input: inputs.quantity
                     });
                 }
@@ -304,7 +332,7 @@ function SuperForm(props) {
                 } else {
                     // TODO: Validate with API!
                     dispatch({
-                        type: actionTypes.markPotentialSuggestions,
+                        type: actionTypes.markCorrect,
                         input: inputs.sPrice
                     });
                 }
@@ -554,7 +582,7 @@ function SubFormTwo(props) {
                     incorrectField={props.fields.incorrectFields[inputs.mDate]}
                     disabled={props.fields.requestingFields[inputs.mDate]}
                     helperText="Please enter the maturity date, in dd/mm/yyyy format."
-                    errorMessage="This input must be in dd/mm/yyyy format; Please try again."
+                    errorMessage="This must be a valid, future date; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
