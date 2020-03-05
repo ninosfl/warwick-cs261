@@ -11,6 +11,8 @@ const subForms = {
     "submit": "Submit"
 };
 
+const host = "http://localhost:8000/";
+
 // Contains all the initial form values
 const initialFormState = {
     "buyingParty": "",
@@ -233,5 +235,6 @@ export {
     all_zeroes,
     int_re,
     decimal_re,
-    date_format_re
+    date_format_re,
+    host
 };

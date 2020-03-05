@@ -12,7 +12,7 @@ import PublishIcon from '@material-ui/icons/Publish';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
-import { actionTypes, FormDispatch, useStyles, inputs } from './form-constants';
+import { actionTypes, FormDispatch, useStyles, inputs, host } from './form-constants';
 
 export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField };
 
@@ -73,7 +73,7 @@ function CurrencyField(props) {
     useEffect(() => {
         if (props.currencies.length === 0) {
             // Fetch list of valid currencies for today from API!
-            fetch('http://localhost:8000/api/currencies/', {
+            fetch(host + 'api/currencies/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

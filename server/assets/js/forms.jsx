@@ -6,7 +6,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re } from './form-constants';
+import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re, host } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField } from './form-components';
 import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
 
@@ -34,8 +34,8 @@ function SuperForm(props) {
             case inputs.buying:
                 // Validate buying party via API
                 // curl --request POST --data '{"name": "Axon"}' localhost:8000/api/validate/company/
-                console.log("Currently fetching buying party: ", state.buyingParty);
-                fetch('http://localhost:8000/api/validate/company/', {
+                console.log("Currently validating buying party: ", state.buyingParty);
+                fetch(host + 'api/validate/company/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -83,8 +83,8 @@ function SuperForm(props) {
             case inputs.selling:
                 // Validate selling party using API
 
-                console.log("Currently fetching selling party: ", state.sellingParty);
-                fetch('http://localhost:8000/api/validate/company/', {
+                console.log("Currently validating selling party: ", state.sellingParty);
+                fetch(host + 'api/validate/company/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -130,8 +130,8 @@ function SuperForm(props) {
 
             case inputs.product:
 
-                console.log("Currently fetching product: ", state.productName);
-                fetch('http://localhost:8000/api/validate/product/', {
+                console.log("Currently validating product: ", state.productName);
+                fetch(host + 'api/validate/product/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -255,7 +255,7 @@ function SuperForm(props) {
                     });
                 } else {
                     console.log("Validating maturity date: ", state.maturityDate)
-                    fetch('http://localhost:8000/api/validate/maturitydate/', {
+                    fetch(host + 'api/validate/maturitydate/', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -361,7 +361,7 @@ function SuperForm(props) {
             const [field, oldVal, newVal] = log[log.length - 1];
             console.log("Sending correction: " + field + " " + oldVal + " " + newVal);
 
-            fetch('http://localhost:8000/api/corrections/', {
+            fetch(host + 'api/corrections/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
