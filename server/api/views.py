@@ -1,5 +1,5 @@
 from datetime import datetime, date, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import json
 
 from django.http import JsonResponse
@@ -410,11 +410,27 @@ def validate_trade(data):
 
     # Validate quantity
     try:
-        if data["quantity"] <= 0:
+        if int(data["quantity"]) <= 0:
             result["error"] = "Quantity must be positive"
             return result
     except ValueError:
         result["error"] = "Quantity given must be an integer"
+        return result
+
+    # Validate prices
+    try:
+        if Decimal(data["underlyingPrice"]) <= 0:
+            result["error"] = "Underlying price must be positive"
+            return result
+    except ValueError:
+        result["error"] = "Underlying price must be a decimal number"
+        return result
+    try:
+        if Decimal(data["strikePrice"]) <= 0:
+            result["error"] = "Strike price must be positive"
+            return result
+    except ValueError:
+        result["error"] = "Strike price must be a decimal number"
         return result
 
     product_validation_result = validate_product(data)
