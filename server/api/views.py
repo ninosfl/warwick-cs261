@@ -1,7 +1,6 @@
+from datetime import datetime, date, timedelta
+from decimal import Decimal, InvalidOperation
 import json
-from datetime import date, timedelta
-import datetime
-from decimal import Decimal
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -72,10 +71,10 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     distance > 5 are filtered out.
     """
     times_corrected = {}
-    '''
+
     if commonCorrectionField:
         for q in Correction.objects.filter(old_val=x, field=commonCorrectionField):
-            times_corrected[q.new_val] = q.times_corrected'''
+            times_corrected[q.new_val] = q.times_corrected
     distances = {
         w: correction_function(edit_dist(x, w), 6 - times_corrected.get(w, 0)) if commonCorrectionField else edit_dist(
             x,
@@ -299,7 +298,6 @@ def estimate_error_ratio(errorValue):
     values = {0.95: 0.037751311451393696,
               0.8: 0.02520727266310019,
               0.6: 0.01780338673080255}
-
     if errorValue > values[0.6] and errorValue < values[0.8]:
         return 0.6 + (0.2 * ((errorValue - values[0.6]) / (values[0.8] - values[0.6])))
     if errorValue > values[0.8] and errorValue < values[0.95]:
@@ -423,11 +421,27 @@ def validate_trade(data):
 
     # Validate quantity
     try:
-        if data["quantity"] <= 0:
+        if int(data["quantity"]) <= 0:
             result["error"] = "Quantity must be positive"
             return result
     except ValueError:
         result["error"] = "Quantity given must be an integer"
+        return result
+
+    # Validate prices
+    try:
+        if Decimal(data["underlyingPrice"]) <= 0:
+            result["error"] = "Underlying price must be positive"
+            return result
+    except InvalidOperation:
+        result["error"] = "Underlying price must be a decimal number"
+        return result
+    try:
+        if Decimal(data["strikePrice"]) <= 0:
+            result["error"] = "Strike price must be positive"
+            return result
+    except InvalidOperation:
+        result["error"] = "Strike price must be a decimal number"
         return result
 
     product_validation_result = validate_product(data)
@@ -440,6 +454,7 @@ def validate_trade(data):
 
 
 def correction(data):
+    print(data)
     try:
         corr = Correction.objects.get(old_val=data['oldValue'], new_val=data['newValue'], field=data['field'])
         corr.times_corrected += 1
