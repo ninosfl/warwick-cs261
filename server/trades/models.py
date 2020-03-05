@@ -2,6 +2,7 @@ import random
 import string
 from django.utils import timezone
 from django.db import models
+from .utils import convert_currency
 
 """
 Permanent-ish data found in main data directory
@@ -42,7 +43,10 @@ stockPrices
 """
 
 def generate_company_id():
-    # Sample id TZAO91
+    """
+    Generates a unique company id which consists of 4 capital letters followed
+    by 2 numbers. Sample id: ZXVX98
+    """
     while True:
         new_id = ''.join(
             [random.choice(string.ascii_uppercase) for _ in range(4)]
@@ -54,7 +58,10 @@ def generate_company_id():
             return new_id
 
 def generate_trade_id():
-    # Sample id ACZCWXGS73862601
+    """
+    Generates a unique trade id which consists of 8 capital letters followed
+    by 8 numbers. Sample id: ACZCWXGS73862601
+    """
     while True:
         new_id = ''.join(
             [random.choice(string.ascii_uppercase) for _ in range(8)]
@@ -114,19 +121,24 @@ class DerivativeTrade(models.Model):
     underlying_currency = models.CharField(max_length=3)
     strike_price = models.DecimalField(max_digits=16, decimal_places=4)
 
-    # Notional amount is a calculated field.
     @property
     def notional_amount(self):
-        try:
-            underlying_per_usd = CurrencyValue.objects.get(
-                date=self.date_of_trade.date(), currency=self.underlying_currency).value
-            notional_per_usd = CurrencyValue.objects.get(
-                date=self.date_of_trade.date(), currency=self.notional_currency).value
-        except CurrencyValue.DoesNotExist:
-            raise RuntimeError("Catastrophic failure no conversion possible from"
-                               + f" underlying currency {self.underlying_currency}"
-                               + f" to notional currency {self.notional_currency}")
-        return self.underlying_price * notional_per_usd / underlying_per_usd
+        """
+        Notional amount is a calculated field based on quantity and underlying
+        price. Must then be converted to notional currency.
+        """
+        return convert_currency(
+            self.date_of_trade.date(),
+            self.quantity * self.underlying_price,
+            self.underlying_currency, self.notional_currency)
+
+    def __str__(self):
+        return ', '.join([
+            str(self.date_of_trade.time()),
+            self.buying_party.name,
+            self.selling_party.name,
+            'Stocks' if self.product_type == 'S' else self.traded_product.product.name
+        ])
 
 class ProductPrice(models.Model):
     date = models.DateField()
