@@ -1,5 +1,6 @@
 import json
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
+import datetime
 from decimal import Decimal
 
 from django.http import JsonResponse
@@ -10,8 +11,6 @@ from jellyfish import damerau_levenshtein_distance as edit_dist
 from currency_converter import CurrencyConverter
 from keras.models import load_model
 import tensorflow as tf
-import datetime
-from math import floor
 import numpy as np
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
@@ -47,7 +46,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
+def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
     edit distance in order of the closest string first. All strings with edit
@@ -83,18 +82,18 @@ def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=Non
         prices[today_date] = adjusted_underlying
     if is_stock:
         for q in StockPrice.objects.filter(company__name=key, date__range=[
-            (today_date - datetime.timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
+            (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
             today_date.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     else:
         for q in ProductPrice.objects.filter(product__name=key, date__range=[
-            (today_date - datetime.timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
+            (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
             today_date.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     prices_list = prices.items()
     interpolated = []
     for day in range(n_last):
-        day = today_date - datetime.timedelta(days=day)
+        day = today_date - timedelta(days=day)
         if day not in prices:
             days_after = [x for x in prices_list if x[0] >= today_date]
             days_before = [x for x in prices_list if x[0] <= today_date]
@@ -180,8 +179,8 @@ def get_currency_value(x,
 
 def record_learning_trade(trade):
     isStock = trade.product_type == 'S'
-    todayDate = datetime.date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
-    maturityDate = datetime.date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
+    todayDate = date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
+    maturityDate = date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
     key = trade.selling_party if isStock else trade.traded_product.product
     md = MetaData.objects.get_or_create(key=key, defaults={"runningAvgClosePrice": 0, "runningAvgTradePrice": 0,
                                                            "runningAvgQuantity": 0, "totalEntries": 0,
@@ -214,25 +213,6 @@ def record_learning_trade(trade):
         TrainData(val1=normalizedData[0], val2=normalizedData[1], val3=normalizedData[2], val4=normalizedData[3],
                   val5=normalizedData[4], val6=normalizedData[5], val7=normalizedData[6], val8=normalizedData[7]).save()
     return True
-
-
-'''
-def enter_dummy_trade():
-    recordLearningTrade(DerivativeTrade(
-        date_of_trade=datetime.date(2010,1,18),
-        trade_id='IDQYGGFS26417970',
-        product_type='P',
-        buying_party_id='VVXA11',
-        selling_party_id='QBAP68',
-        notional_currency='MXN',
-        quantity=4000,
-        maturity_date=datetime.date(2013,1,3),
-        underlying_price=615,
-        underlying_currency='CRC',
-        strike_price=1882))
-    return {"a": True}
-'''
-
 
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
@@ -337,9 +317,9 @@ def estimate_error_ratio(errorValue):
 def ai_magic(data):
     graph, autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
     d = [int(x) for x in data['date'].split('-')]
-    d = datetime.date(d[0], d[1], d[2])
+    d = date(d[0], d[1], d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
-    maturityDate = datetime.date(maturityDate[0], maturityDate[1], maturityDate[2])
+    maturityDate = date(maturityDate[0], maturityDate[1], maturityDate[2])
     data['date'] = d
     data['maturityDate'] = maturityDate
     isStock = (data['product'] == 'Stocks')
