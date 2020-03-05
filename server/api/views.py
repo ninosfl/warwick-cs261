@@ -17,7 +17,7 @@ import numpy as np
 
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
-                           StockPrice, ProductPrice, TradeProduct)
+                           StockPrice, ProductPrice, TradeProduct, get_currencies)
 
 graph = tf.get_default_graph()
 t_session = tf.Session(graph=tf.Graph())
