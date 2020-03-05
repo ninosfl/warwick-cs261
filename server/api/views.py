@@ -9,22 +9,31 @@ from django.utils import timezone
 from jellyfish import damerau_levenshtein_distance as edit_dist
 
 from currency_converter import CurrencyConverter
+
 from keras.models import load_model
+import keras as k
+from tensorflow.python.keras.backend import set_session
 import tensorflow as tf
 import numpy as np
+
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
                            StockPrice, ProductPrice, TradeProduct)
 
+graph = tf.get_default_graph()
+t_session = tf.Session(graph=tf.Graph())
 
 def load_model_from_path(path):
-    graph = tf.get_default_graph()
-    model = load_model(path)
-    return graph, model
+    global model
+    with t_session.graph.as_default():
+        k.backend.set_session(t_session)
+        model = load_model(path)
+        return model
+
 
 
 c = CurrencyConverter(fallback_on_missing_rate=True)
-graph, autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
+autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
 
 
 @csrf_exempt
@@ -265,6 +274,8 @@ def create_trade(data):
 def squared_errors(x, y):
     return [(x - y) ** 2 for x, y in zip(x, y)]
 
+def mean_squared_error(x,y):
+    return np.average(squared_errors(x,y))
 
 def determine_error(x, y):
     mse = squared_errors(x, y)
@@ -312,7 +323,8 @@ def ai_magic(data):
     md = MetaData.objects.get(key=key)
     normalizedData = normalize_trade(md, data['quantity'], key, d, maturityDate, adjustedStrikePrice,
                                      adjustedUnderlyingPrice, isStock)
-    with graph.as_default():
+    with t_session.graph.as_default():
+        k.backend.set_session(t_session)
         predict = autoencoder.predict(np.array([normalizedData]))[0]
         error_msg = error_message(determine_error(predict, normalizedData))
         return {'success': True, 'possible_cause':error_msg,'probability': estimate_error_ratio(
