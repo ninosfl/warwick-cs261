@@ -166,38 +166,50 @@ function SuperForm(props) {
                                 input: inputs.selling,
                                 newValue: buying
                             });
-                        } else if (data.sellingParty !== state.sellingParty) {
-                            // TODO: Maybe correct automatically rather than suggesting??
-                            dispatch({
-                                type: actionTypes.markPotentialSuggestions,
-                                input: inputs.selling
-                            });
-                            dispatch({
-                                type: actionTypes.provideSuggestions,
-                                input: inputs.selling,
-                                suggestions: [data.sellingParty]
-                            });
                         } else {
-                            let suggestions = [];
-                            if ("products" in data) {
-                                suggestions = data.products;
-                            }
-                            // If suggestions available, pass them to form
-                            if (suggestions.length > 0) {
+                            let wrongSelling = data.sellingParty !== state.sellingParty;
+                            // let wrongBuying = data.buyingParty === false;
+
+                            if (wrongSelling) {
+                                // TODO: Maybe correct automatically rather than suggesting??
                                 dispatch({
                                     type: actionTypes.markPotentialSuggestions,
-                                    input: inputs.product
+                                    input: inputs.selling
                                 });
                                 dispatch({
                                     type: actionTypes.provideSuggestions,
-                                    input: inputs.product,
-                                    suggestions: suggestions
+                                    input: inputs.selling,
+                                    suggestions: [data.sellingParty]
                                 });
-                            } else {  // No suggestions - mark as such
-                                dispatch({
-                                    type: actionTypes.markNoSuggestions,
-                                    input: inputs.product
-                                });
+                            }
+                            // if (wrongBuying) {
+                            //     dispatch({
+                            //         type: actionTypes.markNoSuggestions,
+                            //         input: inputs.buying
+                            //     });
+                            // }
+                            if (data.product === false) {
+                                let suggestions = [];
+                                if ("products" in data) {
+                                    suggestions = data.products;
+                                }
+                                // If suggestions available, pass them to form
+                                if (suggestions.length > 0) {
+                                    dispatch({
+                                        type: actionTypes.markPotentialSuggestions,
+                                        input: inputs.product
+                                    });
+                                    dispatch({
+                                        type: actionTypes.provideSuggestions,
+                                        input: inputs.product,
+                                        suggestions: suggestions
+                                    });
+                                } else {  // No suggestions - mark as such
+                                    dispatch({
+                                        type: actionTypes.markNoSuggestions,
+                                        input: inputs.product
+                                    });
+                                }
                             }
                         }
 
@@ -399,18 +411,21 @@ function SubFormOne(props) {
 
     // Only let them progress if all fields are non-empty and there are no
     // corrections left
-    let anyEmptyOrError = (
+    let canEnterProduct = (
         props.fields.correctionFields[inputs.buying].length > 0
         || props.fields.correctionFields[inputs.selling].length > 0
-        || props.fields.correctionFields[inputs.product].length > 0
         || props.fields.incorrectFields[inputs.buying]
         || props.fields.incorrectFields[inputs.selling]
-        || props.fields.incorrectFields[inputs.product]
         || props.fields.requestingFields[inputs.buying]
         || props.fields.requestingFields[inputs.selling]
-        || props.fields.requestingFields[inputs.product]
         || props.fields.sellingParty === ""
         || props.fields.buyingParty === ""
+    );
+    let anyEmptyOrError = (
+        canEnterProduct
+        || props.fields.correctionFields[inputs.product].length > 0
+        || props.fields.incorrectFields[inputs.product]
+        || props.fields.requestingFields[inputs.product]
         || props.fields.productName === ""
     );
 
@@ -465,6 +480,7 @@ function SubFormOne(props) {
                 helperText="Please enter the product name."
                 errorMessage="This input is not a valid product; Please try again."
                 suggestionMessage="This input looks wrong; Click here to see suggestions."
+                disabled={canEnterProduct}
             />
         </Grid>
         <Grid item className={classes.formItemContainer}>
@@ -483,16 +499,16 @@ function SubFormTwo(props) {
     // corrections left
     let anyEmptyOrError = (
         props.fields.correctionFields[inputs.uCurr].length > 0
-        || props.fields.correctionFields[inputs.uPrice].length > 0
+        || props.fields.correctionFields[inputs.nCurr].length > 0
         || props.fields.correctionFields[inputs.mDate].length > 0
         || props.fields.incorrectFields[inputs.uCurr]
-        || props.fields.incorrectFields[inputs.uPrice]
+        || props.fields.incorrectFields[inputs.nCurr]
         || props.fields.incorrectFields[inputs.mDate]
         || props.fields.requestingFields[inputs.uCurr]
-        || props.fields.requestingFields[inputs.uPrice]
+        || props.fields.requestingFields[inputs.nCurr]
         || props.fields.requestingFields[inputs.mDate]
         || props.fields.underlyingCurrency === ""
-        || props.fields.underlyingPrice === ""
+        || props.fields.notionalCurrency === ""
         || props.fields.maturityDate === ""
         
     );
@@ -521,15 +537,12 @@ function SubFormTwo(props) {
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
-                <FormFieldWrapper
-                    id={inputs.uPrice}
-                    label="Underlying Price"
-                    value={props.fields.underlyingPrice}
-                    suggestions={props.fields.correctionFields[inputs.uPrice]}
-                    incorrectField={props.fields.incorrectFields[inputs.uPrice]}
-                    disabled={props.fields.requestingFields[inputs.uPrice]}
-                    helperText="Please enter the underlying price, in the currency above."
-                    errorMessage="This input must be a positive, valid price; Please try again."
+                <CurrencyField
+                    id={inputs.nCurr}
+                    label="Notional Currency"
+                    value={props.fields.notionalCurrency}
+                    suggestions={props.fields.correctionFields[inputs.nCurr]}
+                    currencies={props.fields.currencies}
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -561,17 +574,17 @@ function SubFormThree(props) {
     // corrections left
     let anyEmptyOrError = (
         props.fields.correctionFields[inputs.quantity].length > 0
-        || props.fields.correctionFields[inputs.nCurr].length > 0
+        || props.fields.correctionFields[inputs.uPrice].length > 0
         || props.fields.correctionFields[inputs.sPrice].length > 0
         || props.fields.incorrectFields[inputs.quantity]
-        || props.fields.incorrectFields[inputs.nCurr]
+        || props.fields.incorrectFields[inputs.uPrice]
         || props.fields.incorrectFields[inputs.sPrice]
         || props.fields.requestingFields[inputs.quantity]
-        || props.fields.requestingFields[inputs.nCurr]
+        || props.fields.requestingFields[inputs.uPrice]
         || props.fields.requestingFields[inputs.sPrice]
-        || props.fields.underlyingCurrency === ""
+        || props.fields.quantity === ""
         || props.fields.underlyingPrice === ""
-        || props.fields.maturityDate === ""
+        || props.fields.strikePrice === ""
         
     );
 
@@ -588,6 +601,18 @@ function SubFormThree(props) {
             <CssBaseline />
             <Grid item>
                 <SubFormTitle>Step 3 of 4</SubFormTitle>
+            </Grid>
+            <Grid item className={classes.formItemContainer}>
+                <FormFieldWrapper
+                    id={inputs.uPrice}
+                    label="Underlying Price"
+                    value={props.fields.underlyingPrice}
+                    suggestions={props.fields.correctionFields[inputs.uPrice]}
+                    incorrectField={props.fields.incorrectFields[inputs.uPrice]}
+                    disabled={props.fields.requestingFields[inputs.uPrice]}
+                    helperText={"Please enter the underlying price, in: " + props.fields.underlyingCurrency}
+                    errorMessage="This input must be a positive, valid price; Please try again."
+                />
             </Grid>
             <Grid item className={classes.formItemContainer}>
                 <FormFieldWrapper
@@ -613,15 +638,7 @@ function SubFormThree(props) {
                     errorMessage="This input must be a positive integer; Please try again."
                 />
             </Grid>
-            <Grid item className={classes.formItemContainer}>
-                <CurrencyField
-                    id={inputs.nCurr}
-                    label="Notional Currency"
-                    value={props.fields.notionalCurrency}
-                    suggestions={props.fields.correctionFields[inputs.nCurr]}
-                    currencies={props.fields.currencies}
-                />
-            </Grid>
+            
             <Grid item className={classes.formItemContainer}>
                 <PrevButton />
                 <NextButton disabled={anyEmptyOrError}/>

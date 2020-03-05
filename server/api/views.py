@@ -167,9 +167,7 @@ def validate_company(data):
 
 def validate_product(data):
     """ Validate single product. Expected data: product, buyingParty, sellingParty"""
-    result = {"success": False}
-
-    result["sellingParty"] = data["sellingParty"]
+    result = {"success": False, "sellingParty": data["sellingParty"], "product": True}
 
     # Shape of request is as expected (all necessary data is given)
     not_specified = {"product", "sellingParty", "buyingParty"}.difference(data)
@@ -180,13 +178,8 @@ def validate_product(data):
     # Validate buyer existence
     if not get_company(data["buyingParty"]):
         result["error"] = "Buying company does not exist"
-        return result
-
-    # Validate seller existence
-    seller = get_company(data["sellingParty"])
-    if not seller:
-        result["error"] = "Selling company does not exist"
-        return result
+        result["buyingParty"] = False
+        # return result
 
     # Get closest distance matches 
     result["products"] = closest_matches(
@@ -196,6 +189,14 @@ def validate_product(data):
     prod = get_product(data["product"])
     if not prod:
         result["error"] = "Product does not exist"
+        result["product"] = False
+        return result
+
+    # Validate seller existence
+    seller = get_company(data["sellingParty"])
+    if not seller:
+        result["error"] = "Selling company does not exist"
+        result["sellingParty"] = prod.seller_company.name
         return result
 
     # Validate product sold by given company
