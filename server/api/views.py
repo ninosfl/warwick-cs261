@@ -53,10 +53,6 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     distance > 5 are filtered out.
     """
     times_corrected = {}
-    '''
-    if commonCorrectionField:
-        for q in Correction.objects.filter(old_val=x, field=commonCorrectionField):
-            times_corrected[q.new_val] = q.times_corrected'''
     distances = {
         w: correction_function(edit_dist(x, w), 6 - times_corrected.get(w, 0)) if commonCorrectionField else edit_dist(
             x,
@@ -65,15 +61,6 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     filtered_distances = {w: d for w, d in distances.items() if d <= 5}
     sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
     return sorted_distances[:5]
-
-# TODO Optimisation when insertion of new CurrencyValues is sorted out
-# @functools.lru_cache
-# def get_currencies(date_param=timezone.now().date()):
-#     return {c.currency for c in CurrencyValue.objects.get(date=date_param)}
-# def currency_exists(currency_code):
-#     currencies_today = get_currencies(timezone.now().date())
-#     return currency_code in currencies_today
-
 
 # n_last: number of days to look back on, today_date: as datetime latest date,
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
@@ -259,13 +246,11 @@ def create_trade(data):
     data["notionalAmount"] = new_trade.notional_amount
     # Return success and the created object
     return {"success": True, "trade": data}
-
-
+    
 # Stolen snippet
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
-
 
 def squared_errors(x, y):
     return [(x - y) ** 2 for x, y in zip(x, y)]
