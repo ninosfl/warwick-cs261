@@ -4,7 +4,7 @@ import React, { useReducer, useEffect } from 'react';
 import { Grid, Paper, CircularProgress, InputAdornment } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re } from './form-constants';
-import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField } from './form-components';
+import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField } from './form-components';
 import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
 
 export { SuperForm };
@@ -542,6 +542,7 @@ function SubFormTwo(props) {
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
+                <PrevButton />
                 <NextButton disabled={anyEmptyOrError}/>
             </Grid>
         </Grid>
@@ -619,6 +620,7 @@ function SubFormThree(props) {
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
+                <PrevButton />
                 <NextButton disabled={anyEmptyOrError}/>
             </Grid>
         </Grid>
@@ -712,7 +714,8 @@ function SubmitForm(props) {
                 />
             </Grid>
             <Grid item className={classes.submitButton}>
-            {anyInputEmpty ? <SubmitButton disabled/> : <SubmitButton/>}
+                <PrevButton />
+                <SubmitButton disabled={anyInputEmpty} />
             </Grid>
         </Grid>
     );
