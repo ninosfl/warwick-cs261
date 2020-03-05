@@ -34,6 +34,7 @@ def load_model_from_path(path):
 c = CurrencyConverter(fallback_on_missing_rate=True)
 autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
 
+date_format_parse = "%Y-%m-%d"
 
 @csrf_exempt
 def api_main(request, func):
@@ -239,7 +240,7 @@ def create_trade(data):
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
     # Convert values to their appropriate type
-    data["maturityDate"] = datetime.strptime(data["maturityDate"], "%Y-%m-%d").date()
+    data["maturityDate"] = datetime.strptime(data["maturityDate"], date_format_parse).date()
     data["underlyingPrice"] = Decimal(data["underlyingPrice"])
     data["strikePrice"] = Decimal(data["strikePrice"])
     data["quantity"] = int(data["quantity"])
@@ -509,7 +510,7 @@ def currencies(_, date_str=None):
     if not date_str:
         request_date = timezone.now().date()
     else:
-        request_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        request_date = datetime.strptime(date_str, date_format_parse).date()
     return JsonResponse({
         "currencies": get_currencies(request_date)
     })
