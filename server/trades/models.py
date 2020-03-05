@@ -1,5 +1,8 @@
+import random
+import string
 from django.utils import timezone
 from django.db import models
+from .utils import convert_currency
 
 """
 Permanent-ish data found in main data directory
@@ -39,13 +42,44 @@ stockPrices
     stockPrice
 """
 
+def generate_company_id():
+    """
+    Generates a unique company id which consists of 4 capital letters followed
+    by 2 numbers. Sample id: ZXVX98
+    """
+    while True:
+        new_id = ''.join(
+            [random.choice(string.ascii_uppercase) for _ in range(4)]
+            + [str(random.choice(string.digits)) for _ in range(2)]
+        )
+        try:
+            Company.objects.get(id=new_id)
+        except Company.DoesNotExist:
+            return new_id
+
+def generate_trade_id():
+    """
+    Generates a unique trade id which consists of 8 capital letters followed
+    by 8 numbers. Sample id: ACZCWXGS73862601
+    """
+    while True:
+        new_id = ''.join(
+            [random.choice(string.ascii_uppercase) for _ in range(8)]
+            + [random.choice(string.digits) for _ in range(8)]
+        )
+        try:
+            DerivativeTrade.objects.get(trade_id=new_id)
+        except DerivativeTrade.DoesNotExist:
+            return new_id
+
 class Company(models.Model):
-    id = models.CharField(primary_key=True, max_length=6)
+    id = models.CharField(primary_key=True, max_length=6, default=generate_company_id)
     # 36 max name length found in data
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return f"{self.name} Company"
+
 
 class Product(models.Model):
     # 39 max name length found in data, and unique
@@ -71,7 +105,7 @@ class DerivativeTrade(models.Model):
         STOCKS = 'S', 'Stocks'
         PRODUCT = 'P', 'Product'
 
-    trade_id = models.CharField(primary_key=True, max_length=16)
+    trade_id = models.CharField(primary_key=True, max_length=16, default=generate_trade_id)
     date_of_trade = models.DateTimeField(default=timezone.now)
     product_type = models.CharField(max_length=1,
                                     choices=ProductTypes.choices,
@@ -80,13 +114,23 @@ class DerivativeTrade(models.Model):
                                      related_name="trades_buying")
     selling_party = models.ForeignKey(Company, on_delete=models.CASCADE,
                                       related_name="trades_selling")
-    notional_amount = models.DecimalField(max_digits=20, decimal_places=4)
     notional_currency = models.CharField(max_length=3)
     quantity = models.IntegerField()
     maturity_date = models.DateField()
     underlying_price = models.DecimalField(max_digits=16, decimal_places=4)
     underlying_currency = models.CharField(max_length=3)
     strike_price = models.DecimalField(max_digits=16, decimal_places=4)
+
+    @property
+    def notional_amount(self):
+        """
+        Notional amount is a calculated field based on quantity and underlying
+        price. Must then be converted to notional currency.
+        """
+        return convert_currency(
+            self.date_of_trade.date(),
+            self.quantity * self.underlying_price,
+            self.underlying_currency, self.notional_currency)
 
 class ProductPrice(models.Model):
     date = models.DateField()
