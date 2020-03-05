@@ -1,7 +1,7 @@
-import json
 from datetime import date, timedelta
-import datetime
 from decimal import Decimal
+import json
+import datetime
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -14,7 +14,8 @@ import tensorflow as tf
 import numpy as np
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
-                           StockPrice, ProductPrice, TradeProduct)
+                           StockPrice, ProductPrice, TradeProduct,
+                           get_currencies)
 c = CurrencyConverter(fallback_on_missing_rate=True)
 
 @csrf_exempt
@@ -456,13 +457,13 @@ def validate_maturity_date(data):
 
     # Attempt to parse given date string
     try:
-        date = datetime.strptime(data["date"], "%d/%m/%Y").date()
+        test_date = datetime.strptime(data["date"], "%d/%m/%Y").date()
     except ValueError:
         result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
         return result
 
     # Validate date.
-    if date < today:
+    if test_date < today:
         result["error"] = f"Date cannot be in the past. Server date is {today.strftime('%d/%m/%Y')}"
         return result
 
@@ -479,7 +480,7 @@ def currencies(_, date_str=None):
     else:
         request_date = datetime.strptime(date_str, "%Y-%m-%d").date()
     return JsonResponse({
-        "currencies": [c.currency for c in CurrencyValue.objects.filter(date=request_date)]
+        "currencies": get_currencies(request_date)
     })
 
 ### Additional stuff below ###
