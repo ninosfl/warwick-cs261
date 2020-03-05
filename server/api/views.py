@@ -76,17 +76,8 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
     return sorted_distances[:5]
 
-# TODO Optimisation when insertion of new CurrencyValues is sorted out
-# @functools.lru_cache
-# def get_currencies(date_param=timezone.now().date()):
-#     return {c.currency for c in CurrencyValue.objects.get(date=date_param)}
-# def currency_exists(currency_code):
-#     currencies_today = get_currencies(timezone.now().date())
-#     return currency_code in currencies_today
-
-
-# n_last: number of days to look back on, today_date: as datetime latest date,
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
+    """ n_last: number of days to look back on, today_date: as datetime latest date """
     prices = {}
     if adjusted_underlying is not None:
         prices[today_date] = adjusted_underlying
@@ -119,8 +110,8 @@ def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=Non
     return prices
 
 
-# ML only
 def normalize_trade(md, quantity, key, today_date, maturity_date, adjusted_strike, adjusted_underlying, is_stock):
+    """ ML only """
     hp = get_prices_traded(31, today_date, key, is_stock, adjusted_underlying)
     smaPeriod = 20
     tp = 20
@@ -297,9 +288,7 @@ def estimate_error_ratio(errorValue):
     values = {0.95: 0.037751311451393696,
               0.8: 0.02520727266310019,
               0.6: 0.01780338673080255}
-    # values = {0.95: 0.0222104888613782,
-    #         0.8: 0.01099924408732379,
-    #        0.6: 0.007205673670873156}
+
     if errorValue > values[0.6] and errorValue < values[0.8]:
         return 0.6 + (0.2 * ((errorValue - values[0.6]) / (values[0.8] - values[0.6])))
     if errorValue > values[0.8] and errorValue < values[0.95]:
@@ -467,13 +456,13 @@ def validate_maturity_date(data):
 
     # Attempt to parse given date string
     try:
-        date = datetime.strptime(data["date"], "%d/%m/%Y").date()
+        test_date = datetime.strptime(data["date"], "%d/%m/%Y").date()
     except ValueError:
         result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
         return result
 
     # Validate date.
-    if date < today:
+    if test_date < today:
         result["error"] = f"Date cannot be in the past. Server date is {today.strftime('%d/%m/%Y')}"
         return result
 
@@ -486,11 +475,11 @@ def currencies(_, date_str=None):
     server date is used. Date str must be in YYYY-MM-DD format.
     """
     if not date_str:
-        date = timezone.now().date()
+        request_date = timezone.now().date()
     else:
-        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        request_date = datetime.strptime(date_str, "%Y-%m-%d").date()
     return JsonResponse({
-        "currencies": [c.currency for c in CurrencyValue.objects.filter(date=date)]
+        "currencies": get_currencies(request_date)
     })
 
 ### Additional stuff below ###
