@@ -1,8 +1,11 @@
 /* jshint esversion: 9 */
 
 import React, { useReducer, useEffect } from 'react';
-import { Grid, Paper, CircularProgress, InputAdornment } from '@material-ui/core';
+import { Grid, Paper, CircularProgress, InputAdornment, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re } from './form-constants';
 import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField } from './form-components';
 import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
@@ -651,67 +654,49 @@ function SubmitForm(props) {
                 <SubFormTitle>Step 4 of 4: Final Check</SubFormTitle>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.buying}
-                    label="Buying Party"
-                    value={props.fields.buyingParty}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Buying Party: " + props.fields.buyingParty}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.selling}
-                    label="Selling Party"
-                    value={props.fields.sellingParty}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Selling Party: " + props.fields.sellingParty}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.product}
-                    label="Product Name"
-                    value={props.fields.productName}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Product Name: " + props.fields.productName}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.quantity}
-                    label="Product Quantity"
-                    value={props.fields.quantity}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Product Quantity: " + props.fields.quantity}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.uPrice}
-                    label="Underlying Price"
-                    value={props.fields.underlyingPrice}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Underlying Price: " + props.fields.underlyingPrice}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.uCurr}
-                    label="Underlying Currency"
-                    value={props.fields.underlyingCurrency}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Underlying Currency: " + props.fields.underlyingCurrency}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.mDate}
-                    label="Maturity Date"
-                    value={props.fields.maturityDate}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Maturity Date: " + props.fields.maturityDate}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.nCurr}
-                    label="Notional Currency"
-                    value={props.fields.notionalCurrency}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Notional Currency: " + props.fields.notionalCurrency}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitItemContainer}>
-                <SubmitField
-                    id={inputs.sPrice}
-                    label="Strike Price"
-                    value={props.fields.strikePrice}
-                />
+                <Typography gutterBottom={true} variant="body1">
+                    {"Strike Price: " + props.fields.strikePrice}
+                </Typography>
             </Grid>
             <Grid item className={classes.submitButton}>
                 <PrevButton />
