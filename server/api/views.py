@@ -422,14 +422,14 @@ def validate_trade(data):
         if Decimal(data["underlyingPrice"]) <= 0:
             result["error"] = "Underlying price must be positive"
             return result
-    except ValueError:
+    except InvalidOperation:
         result["error"] = "Underlying price must be a decimal number"
         return result
     try:
         if Decimal(data["strikePrice"]) <= 0:
             result["error"] = "Strike price must be positive"
             return result
-    except ValueError:
+    except InvalidOperation:
         result["error"] = "Strike price must be a decimal number"
         return result
 
