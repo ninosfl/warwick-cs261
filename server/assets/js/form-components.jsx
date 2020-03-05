@@ -4,15 +4,17 @@ import React, { useContext, useEffect } from 'react';
 import { Typography, Select } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
+import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import PublishIcon from '@material-ui/icons/Publish';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
-import { actionTypes, FormDispatch, useStyles } from './form-constants';
+import { actionTypes, FormDispatch, useStyles, inputs } from './form-constants';
 
-export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, SubFormTitle, CurrencyField };
+export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField };
 
 
 // Component for text fields in the form
@@ -257,6 +259,26 @@ function NextButton(props) {
         >
             Next Page
         </Button>
+    );
+}
+
+
+function PrevButton(props) {
+    // Fetch dispatch function from context
+    const dispatch = useContext(FormDispatch);
+
+    // Event function to get the SuperForm to render the previous SubForm
+    const goToPrevForm = () => dispatch({ type: actionTypes.prevForm });
+
+    return (
+        <IconButton
+            // className={classes.button}
+            onClick={goToPrevForm}
+            aria-label="previous"
+            {...props}
+        >
+            <NavigateBeforeIcon />
+        </IconButton>
     );
 }
 
