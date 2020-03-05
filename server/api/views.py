@@ -1,6 +1,6 @@
-import json
 from datetime import datetime, date, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+import json
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -8,15 +8,32 @@ from django.utils import timezone
 from jellyfish import damerau_levenshtein_distance as edit_dist
 
 from currency_converter import CurrencyConverter
+
 from keras.models import load_model
+import keras as k
+from tensorflow.python.keras.backend import set_session
 import tensorflow as tf
-import datetime
-from math import floor
 import numpy as np
+
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
                            StockPrice, ProductPrice, TradeProduct)
+
+graph = tf.get_default_graph()
+t_session = tf.Session(graph=tf.Graph())
+
+def load_model_from_path(path):
+    global model
+    with t_session.graph.as_default():
+        k.backend.set_session(t_session)
+        model = load_model(path)
+        return model
+
+
+
 c = CurrencyConverter(fallback_on_missing_rate=True)
+autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
+
 
 @csrf_exempt
 def api_main(request, func):
@@ -47,17 +64,17 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
+def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
     edit distance in order of the closest string first. All strings with edit
     distance > 5 are filtered out.
     """
     times_corrected = {}
-    '''
+
     if commonCorrectionField:
         for q in Correction.objects.filter(old_val=x, field=commonCorrectionField):
-            times_corrected[q.new_val] = q.times_corrected'''
+            times_corrected[q.new_val] = q.times_corrected
     distances = {
         w: correction_function(edit_dist(x, w), 6 - times_corrected.get(w, 0)) if commonCorrectionField else edit_dist(
             x,
@@ -67,34 +84,25 @@ def closest_matches(x, ws,commonCorrectionField="",correction_function=min):
     sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
     return sorted_distances[:5]
 
-# TODO Optimisation when insertion of new CurrencyValues is sorted out
-# @functools.lru_cache
-# def get_currencies(date_param=timezone.now().date()):
-#     return {c.currency for c in CurrencyValue.objects.get(date=date_param)}
-# def currency_exists(currency_code):
-#     currencies_today = get_currencies(timezone.now().date())
-#     return currency_code in currencies_today
-
-
-# n_last: number of days to look back on, today_date: as datetime latest date,
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
+    """ n_last: number of days to look back on, today_date: as datetime latest date """
     prices = {}
     if adjusted_underlying is not None:
         prices[today_date] = adjusted_underlying
     if is_stock:
         for q in StockPrice.objects.filter(company__name=key, date__range=[
-            (today_date - datetime.timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
-            today_date.strftime('%Y-%m-%d')]):
+                (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
+                today_date.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     else:
         for q in ProductPrice.objects.filter(product__name=key, date__range=[
-            (today_date - datetime.timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
-            today_date.strftime('%Y-%m-%d')]):
+                (today_date - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
+                today_date.strftime('%Y-%m-%d')]):
             prices[q.date] = q.price
     prices_list = prices.items()
     interpolated = []
     for day in range(n_last):
-        day = today_date - datetime.timedelta(days=day)
+        day = today_date - timedelta(days=day)
         if day not in prices:
             days_after = [x for x in prices_list if x[0] >= today_date]
             days_before = [x for x in prices_list if x[0] <= today_date]
@@ -110,8 +118,8 @@ def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=Non
     return prices
 
 
-# ML only
 def normalize_trade(md, quantity, key, today_date, maturity_date, adjusted_strike, adjusted_underlying, is_stock):
+    """ ML only """
     hp = get_prices_traded(31, today_date, key, is_stock, adjusted_underlying)
     smaPeriod = 20
     tp = 20
@@ -180,8 +188,8 @@ def get_currency_value(x,
 
 def record_learning_trade(trade):
     isStock = trade.product_type == 'S'
-    todayDate = datetime.date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
-    maturityDate = datetime.date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
+    todayDate = date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
+    maturityDate = date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
     key = trade.selling_party if isStock else trade.traded_product.product
     md = MetaData.objects.get_or_create(key=key, defaults={"runningAvgClosePrice": 0, "runningAvgTradePrice": 0,
                                                            "runningAvgQuantity": 0, "totalEntries": 0,
@@ -214,25 +222,6 @@ def record_learning_trade(trade):
         TrainData(val1=normalizedData[0], val2=normalizedData[1], val3=normalizedData[2], val4=normalizedData[3],
                   val5=normalizedData[4], val6=normalizedData[5], val7=normalizedData[6], val8=normalizedData[7]).save()
     return True
-
-
-'''
-def enter_dummy_trade():
-    recordLearningTrade(DerivativeTrade(
-        date_of_trade=datetime.date(2010,1,18),
-        trade_id='IDQYGGFS26417970',
-        product_type='P',
-        buying_party_id='VVXA11',
-        selling_party_id='QBAP68',
-        notional_currency='MXN',
-        quantity=4000,
-        maturity_date=datetime.date(2013,1,3),
-        underlying_price=615,
-        underlying_currency='CRC',
-        strike_price=1882))
-    return {"a": True}
-'''
-
 
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
@@ -272,7 +261,7 @@ def create_trade(data):
     if new_trade.product_type == 'P':
         traded_product = get_product(data["product"])
         TradeProduct.objects.create(trade=new_trade, product_id=traded_product.name)
-    recordLearningTrade(new_trade)
+    record_learning_trade(new_trade)
     # Add generated fields
     data["tradeID"] = new_trade.trade_id
     data["dateOfTrade"] = new_trade.date_of_trade
@@ -281,22 +270,14 @@ def create_trade(data):
     return {"success": True, "trade": data}
 
 
-# Stolen snippet
-def softmax(x):
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum()
-
-
 def squared_errors(x, y):
     return [(x - y) ** 2 for x, y in zip(x, y)]
 
-
-def mean_squared_error(x, y):
-    return np.mean(squared_errors(x, y))
-
+def mean_squared_error(x,y):
+    return np.average(squared_errors(x,y))
 
 def determine_error(x, y):
-    mse = softmax(squared_errors(x, y))
+    mse = squared_errors(x, y)
     return max(range(len(mse)), key=lambda x: mse[x])
 
 
@@ -312,19 +293,11 @@ def error_message(index):
             ][index]
 
 
-def load_model_from_path(path):
-    graph = tf.get_default_graph()
-    model = load_model(path)  # keras function
-    return graph, model
-
 
 def estimate_error_ratio(errorValue):
     values = {0.95: 0.037751311451393696,
               0.8: 0.02520727266310019,
               0.6: 0.01780338673080255}
-    # values = {0.95: 0.0222104888613782,
-    #         0.8: 0.01099924408732379,
-    #        0.6: 0.007205673670873156}
     if errorValue > values[0.6] and errorValue < values[0.8]:
         return 0.6 + (0.2 * ((errorValue - values[0.6]) / (values[0.8] - values[0.6])))
     if errorValue > values[0.8] and errorValue < values[0.95]:
@@ -335,11 +308,10 @@ def estimate_error_ratio(errorValue):
         return ((values[0.6] - errorValue) / values[0.6]) * 0.6
 
 def ai_magic(data):
-    graph, autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
     d = [int(x) for x in data['date'].split('-')]
-    d = datetime.date(d[0], d[1], d[2])
+    d = date(d[0], d[1], d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
-    maturityDate = datetime.date(maturityDate[0], maturityDate[1], maturityDate[2])
+    maturityDate = date(maturityDate[0], maturityDate[1], maturityDate[2])
     data['date'] = d
     data['maturityDate'] = maturityDate
     isStock = (data['product'] == 'Stocks')
@@ -349,7 +321,8 @@ def ai_magic(data):
     md = MetaData.objects.get(key=key)
     normalizedData = normalize_trade(md, data['quantity'], key, d, maturityDate, adjustedStrikePrice,
                                      adjustedUnderlyingPrice, isStock)
-    with graph.as_default():
+    with t_session.graph.as_default():
+        k.backend.set_session(t_session)
         predict = autoencoder.predict(np.array([normalizedData]))[0]
         error_msg = error_message(determine_error(predict, normalizedData))
         return {'success': True, 'possible_cause':error_msg,'probability': estimate_error_ratio(
@@ -450,11 +423,27 @@ def validate_trade(data):
 
     # Validate quantity
     try:
-        if data["quantity"] <= 0:
+        if int(data["quantity"]) <= 0:
             result["error"] = "Quantity must be positive"
             return result
     except ValueError:
         result["error"] = "Quantity given must be an integer"
+        return result
+
+    # Validate prices
+    try:
+        if Decimal(data["underlyingPrice"]) <= 0:
+            result["error"] = "Underlying price must be positive"
+            return result
+    except InvalidOperation:
+        result["error"] = "Underlying price must be a decimal number"
+        return result
+    try:
+        if Decimal(data["strikePrice"]) <= 0:
+            result["error"] = "Strike price must be positive"
+            return result
+    except InvalidOperation:
+        result["error"] = "Strike price must be a decimal number"
         return result
 
     product_validation_result = validate_product(data)
@@ -496,13 +485,13 @@ def validate_maturity_date(data):
 
     # Attempt to parse given date string
     try:
-        date = datetime.strptime(data["date"], "%d/%m/%Y").date()
+        test_date = datetime.strptime(data["date"], "%d/%m/%Y").date()
     except ValueError:
         result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
         return result
 
     # Validate date.
-    if date < today:
+    if test_date < today:
         result["error"] = f"Date cannot be in the past. Server date is {today.strftime('%d/%m/%Y')}"
         return result
 
@@ -515,11 +504,11 @@ def currencies(_, date_str=None):
     server date is used. Date str must be in YYYY-MM-DD format.
     """
     if not date_str:
-        date = timezone.now().date()
+        request_date = timezone.now().date()
     else:
-        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        request_date = datetime.strptime(date_str, "%Y-%m-%d").date()
     return JsonResponse({
-        "currencies": [c.currency for c in CurrencyValue.objects.filter(date=date)]
+        "currencies": get_currencies(request_date)
     })
 
 ### Additional stuff below ###
