@@ -1,7 +1,6 @@
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 import json
-import datetime
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
