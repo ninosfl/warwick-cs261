@@ -72,10 +72,27 @@ function CurrencyField(props) {
     // Fetch valid currencies for the day!
     useEffect(() => {
         if (props.currencies.length === 0) {
-            // TODO: Fetch list of valid currencies for that day from API!
-            dispatch({
-                type: actionTypes.populateCurrencies,
-                currencies: [1,2,3,4,5,6,7,8,9,11,12,13,14,15,45,667,5,56,6,7,7,56,56,4,34,54,54,3,3,234,42,42,5,65,65,67,7676]
+            // Fetch list of valid currencies for today from API!
+            fetch('http://localhost:8000/api/currencies/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Network response not ok!");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                dispatch({
+                    type: actionTypes.populateCurrencies,
+                    currencies: data.currencies
+                });
+            })
+            .catch((error) => {
+                console.error('Error:', error);
             });
         }
     }, []);  // Will only run when the component mounts!
