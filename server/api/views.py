@@ -34,7 +34,7 @@ def load_model_from_path(path):
 c = CurrencyConverter(fallback_on_missing_rate=True)
 autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
 
-date_format_parse = "%Y-%m-%d"
+date_format_parse = "%d/%m/%Y"  # Was "%Y-%m-%d"
 
 @csrf_exempt
 def api_main(request, func):
@@ -502,10 +502,11 @@ def validate_maturity_date(data):
     result["success"] = True
     return result
 
+@csrf_exempt
 def currencies(_, date_str=None):
     """
     Returns currencies for a specific date. If no date is specified the current
-    server date is used. Date str must be in YYYY-MM-DD format.
+    server date is used. Date str must be in DD/MM/YYYY format.
     """
     if not date_str:
         request_date = timezone.now().date()
