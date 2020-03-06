@@ -19,10 +19,10 @@ const initialFormState = {
     "sellingParty": "",
     "productName": "",
     "quantity": "",
-    "underlyingCurrency": "",
+    "underlyingCurrency": "USD",
     "underlyingPrice": "",
     "maturityDate": "",
-    "notionalCurrency": "",
+    "notionalCurrency": "USD",
     "strikePrice": "",
     "currentForm": subForms[1],
     "submitNow": false,
@@ -62,6 +62,7 @@ const initialFormState = {
         "strikePrice": false,
     },
     "currencies": [],
+    "MLError": "",
 };
 
 // All the valid action types
@@ -77,6 +78,7 @@ const actionTypes = {
     populateCurrencies: "populateCurrencies",
     markRequesting: "markRequesting",
     markRequestComplete: "markRequestComplete",
+    newMLError: "newMLError"
 };
 
 // All the valid input types - expressed here as an enum to avoid strings
@@ -172,6 +174,9 @@ const reducer = (state, action) => {
             // Given a list of currencies, put it in the form!
             return { ...state, "currencies": action.currencies };
 
+        case actionTypes.newMLError:
+            return { ...state, "MLError": action.message };
+
         default:
             return state;
     }
@@ -222,7 +227,7 @@ const useStyles = makeStyles( theme => ({
 const all_zeroes = /^0*(0|\.)0*$/;
 const int_re = /^\d+$/;
 const decimal_re = /^\d+(\.\d{1,2})?$/;
-const date_format_re = /^\d{2}\/\d{2}\/\d{4}$/;
+const date_format_re = /^\d{1,2}\/\d{1,2}\/(\d{4}|\d{2})$/;
 
 export {
     subForms,

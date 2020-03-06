@@ -7,7 +7,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re, host } from './form-constants';
-import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField } from './form-components';
+import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, IgnoreButton, SubFormTitle, CurrencyField } from './form-components';
 import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
 
 export { SuperForm };
@@ -20,6 +20,96 @@ function SuperForm(props) {
 
     // Use reducer hook to handle form data
     const [state, dispatch] = useReducer(reducer, initialFormState);
+
+    const machineLearning = () => {
+        const fields = [inputs.quantity, inputs.uPrice, inputs.sPrice];
+
+        // Mark all fields as requesting
+        fields.map((field) => dispatch({ type: actionTypes.markRequesting, input: field }));
+
+        // Check all fields are populated
+        fields.map((field) => {
+            if (state[field] === "") {
+                dispatch({
+                    type: actionTypes.markNoSuggestions,
+                    input: field
+                });
+            }
+        });
+
+        console.log("Doing machine learning fetch!");
+        fetch(host + 'api/validate/trade/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "date": "31/12/2019",  // TODO: Get rid of this
+                "underlyingPrice": state.underlyingPrice,
+                "underlyingCurrency": state.underlyingCurrency,
+                "strikePrice": state.strikePrice,
+                "notionalCurrency": state.notionalCurrency,
+                "quantity": state.quantity,
+                "product": state.productName,
+                "maturityDate": state.maturityDate,
+                "sellingParty": state.sellingParty
+            }),
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Network response not ok!");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log('Success:', data);
+            if ((data.success === true) && (data.errorThreshold === true)) {
+                let validFields = fields.filter((f) => data.possibleCauses.includes(f) === false);
+
+                // Flag incorrect fields as incorrect
+                data.possibleCauses.map((field) => 
+                    dispatch({
+                        type: actionTypes.markNoSuggestions,
+                        input: field
+                    })
+                );
+
+                // Flag non-incorrect fields as correct!
+                validFields.map((field) =>
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: field
+                    })
+                );
+
+                console.log("MLError: ", data.errorMessage);
+                dispatch({
+                    type: actionTypes.newMLError,
+                    message: "Error: " + data.errorMessage + "."
+                });
+            } else {
+                // Fields are fine - mark them as such!
+                fields.map((field) =>
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: field
+                    })
+                );
+
+                dispatch({
+                    type: actionTypes.newMLError,
+                    message: ""
+                });
+            }
+
+            // Mark all fields as done requesting
+            fields.map((field) => dispatch({ type: actionTypes.markRequestComplete, input: field }));
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            fields.map((field) => dispatch({ type: actionTypes.markRequestComplete, input: field }));
+        });
+    };
 
     // Use effect hook for api validation
     // No need to reset validationInputs to some default value, since this
@@ -262,10 +352,11 @@ function SuperForm(props) {
 
                 } else {
                     // TODO: Validate with API!
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: inputs.uPrice
-                    });
+                    // dispatch({
+                    //     type: actionTypes.markCorrect,
+                    //     input: inputs.uPrice
+                    // });
+                    machineLearning();
                 }
 
                 dispatch({ type: actionTypes.markRequestComplete, input: inputs.uPrice });
@@ -330,10 +421,11 @@ function SuperForm(props) {
                     });
                 } else {
                     // TODO: Validate with API!
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: inputs.quantity
-                    });
+                    // dispatch({
+                    //     type: actionTypes.markCorrect,
+                    //     input: inputs.quantity
+                    // });
+                    machineLearning();
                 }
 
                 dispatch({ type: actionTypes.markRequestComplete, input: inputs.quantity });
@@ -355,10 +447,11 @@ function SuperForm(props) {
 
                 } else {
                     // TODO: Validate with API!
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: inputs.sPrice
-                    });
+                    // dispatch({
+                    //     type: actionTypes.markCorrect,
+                    //     input: inputs.sPrice
+                    // });
+                    machineLearning();
                 }
 
                 dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
@@ -606,7 +699,7 @@ function SubFormTwo(props) {
                     incorrectField={props.fields.incorrectFields[inputs.mDate]}
                     disabled={props.fields.requestingFields[inputs.mDate]}
                     helperText="Please enter the maturity date, in dd/mm/yyyy format."
-                    errorMessage="This must be a valid, future date; Please try again."
+                    errorMessage="This must be a valid, future date in dd/mm/yyyy format; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -624,20 +717,22 @@ function SubFormThree(props) {
 
     // Only let them progress if all fields are non-empty and there are no
     // corrections left
-    let anyEmptyOrError = (
+    let anyEmptyOrSuggestions = (
         props.fields.correctionFields[inputs.quantity].length > 0
         || props.fields.correctionFields[inputs.uPrice].length > 0
         || props.fields.correctionFields[inputs.sPrice].length > 0
-        || props.fields.incorrectFields[inputs.quantity]
-        || props.fields.incorrectFields[inputs.uPrice]
-        || props.fields.incorrectFields[inputs.sPrice]
         || props.fields.requestingFields[inputs.quantity]
         || props.fields.requestingFields[inputs.uPrice]
         || props.fields.requestingFields[inputs.sPrice]
         || props.fields.quantity === ""
         || props.fields.underlyingPrice === ""
         || props.fields.strikePrice === ""
-        
+    );
+
+    let anyError = (
+        props.fields.incorrectFields[inputs.quantity]
+        || props.fields.incorrectFields[inputs.uPrice]
+        || props.fields.incorrectFields[inputs.sPrice]
     );
 
     // Render sub-form within a grid
@@ -663,7 +758,7 @@ function SubFormThree(props) {
                     incorrectField={props.fields.incorrectFields[inputs.uPrice]}
                     disabled={props.fields.requestingFields[inputs.uPrice]}
                     helperText={"Please enter the underlying price, in: " + props.fields.underlyingCurrency}
-                    errorMessage="This input must be a positive, valid price; Please try again."
+                    errorMessage="This input looks incorrect; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -675,7 +770,7 @@ function SubFormThree(props) {
                     incorrectField={props.fields.incorrectFields[inputs.sPrice]}
                     disabled={props.fields.requestingFields[inputs.sPrice]}
                     helperText={"Please enter the strike price, in: " + props.fields.underlyingCurrency}
-                    errorMessage="This input must be a positive, valid price; Please try again."
+                    errorMessage="This input looks incorrect; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -687,13 +782,19 @@ function SubFormThree(props) {
                     incorrectField={props.fields.incorrectFields[inputs.quantity]}
                     disabled={props.fields.requestingFields[inputs.quantity]}
                     helperText="Please enter the quantity of products sold."
-                    errorMessage="This input must be a positive integer; Please try again."
+                    errorMessage="This input looks incorrect; Please try again."
                 />
             </Grid>
+            {props.fields.MLError.length > 0 &&
+                <Grid item className={classes.formItemContainer}>
+                    <Typography color="error" variant="caption">{props.fields.MLError}</Typography>
+                </Grid>
+            }
             
             <Grid item className={classes.formItemContainer}>
                 <PrevButton />
-                <NextButton disabled={anyEmptyOrError}/>
+                {anyError ? <IgnoreButton disabled={anyEmptyOrSuggestions}/>
+                : <NextButton disabled={anyEmptyOrSuggestions} />}
             </Grid>
         </Grid>
         );
