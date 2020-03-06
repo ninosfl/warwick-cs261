@@ -1,5 +1,5 @@
-from datetime import datetime, date, timedelta
 from decimal import Decimal, InvalidOperation
+from datetime import datetime, date, timedelta
 import json
 
 from django.http import JsonResponse
@@ -9,8 +9,8 @@ from jellyfish import damerau_levenshtein_distance as edit_dist
 
 
 from keras.models import load_model
-import keras as k
 import tensorflow.compat.v1 as tf
+import tensorflow.compat.v1.keras as k
 import numpy as np
 
 from learning.models import Correction, TrainData, MetaData

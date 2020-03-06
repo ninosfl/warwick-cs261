@@ -183,7 +183,7 @@ const FormDispatch = React.createContext(null);
 // Mad styling son - mostly to ensure the form goes in the middle of the screen
 const useStyles = makeStyles( theme => ({
     formContainer: {
-        height: "90vmin",
+        height: "80vmin",
         width: "80vmin",
         position: 'absolute', 
         left: '50%',
