@@ -1,24 +1,61 @@
 {% extends "trades/base.html" %}
-
+{% block page_style %}
+<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+<!-- Table styling from https://www.w3schools.com/html/html_tables.asp -->
+<style>
+    * {
+        font-family: 'Roboto';
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    
+    td, th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+</style>
+{% endblock page_style %}
 {% block content %}
 <h1>Trades on {{day}}/{{month}}/{{year}}</h1>
 
-{% for report in reports %}
-    <p>Date of Trade: {{ report.date_of_trade }}</p>
-    <p>Trade ID: {{ report.trade_id }}</p>
-    {% if report.product_type == "S" %}
-        <p>Product Name: Stocks</p>
-    {% else %}
-        <p>Product Name: {{ report.traded_product.product }}</p>
-    {% endif %}
-    <p>Buying Party: {{ report.buying_party }}</p>
-    <p>Selling Party: {{ report.selling_party }}</p>
-    <p>Notional Amount: {{ report.notional_currency }} {{ report.notional_amount }}</p>
-    <p>Quantity: {{ report.quantity }}</p>
-    <p>Maturity Date: {{ report.maturity_date }}</p>
-    <p>Underlying Price: {{ report.underlying_currency }} {{ report.underlying_price }}</p>
-    <p>Strike Price: {{ report.underlying_currency}} {{ report.strike_price }}</p>
-    <hr>
-{% endfor %}
+    <table>
+        <tr>
+            <th>Date of Trade</th>
+            <th>Trade ID</th>
+            <th>Product Name</th>
+            <th>Buying Party</th>
+            <th>Selling Party</th>
+            <th>Notional Amount</th>
+            <th>Quantity</th>
+            <th>Maturity Date</th>
+            <th>Underlying Price</th>
+            <th>Strike Price</th>
+        </tr>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.date_of_trade }}</td>
+            <td>{{ report.trade_id }}</td>
+            {% if report.product_type == "S" %}
+                <td>Stocks</td>
+            {% else %}
+                <td>{{ report.traded_product.product }}</td>
+            {% endif %}
+            <td>{{ report.buying_party }}</td>
+            <td>{{ report.selling_party }}</td>
+            <td>{{ report.notional_currency }} {{ report.notional_amount }}</td>
+            <td>{{ report.quantity }}</td>
+            <td>{{ report.maturity_date }}</td>
+            <td>{{ report.underlying_currency }} {{ report.underlying_price }}</td>
+            <td>{{ report.underlying_currency }} {{ report.strike_price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
 {% endblock content %}

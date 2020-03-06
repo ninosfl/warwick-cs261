@@ -78,7 +78,7 @@ class Company(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
-        return f"{self.name} Company"
+        return self.name
 
 
 class Product(models.Model):
@@ -127,10 +127,10 @@ class DerivativeTrade(models.Model):
         Notional amount is a calculated field based on quantity and underlying
         price. Must then be converted to notional currency.
         """
-        return convert_currency(
+        return round(convert_currency(
             self.date_of_trade.date(),
             self.quantity * self.underlying_price,
-            self.underlying_currency, self.notional_currency)
+            self.underlying_currency, self.notional_currency), 4)
 
 class ProductPrice(models.Model):
     date = models.DateField()
