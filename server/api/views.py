@@ -16,9 +16,11 @@ import numpy as np
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
                            StockPrice, ProductPrice, TradeProduct,convert_currency,get_currencies)
+
 tf.disable_v2_behavior()
 graph = tf.get_default_graph()
 t_session = tf.Session(graph=tf.Graph())
+
 
 def load_model_from_path(path):
     global model
@@ -29,6 +31,7 @@ def load_model_from_path(path):
 
 autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
 
+date_format_parse = "%d/%m/%Y"  # Was "%Y-%m-%d"
 
 @csrf_exempt
 def api_main(request, func):
@@ -44,6 +47,7 @@ def api_main(request, func):
         return JsonResponse({"success": False, "error": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
+  
 def get_company(name):
     """ Returns the Company with that exact name or None if it does not exist """
     try:
@@ -51,6 +55,7 @@ def get_company(name):
     except Company.DoesNotExist:
         return None
 
+      
 def get_product(name):
     """ Returns the Product with that exact name or None if it does not exist """
     try:
@@ -58,6 +63,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
+      
 def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
@@ -74,10 +80,13 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
             x,
             w)
         for w in ws}
-    filtered_distances = {w: d for w, d in distances.items() if d <= 5}
-    sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
-    return sorted_distances[:5]
+    
+    filtered_distances = ((w,d) for w, d in distances.items() if d <= 5)
+    sorted_distances = sorted(filtered_distances, key=lambda x:x[1])
+    print(sorted_distances)
+    return [x[0] for x in sorted_distances[:5]], sorted_distances[0][1] < 0
 
+  
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
     """ n_last: number of days to look back on, today_date: as datetime latest date, key: name (company or product name)"""
     prices = {}
@@ -203,11 +212,13 @@ def record_learning_trade(trade):
         TrainData(val1=normalizedData[0], val2=normalizedData[1], val3=normalizedData[2], val4=normalizedData[3],
                   val5=normalizedData[4], val6=normalizedData[5], val7=normalizedData[6], val8=normalizedData[7]).save()
     return True
-
+  
+  
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
+
 
 def create_trade(data):
     # Verify all data keys exist
@@ -220,7 +231,7 @@ def create_trade(data):
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
     # Convert values to their appropriate type
-    data["maturityDate"] = datetime.strptime(data["maturityDate"], "%Y-%m-%d").date()
+    data["maturityDate"] = datetime.strptime(data["maturityDate"], date_format_parse).date()
     data["underlyingPrice"] = Decimal(data["underlyingPrice"])
     data["strikePrice"] = Decimal(data["strikePrice"])
     data["quantity"] = int(data["quantity"])
@@ -258,6 +269,10 @@ def squared_errors(x, y):
 def mean_squared_error(x,y):
     return np.average(squared_errors(x,y))
 
+
+def determine_error(x, y):
+    mse = squared_errors(x, y)
+    return max(range(len(mse)), key=lambda x: mse[x])
 
 def mse_error_causes(squared_error, error_ratio):
     entry_errors = [(error_message_and_field(x)[1], squared_error[x]) for x in range(len(squared_error))]
@@ -299,7 +314,9 @@ def estimate_error_ratio(errorValue):
     if errorValue < values[0.6]:
         return ((errorValue) / values[0.6]) * 0.6
 
+
 def ai_magic(data):
+    error_threshold = 0.8
     d = [int(x) for x in data['date'].split('-')]
     d = date(d[0], d[1], d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
@@ -338,17 +355,20 @@ def ai_magic(data):
                 likely = sorted(key_mse, key=lambda x:x[1])[:3]
                 probability = estimate_error_ratio(likely[0][1])
                 return {'success': True,
-                    'possible_causes': ['sellingParty' if isStock else 'product'],
+                    'possibleCauses': ['sellingParty' if isStock else 'product'],
                     'probability': probability,
-                    'correction': [l[0] for l in likely]
+                    'correction': [l[0] for l in likely],   
+                    'errorThreshold': bool(probability > error_threshold),
+                    'errorMessage':'All fields erroneous, correction necessary'
                     }
         return {'success': True,
-                'possible_causes':possible_causes,
+                'possibleCauses':possible_causes,
                 'probability': error_ratio,
-                'error_message':error_msg
+                'errorMessage': error_msg,
+                'errorThreshold': bool(error_ratio > error_threshold)
                 }
     else:
-        return {'success':False, 'possible_cause': 'Not enough historic data','probability':0}
+        return {'success': False, 'errorMessage': 'Not enough historic data','probability': 0}
 
 def validate_company(data):
     """ Validate single company. Expected data: name """
@@ -364,13 +384,17 @@ def validate_company(data):
         result["success"] = True
 
     # possibly a performance bottleneck
-    result["names"] = closest_matches(data["name"], [c.name for c in Company.objects.all()])
+    result["names"], autocorrect = closest_matches(data["name"], [c.name for c in Company.objects.all()],commonCorrectionField=data["fieldType"])
+
+    # Blah blah correction is good
+    result["autoCorrect"] = autocorrect  # Automatically change to top value
     return result
 
 
 def validate_product(data):
     """ Validate single product. Expected data: product, buyingParty, sellingParty"""
-    result = {"success": False}
+                
+    result = {"success": False, "sellingParty": data["sellingParty"], "product": True}
 
     # Shape of request is as expected (all necessary data is given)
     not_specified = {"product", "sellingParty", "buyingParty"}.difference(data)
@@ -381,22 +405,25 @@ def validate_product(data):
     # Validate buyer existence
     if not get_company(data["buyingParty"]):
         result["error"] = "Buying company does not exist"
+        result["buyingParty"] = False
+        # return result
+
+    # Get closest distance matches 
+    result["products"], _ = closest_matches(
+        data["product"], [p.name for p in Product.objects.all()], commonCorrectionField='product')
+
+    # Validate product existence
+    prod = get_product(data["product"])
+    if not prod:
+        result["error"] = "Product does not exist"
+        result["product"] = False
         return result
 
     # Validate seller existence
     seller = get_company(data["sellingParty"])
     if not seller:
         result["error"] = "Selling company does not exist"
-        return result
-
-    # Get closest distance matches 
-    result["products"] = closest_matches(
-        data["product"], [p.name for p in Product.objects.all()])
-
-    # Validate product existence
-    prod = get_product(data["product"])
-    if not prod:
-        result["error"] = "Product does not exist"
+        result["sellingParty"] = prod.seller_company.name
         return result
 
     # Validate product sold by given company
@@ -407,11 +434,12 @@ def validate_product(data):
             result["canSwap"] = True
         else:
             result["canSwap"] = False
+            result["sellingParty"] = prod.seller_company.name
         return result
 
     result["success"] = True
+    result["sellingParty"] = data["sellingParty"]
     return result
-
 
 def validate_trade(data):
     """
@@ -439,7 +467,7 @@ def validate_trade(data):
     if not buyer:
         result["error"] = "Buying party does not exist"
         return result
-
+                
     # Validate quantity
     try:
         if int(data["quantity"]) <= 0:
@@ -475,6 +503,7 @@ def validate_trade(data):
 
 
 def correction(data):
+    print(str(data))
     try:
         corr = Correction.objects.get(old_val=data['oldValue'], new_val=data['newValue'], field=data['field'])
         corr.times_corrected += 1
@@ -485,7 +514,6 @@ def correction(data):
     return {
         'success': 'true'
     }
-
 
 def validate_maturity_date(data):
     """
@@ -516,29 +544,33 @@ def validate_maturity_date(data):
     result["success"] = True
     return result
 
+
+
+@csrf_exempt
 def currencies(_, date_str=None):
     """
     Returns currencies for a specific date. If no date is specified the current
-    server date is used. Date str must be in YYYY-MM-DD format.
+    server date is used. Date str must be in DD/MM/YYYY format.
     """
     if not date_str:
         request_date = timezone.now().date()
     else:
-        request_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        request_date = datetime.strptime(date_str, date_format_parse).date()
     return JsonResponse({
         "currencies": get_currencies(request_date)
     })
-
+                
 ### Additional stuff below ###
 
 def company(_, company_name):
     """ View of a single company at path 'company/<company_name>/'' """
     comp = get_company(company_name)
+    suggestions, _ = closest_matches(
+            company_name, [c.name for c in Company.objects.all()], commonCorrectionField='companyName'
+    )
     result = {
         "success": comp is not None,
-        "suggestions": closest_matches(
-            company_name, [c.name for c in Company.objects.all()], commonCorrectionField='companyName'
-        ),
+        "suggestions": suggestions
     }
     if comp:
         result["company"] = {
@@ -546,6 +578,7 @@ def company(_, company_name):
             "id": comp.id
         }
     return JsonResponse(result)
+
 
 def product(_, product_name):
     """ View of a single product at path 'product/<product_name>' """
@@ -556,8 +589,9 @@ def product(_, product_name):
             "name": prod.name,
             "seller_company": prod.seller_company.name
         }
-    result["suggestions"] = closest_matches(product_name, [p.name for p in Product.objects.all()])
+    result["suggestions"], _ = closest_matches(product_name, [p.name for p in Product.objects.all()],commonCorrectionField='product')
     return JsonResponse(result)
+
 
 def company_product(_, company_name, product_name):
     """
@@ -568,7 +602,7 @@ def company_product(_, company_name, product_name):
     comp = get_company(company_name)
     result["company_exists"] = bool(comp)
     if comp:
-        result["product_suggestions"] = closest_matches(
-            product_name, [p.name for p in comp.product_set.all()]
+        result["product_suggestions"], _ = closest_matches(
+            product_name, [p.name for p in comp.product_set.all()], commonCorrectionField='sellingParty'
         )
     return JsonResponse(result)

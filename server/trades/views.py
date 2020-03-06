@@ -7,5 +7,9 @@ def enter(request):
     return render(request, "trades/new.html", {"stuff": "Stuff can simply be passed in a dictionary"})
 
 
+def form(request):
+    return render(request, "newtrades/form.html")
+
+
 def home(request):
     return render(request, "trades/home.html")

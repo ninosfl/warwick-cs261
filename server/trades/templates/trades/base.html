@@ -1,21 +1,31 @@
 {# this is the base page that all pages in the trades app should inherit #}
 <!DOCTYPE html>
+{% load render_bundle from webpack_loader %}
 <html>
 <head>
     {% if title %}
-    <title>{{title}} - Deutsche Bank</title>
+    <title>{{title}} - Software Engineering Coursework</title>
     {% else %}
-    <title>Derivative Trades - Deutsche Bank</title>
+    <title>Derivative Trades - Software Engineering Coursework</title>
     {% endif %}
     {# Get Google font and icons! #}
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+    {# Scaling for mobile! #}
+    <meta
+        name="viewport"
+        content="minimum-scale=1, initial-scale=1, width=device-width"
+    />
+
 </head>
 <body>
     {# Make navigation bar here #}
+    <div id="searchbar"></div>
     <a href="{% url 'trades/new.html'}"></a>
 
     {# This block is replaced by the inheriting sub-templates #}
     {% block content %}{% endblock content %}
+    {% render_bundle 'main' %}
 </body>
 </html>

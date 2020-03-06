@@ -53,7 +53,7 @@ def load_all(years_to_load, months_to_load):
     ])
     print(DATA_DIR/'productSellers.csv')
 
-    runningMetaData = pickle.load(open(r'api\runningMetaData.p', 'rb'))
+    runningMetaData = pickle.load(open(r'api/runningMetaData.p', 'rb'))
     # load currency values:
     # date,currency,valueInUSD
     for yeardir in (DATA_DIR/'currencyValues').iterdir():
