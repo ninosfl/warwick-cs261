@@ -33,7 +33,6 @@ autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
 
 date_format_parse = "%d/%m/%Y"  # Was "%Y-%m-%d"
 
-
 @csrf_exempt
 def api_main(request, func):
     """
@@ -48,7 +47,7 @@ def api_main(request, func):
         return JsonResponse({"success": False, "error": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
-
+  
 def get_company(name):
     """ Returns the Company with that exact name or None if it does not exist """
     try:
@@ -56,7 +55,7 @@ def get_company(name):
     except Company.DoesNotExist:
         return None
 
-
+      
 def get_product(name):
     """ Returns the Product with that exact name or None if it does not exist """
     try:
@@ -64,7 +63,7 @@ def get_product(name):
     except Product.DoesNotExist:
         return None
 
-
+      
 def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     """
     Given a string and an iterable of strings returns the 5 with the smallest
@@ -87,7 +86,7 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     print(sorted_distances)
     return [x[0] for x in sorted_distances[:5]], sorted_distances[0][1] < 0
 
-
+  
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
     """ n_last: number of days to look back on, today_date: as datetime latest date, key: name (company or product name)"""
     prices = {}
@@ -213,8 +212,8 @@ def record_learning_trade(trade):
         TrainData(val1=normalizedData[0], val2=normalizedData[1], val3=normalizedData[2], val4=normalizedData[3],
                   val5=normalizedData[4], val6=normalizedData[5], val7=normalizedData[6], val8=normalizedData[7]).save()
     return True
-
-
+  
+  
 def currency_exists(currency_code):
     """ Checks for if the given currency exists in today's currencies """
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
@@ -394,6 +393,7 @@ def validate_company(data):
 
 def validate_product(data):
     """ Validate single product. Expected data: product, buyingParty, sellingParty"""
+                
     result = {"success": False, "sellingParty": data["sellingParty"], "product": True}
 
     # Shape of request is as expected (all necessary data is given)
@@ -441,7 +441,6 @@ def validate_product(data):
     result["sellingParty"] = data["sellingParty"]
     return result
 
-
 def validate_trade(data):
     """
     Validate a whole trade. Expected data: product, sellingParty, buyingParty,
@@ -468,7 +467,7 @@ def validate_trade(data):
     if not buyer:
         result["error"] = "Buying party does not exist"
         return result
-
+                
     # Validate quantity
     try:
         if int(data["quantity"]) <= 0:
@@ -516,7 +515,6 @@ def correction(data):
         'success': 'true'
     }
 
-
 def validate_maturity_date(data):
     """
     Validate maturity date based on server's current time.
@@ -547,6 +545,7 @@ def validate_maturity_date(data):
     return result
 
 
+
 @csrf_exempt
 def currencies(_, date_str=None):
     """
@@ -560,8 +559,7 @@ def currencies(_, date_str=None):
     return JsonResponse({
         "currencies": get_currencies(request_date)
     })
-
-
+                
 ### Additional stuff below ###
 
 def company(_, company_name):
