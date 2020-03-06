@@ -91,6 +91,18 @@ function CurrencyField(props) {
                     type: actionTypes.populateCurrencies,
                     currencies: data.currencies
                 });
+
+                // Default currencies to USD
+                dispatch({
+                    type: actionTypes.new,
+                    input: inputs.uCurr,
+                    newValue: "USD"
+                });
+                dispatch({
+                    type: actionTypes.new,
+                    input: inputs.nCurr,
+                    newValue: "USD"
+                });
             })
             .catch((error) => {
                 console.error('Error:', error);
