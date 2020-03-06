@@ -9,8 +9,8 @@ from jellyfish import damerau_levenshtein_distance as edit_dist
 
 
 from keras.models import load_model
-import keras as k
 import tensorflow.compat.v1 as tf
+import tensorflow.compat.v1.keras as k
 import numpy as np
 
 from learning.models import Correction, TrainData, MetaData
@@ -151,6 +151,7 @@ def normalize_trade(quantity, key, today_date, maturity_date, adjusted_strike, a
         day_meta_data['UP']['dayDifference'],
         day_meta_data['UP']['periodHigh'],
         day_meta_data['UP']['periodLow'])
+    # print(str(d))
     d = [float(x) for x in d]
 
     min_day = 2191.0
@@ -206,7 +207,7 @@ def record_learning_trade(trade):
     md.trades = md.trades + 1
     md.save()
     adjustedStrike = convert_currency(todayDate,trade.strike_price,trade.notional_currency,'USD')
-    normalizedData = normalize_trade(trade, md, key, todayDate, maturityDate, adjustedStrike, adjusted_underlying,
+    normalizedData = normalize_trade(trade, key, todayDate, maturityDate, adjustedStrike, adjusted_underlying,
                                      isStock)
     if normalizedData:
         TrainData(val1=normalizedData[0], val2=normalizedData[1], val3=normalizedData[2], val4=normalizedData[3],
@@ -221,6 +222,7 @@ def currency_exists(currency_code):
 
 
 def create_trade(data):
+    print(str(data))
     # Verify all data keys exist
     required_data = {
         "product", "sellingParty", "buyingParty",
