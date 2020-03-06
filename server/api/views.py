@@ -15,7 +15,8 @@ import numpy as np
 
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
-                           StockPrice, ProductPrice, TradeProduct,convert_currency,get_currencies)
+                           StockPrice, ProductPrice, TradeProduct, 
+                           convert_currency,get_currencies)
 
 tf.disable_v2_behavior()
 graph = tf.get_default_graph()
@@ -179,8 +180,8 @@ def normalize_trade(quantity, key, today_date, maturity_date, adjusted_strike, a
 
 def record_learning_trade(trade):
     isStock = trade.product_type == 'S'
-    todayDate = date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
-    maturityDate = date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
+    todayDate = trade.date_of_trade.date()
+    maturityDate = trade.maturity_date
     key = trade.selling_party if isStock else trade.traded_product.product
     md = MetaData.objects.get_or_create(key=key, defaults={"runningAvgClosePrice": 0, "runningAvgTradePrice": 0,
                                                            "runningAvgQuantity": 0, "totalEntries": 0,
@@ -206,7 +207,7 @@ def record_learning_trade(trade):
     md.trades = md.trades + 1
     md.save()
     adjustedStrike = convert_currency(todayDate,trade.strike_price,trade.notional_currency,'USD')
-    normalizedData = normalize_trade(trade, md, key, todayDate, maturityDate, adjustedStrike, adjusted_underlying,
+    normalizedData = normalize_trade(trade, key, todayDate, maturityDate, adjustedStrike, adjusted_underlying,
                                      isStock)
     if normalizedData:
         TrainData(val1=normalizedData[0], val2=normalizedData[1], val3=normalizedData[2], val4=normalizedData[3],
@@ -382,7 +383,8 @@ def validate_company(data):
         result["success"] = False
     else:
         result["success"] = True
-
+    if 'fieldType' not in data:
+        data['fieldType'] = None
     # possibly a performance bottleneck
     result["names"], autocorrect = closest_matches(data["name"], [c.name for c in Company.objects.all()],commonCorrectionField=data["fieldType"])
 
@@ -406,7 +408,6 @@ def validate_product(data):
     if not get_company(data["buyingParty"]):
         result["error"] = "Buying company does not exist"
         result["buyingParty"] = False
-        # return result
 
     # Get closest distance matches 
     result["products"], _ = closest_matches(
