@@ -11,28 +11,22 @@ const subForms = {
     "submit": "Submit"
 };
 
-// All the types of validations that can occur
-// TODO: Come up with and implement more!
-const validationTypes = {
-    none: "None",
-    buying: "buyingParty",
-    selling: "sellingParty",
-    product: "buyingParty, sellingParty, product"
-};
+const host = "http://localhost:8000/";
 
 // Contains all the initial form values
 const initialFormState = {
     "buyingParty": "",
     "sellingParty": "",
     "productName": "",
-    "quantity": 0,
-    "underlyingCurrency": "USD",
-    "underlyingPrice": 0.0,
-    "maturityDate": "01.01.1970",
-    "notionalCurrency": "USD",
-    "strikePrice": 0.0,
+    "quantity": "",
+    "underlyingCurrency": "",
+    "underlyingPrice": "",
+    "maturityDate": "",
+    "notionalCurrency": "",
+    "strikePrice": "",
     "currentForm": subForms[1],
-    "validationType": validationTypes.none,
+    "submitNow": false,
+    "validationInputs": [],
     "correctionFields": {
         "buyingParty": [],
         "sellingParty": [],
@@ -43,7 +37,31 @@ const initialFormState = {
         "maturityDate": [],
         "notionalCurrency": [],
         "strikePrice": [],
+        "correctionLog": []
     },
+    "incorrectFields": {
+        "buyingParty": false,
+        "sellingParty": false,
+        "productName": false,
+        "quantity": false,
+        "underlyingCurrency": false,
+        "underlyingPrice": false,
+        "maturityDate": false,
+        "notionalCurrency": false,
+        "strikePrice": false,
+    },
+    "requestingFields": {
+        "buyingParty": false,
+        "sellingParty": false,
+        "productName": false,
+        "quantity": false,
+        "underlyingCurrency": false,
+        "underlyingPrice": false,
+        "maturityDate": false,
+        "notionalCurrency": false,
+        "strikePrice": false,
+    },
+    "currencies": [],
 };
 
 // All the valid action types
@@ -52,7 +70,13 @@ const actionTypes = {
     validate: "validate",
     correction: "correction",
     provideSuggestions: "provideSuggestions",
-    nextForm: "next"
+    markNoSuggestions: "markNoSuggestions",
+    markCorrect: "markCorrect",
+    nextForm: "next",
+    prevForm: "prev",
+    populateCurrencies: "populateCurrencies",
+    markRequesting: "markRequesting",
+    markRequestComplete: "markRequestComplete",
 };
 
 // All the valid input types - expressed here as an enum to avoid strings
@@ -78,34 +102,75 @@ const reducer = (state, action) => {
             // Return a new object with only the relevant input modified!
             return { ...state, [action.input]: action.newValue };
 
+        // FIXME: Cannot validate the same item multiple times in a row.
         case actionTypes.validate:
-            // Change validationType to activate SuperForm effect hook.
-            return { ...state, "validationType": action.validationType };
+            // Change validationInput to activate SuperForm effect hook.
+            return { ...state, "validationInputs": [...state.validationInputs, action.validationInput] };
 
         case actionTypes.correction:
-            // TODO: Send previous value and new value to API
-            return state;
+            // Return modified state with log - get effect hook to send values
+            // to API!
+            return {
+                ...state,
+                [action.input]: action.newValue,
+                "correctionFields": {
+                    ...state.correctionFields,
+                    [action.input]: [],
+                    "correctionLog": [...state.correctionFields.correctionLog,
+                                      [action.input, action.oldValue, action.newValue]
+                                     ]
+                }
+            };
 
         case actionTypes.provideSuggestions:
             // Replace state correction values with new ones
-            return { ...state, "correctionFields": {...state.correctionFields, [action.field]: action.suggestions}}
+            return { ...state, "correctionFields": {...state.correctionFields, [action.input]: action.suggestions} };
+
+        case actionTypes.markNoSuggestions:
+            // Mark a specific input as incorrect
+            return { ...state, "incorrectFields": {...state.incorrectFields, [action.input]: true} };
+
+        case actionTypes.markCorrect:
+            // Mark a specific input as correct, wiping it in the process
+            return { ...state, "incorrectFields": {...state.incorrectFields, [action.input]: false} };
+
+        case actionTypes.markRequesting:
+            return { ...state, "requestingFields": {...state.requestingFields, [action.input]: true} };
+
+        case actionTypes.markRequestComplete:
+            return { ...state, "requestingFields": {...state.requestingFields, [action.input]: false} };
 
         case actionTypes.nextForm:
             switch (state.currentForm) {
                 case subForms[1]:
-                    // TODO: Forward to second subform (once it's made lol)
-                    return { ...state, "currentForm": subForms.submit };
+                    return { ...state, "currentForm": subForms[2] };
                 case subForms[2]:
                     return { ...state, "currentForm": subForms[3] };
                 case subForms[3]:
                     return { ...state, "currentForm": subForms.submit };
                 case subForms.submit:
-                    // TODO: Submit stuffs
-                    return state;
+                    // Tell effect hook to get submitting
+                    return { ...state, "submitNow": true };
                 default:
                     return state;
             }
-            break;
+        
+        case actionTypes.prevForm:
+            switch (state.currentForm) {
+                case subForms[2]:
+                    return { ...state, "currentForm": subForms[1] };
+                case subForms[3]:
+                    return { ...state, "currentForm": subForms[2] };
+                case subForms.submit:
+                    // Tell effect hook to get submitting
+                    return { ...state, "currentForm": subForms[3] };
+                default:
+                    return state;
+            }
+        
+        case actionTypes.populateCurrencies:
+            // Given a list of currencies, put it in the form!
+            return { ...state, "currencies": action.currencies };
 
         default:
             return state;
@@ -118,30 +183,30 @@ const FormDispatch = React.createContext(null);
 // Mad styling son - mostly to ensure the form goes in the middle of the screen
 const useStyles = makeStyles( theme => ({
     formContainer: {
-        minHeight: "90vh",
-        minWidth: "80vh",
+        height: "90vmin",
+        width: "80vmin",
         position: 'absolute', 
         left: '50%',
         top: '50%',
         transform: 'translate(-50%, -50%)'
     },
     // submitContainer: {
-    //     minHeight: "90vh",
-    //     minWidth: "80vh",
+    //     minHeight: "90vmin",
+    //     width: "80vmin",
     //     position: 'absolute', 
     //     left: '50%',
     //     top: '50%',
     //     transform: 'translate(-50%, -50%)'
     // },
     submitItemContainer: {
-        minWidth: "60vh",
+        width: "60vmin",
     },
     submitButton: {
-        minWidth: "60vh",
+        width: "60vmin",
         marginTop: "16px",
     },
     formItemContainer: {
-        minWidth: "60vh",
+        width: "60vmin",
     },
     formItem: {
         width: '100%'
@@ -154,4 +219,22 @@ const useStyles = makeStyles( theme => ({
     },
 }));
 
-export { subForms, validationTypes, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles };
+const all_zeroes = /^0*(0|\.)0*$/;
+const int_re = /^\d+$/;
+const decimal_re = /^\d+(\.\d{1,2})?$/;
+const date_format_re = /^\d{2}\/\d{2}\/\d{4}$/;
+
+export {
+    subForms,
+    initialFormState,
+    actionTypes,
+    inputs,
+    reducer,
+    FormDispatch,
+    useStyles,
+    all_zeroes,
+    int_re,
+    decimal_re,
+    date_format_re,
+    host
+};
