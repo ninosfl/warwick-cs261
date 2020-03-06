@@ -19,10 +19,10 @@ const initialFormState = {
     "sellingParty": "",
     "productName": "",
     "quantity": "",
-    "underlyingCurrency": "",
+    "underlyingCurrency": "USD",
     "underlyingPrice": "",
     "maturityDate": "",
-    "notionalCurrency": "",
+    "notionalCurrency": "USD",
     "strikePrice": "",
     "currentForm": subForms[1],
     "submitNow": false,
@@ -222,7 +222,7 @@ const useStyles = makeStyles( theme => ({
 const all_zeroes = /^0*(0|\.)0*$/;
 const int_re = /^\d+$/;
 const decimal_re = /^\d+(\.\d{1,2})?$/;
-const date_format_re = /^\d{2}\/\d{2}\/\d{4}$/;
+const date_format_re = /^\d{1,2}\/\d{1,2}\/(\d{4}|\d{2})$/;
 
 export {
     subForms,
