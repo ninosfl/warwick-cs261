@@ -317,12 +317,19 @@ def estimate_error_ratio(errorValue):
 
 def ai_magic(data):
     error_threshold = 0.8
-    d = [int(x) for x in data['date'].split('-')]
-    d = date(d[0], d[1], d[2])
-    maturityDate = [int(x) for x in data['maturityDate'].split('-')]
-    maturityDate = date(maturityDate[0], maturityDate[1], maturityDate[2])
+
+    # Split date for dd/mm/yyy
+
+    if 'date' not in data:
+        d = timezone.now().date()
+    else:
+        d = [int(x) for x in data['date'].split('/')]
+        d = date(d[2], d[1], d[0])
+    maturityDate = [int(x) for x in data['maturityDate'].split('/')]
+    maturityDate = date(maturityDate[2], maturityDate[1], maturityDate[0])
     data['date'] = d
     data['maturityDate'] = maturityDate
+
     isStock = (data['product'] == 'Stocks')
     key = data['sellingParty'] if isStock else data['product']
     adjustedStrikePrice = convert_currency(d, data['strikePrice'],data['notionalCurrency'],'USD')

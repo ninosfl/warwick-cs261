@@ -21,6 +21,77 @@ function SuperForm(props) {
     // Use reducer hook to handle form data
     const [state, dispatch] = useReducer(reducer, initialFormState);
 
+    const machineLearning = () => {
+        // Signify fields are request validation
+        dispatch({ type: actionTypes.markRequesting, input: inputs.uPrice });
+        dispatch({ type: actionTypes.markRequesting, input: inputs.sPrice });
+        dispatch({ type: actionTypes.markRequesting, input: inputs.quantity });
+
+        // Check all fields are populated
+        if (state.underlyingPrice === "") {
+            dispatch({
+                type: actionTypes.markNoSuggestions,
+                input: inputs.uPrice
+            });
+        }
+        if (state.strikePrice === "") {
+            dispatch({
+                type: actionTypes.markNoSuggestions,
+                input: inputs.sPrice
+            });
+        }
+        if (state.quantity === "") {
+            dispatch({
+                type: actionTypes.markNoSuggestions,
+                input: inputs.quantity
+            });
+        }
+
+        console.log("Doing machine learning fetch!");
+        fetch(host + 'api/validate/trade/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "underlyingPrice": state.underlyingPrice,
+                "underlyingCurrency": state.underlyingCurrency,
+                "strikePrice": state.strikePrice,
+                "notionalCurrency": state.notionalCurrency,
+                "quantity": state.quantity,
+                "product": state.productName,
+                "maturityDate": state.maturityDate,
+                "sellingParty": state.sellingParty
+            }),
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Network response not ok!");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log('Success:', data);
+            if ((data.success === true) && (errorThreshold === true)) {
+                data.possibleCauses.map((field) => 
+                    dispatch({
+                        type: actionTypes.markNoSuggestions,
+                        input: field
+                    })
+                );
+            }
+            dispatch({ type: actionTypes.markRequestComplete, input: inputs.uPrice });
+            dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
+            dispatch({ type: actionTypes.markRequestComplete, input: inputs.quantity });
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            dispatch({ type: actionTypes.markRequestComplete, input: inputs.uPrice });
+            dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
+            dispatch({ type: actionTypes.markRequestComplete, input: inputs.quantity });
+        });
+    };
+
     // Use effect hook for api validation
     // No need to reset validationInputs to some default value, since this
     // effect will only run when it changes.
