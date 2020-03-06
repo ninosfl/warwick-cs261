@@ -10,8 +10,6 @@ DATA_DIR = Path("../data")
 
 SAMPLE_CURRENCY_VALUES_CACHE = None
 
-
-
 """
 Permanent-ish data found in main data directory
 companyCodes.csv
@@ -110,7 +108,6 @@ class CurrencyValue(models.Model):
     class Meta:
         unique_together = ("date", "currency")
 
-
 class DerivativeTrade(models.Model):
     class ProductTypes(models.TextChoices):
         STOCKS = 'S', 'Stocks'
@@ -134,6 +131,7 @@ class DerivativeTrade(models.Model):
 
     @property
     def product_or_stocks(self):
+        """ Returns the name of the traded product (if one exists) or otherwise 'Stocks' """
         if self.product_type == "P":
             return self.traded_product.product.name
         return "Stocks"
