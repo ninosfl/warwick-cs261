@@ -5,11 +5,11 @@ import Button from '@material-ui/core/Button';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
-//import InputBase from '@material-ui/core/InputBase';
+import InputBase from '@material-ui/core/InputBase';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import useScrollTrigger from '@material-ui/core/useScrollTrigger';
 import Fab from '@material-ui/core/Fab';
-//import SearchIcon from '@material-ui/icons/Search';
+import SearchIcon from '@material-ui/icons/Search';
 import HomeIcon from '@material-ui/icons/Home';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import Zoom from '@material-ui/core/Zoom';
@@ -109,14 +109,6 @@ function ScrollTop(props) {
   );
 }
 
-ScrollTop.propTypes = {
-  children: PropTypes.element.isRequired,
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
-  window: PropTypes.func,
-};
 //End of the scroll button
 
 // General React Component to add buttons to our bar
@@ -178,7 +170,7 @@ function SearchBar() {
             text="Admin"
             href="/admin/" //Ways to add links to our buttons and formatting willk be done automatically
           />
-          {/* <div className={classes.search}>
+          <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />
             </div>
@@ -190,7 +182,7 @@ function SearchBar() {
               }}
               inputProps={{ 'aria-label': 'search' }}
             />
-          </div> */}
+          </div>
         </Toolbar>
       </AppBar>
     </div>
