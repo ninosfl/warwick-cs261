@@ -62,6 +62,7 @@ const initialFormState = {
         "strikePrice": false,
     },
     "currencies": [],
+    "MLError": "",
 };
 
 // All the valid action types
@@ -77,6 +78,7 @@ const actionTypes = {
     populateCurrencies: "populateCurrencies",
     markRequesting: "markRequesting",
     markRequestComplete: "markRequestComplete",
+    newMLError: "newMLError"
 };
 
 // All the valid input types - expressed here as an enum to avoid strings
@@ -171,6 +173,9 @@ const reducer = (state, action) => {
         case actionTypes.populateCurrencies:
             // Given a list of currencies, put it in the form!
             return { ...state, "currencies": action.currencies };
+
+        case actionTypes.newMLError:
+            return { ...state, "MLError": action.message };
 
         default:
             return state;

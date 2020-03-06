@@ -7,7 +7,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re, host } from './form-constants';
-import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField } from './form-components';
+import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, IgnoreButton, SubFormTitle, CurrencyField } from './form-components';
 import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
 
 export { SuperForm };
@@ -81,6 +81,12 @@ function SuperForm(props) {
                         input: field
                     })
                 );
+
+                console.log("MLError: ", data.errorMessage);
+                dispatch({
+                    type: actionTypes.newMLError,
+                    message: "Error: " + data.errorMessage + "."
+                });
             } else {
                 // Fields are fine - mark them as such!
                 fields.map((field) =>
@@ -89,6 +95,11 @@ function SuperForm(props) {
                         input: field
                     })
                 );
+
+                dispatch({
+                    type: actionTypes.newMLError,
+                    message: ""
+                });
             }
 
             // Mark all fields as done requesting
@@ -774,10 +785,16 @@ function SubFormThree(props) {
                     errorMessage="This input looks incorrect; Please try again."
                 />
             </Grid>
+            {props.fields.MLError.length > 0 &&
+                <Grid item className={classes.formItemContainer}>
+                    <Typography color="error" variant="caption">{props.fields.MLError}</Typography>
+                </Grid>
+            }
             
             <Grid item className={classes.formItemContainer}>
                 <PrevButton />
-                <NextButton disabled={anyEmptyOrSuggestions} color={anyError ? "default" : "primary"}/>
+                {anyError ? <IgnoreButton disabled={anyEmptyOrSuggestions}/>
+                : <NextButton disabled={anyEmptyOrSuggestions} />}
             </Grid>
         </Grid>
         );
