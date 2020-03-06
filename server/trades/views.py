@@ -10,6 +10,10 @@ def enter(request):
 def form(request):
     return render(request, "newtrades/form.html")
 
+def edit_trade(request):
+    # TODO: Fetch trade data into Python dict
+    return render(request, "newtrades/form.html", {"form_data": trade_data})
+
 
 def home(request):
     return render(request, "trades/home.html")
