@@ -6,6 +6,7 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import PublishIcon from '@material-ui/icons/Publish';
@@ -14,7 +15,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import { actionTypes, FormDispatch, useStyles, inputs, host } from './form-constants';
 
-export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, SubFormTitle, CurrencyField };
+export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, IgnoreButton, SubFormTitle, CurrencyField };
 
 
 // Component for text fields in the form
@@ -296,6 +297,30 @@ function PrevButton(props) {
         >
             <NavigateBeforeIcon />
         </IconButton>
+    );
+}
+
+function IgnoreButton(props) {
+    // Fetch defined styling
+    const classes = useStyles(props);
+
+    // Fetch dispatch function from context
+    const dispatch = useContext(FormDispatch);
+
+    // Event function to get the SuperForm to render the next SubForm
+    const goToNextForm = () => dispatch({ type: actionTypes.nextForm });
+
+    return (
+        <Button
+            variant="contained"
+            color="secondary"
+            className={classes.button}
+            endIcon={<ErrorOutlineIcon />}
+            onClick={goToNextForm}
+            {...props}
+        >
+            Ignore Errors
+        </Button>
     );
 }
 
