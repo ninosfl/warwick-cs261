@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => ({
     position: 'fixed',
     bottom: theme.spacing(2),
     right: theme.spacing(2),
-    'z-index': 12,  //Keep this high or the top button will be moved to the background and inaccessible
+    'z-index': 2000000000,  //Keep this high or the top button will be moved to the background and inaccessible
   },
 
   menuButton: {
@@ -156,7 +156,7 @@ function SearchBar() {
           </IconButton>
           <BarButton 
             text="Add"
-            href="/trades/" //Ways to add links to our buttons and formatting willk be done automatically TODO! make it accessable through dynamic URL?
+            href="/trades/form" //Ways to add links to our buttons and formatting willk be done automatically TODO! make it accessable through dynamic URL?
           />
           <BarButton 
             text="Trades"
