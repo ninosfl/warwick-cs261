@@ -1,55 +1,32 @@
 import numpy as np
 import loaddata as l
+import pickle
 from collections import defaultdict
-    
-usps = set()
-sellingParties = defaultdict(list)
 
-runningMetaData = defaultdict(lambda : {'quantities': [], 'historicalPrice': [], 'avgClosePrice': 0, 'totalEntries': 0, 'avgTradePrice': 0, 'avgQuantity': 0,'totalQuantity':0,'trades':0})
-
-filter_keys = ['trade_id', 'product_type', 'date_of_trade', 'selling_party', 'quantity']
-
-
+aDict = defaultdict(lambda : defaultdict(lambda : {'strikePrices': [], 'quantities': [], 'avgStrike': 0, 'avgQuantity': 0}))
 
 for trade in l.dictl:
-    
-    # Only do for stocks currently
+
     if trade['product_type'] == 'S':
-        key = trade['selling_party']
-        rmd = runningMetaData[key]
-
-        q = rmd['avgQuantity']
-        n = rmd['trades']
-
-        rmd['avgQuantity'] = ((q * n) + trade['quantity']) / (n + 1)
-        rmd['trades'] += 1
-        rmd['totalQuantity'] += trade['quantity']
-        rmd['quantities'].append(trade['quantity'])
-
-    
-
-print(np.mean(runningMetaData['VVBY18']['quantities']))
-print(runningMetaData['VVBY18']['avgQuantity'])
-
-# newdict = defaultdict(list)
-
-# for stock in stocks:
-#     for k in stock:
-#         newdict[k].append(stock[k])
-    
-
-# uniqueSellingParties = set(newdict['selling_party'])
-
-# sellingParties = defaultdict(list)
-
-# for usp in uniqueSellingParties:
-#     for stock in stocks:
-#         if stock['selling_party'] == usp:
-#             sellingParties[usp].append(stock)
-
-# for usp in uniqueSellingParties:
-#     quantities = []
-#     for d in sellingParties[usp]:
-#         quantities.append(d['quantity'])
-#     print(np.mean(quantities))
+        key1 = 'stocks'
         
+    else:
+        key1 = str(trade['product'])
+
+    key2 = trade['buying_party']
+
+    ref = aDict[key1][key2]
+    
+    ref['quantities'].append(trade['quantity'])
+    ref['strikePrices'].append(trade['strike_price'])
+
+# Can also do running average to perhaps lower time
+for p in aDict.keys():
+    for bp in aDict[p].keys():
+        aDict[p][bp]['avgStrike'] = np.mean(aDict[p][bp]['strikePrices'])
+        aDict[p][bp]['avgQuantity'] = np.mean(aDict[p][bp]['quantities'])
+
+dict2 = {x:dict(y) for x, y in aDict.items()}
+
+with open('aDict.p', 'wb') as handle:
+    pickle.dump(dict2, handle, protocol=pickle.HIGHEST_PROTOCOL)
