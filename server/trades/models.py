@@ -133,6 +133,12 @@ class DerivativeTrade(models.Model):
     strike_price = models.DecimalField(max_digits=16, decimal_places=4)
 
     @property
+    def product_or_stocks(self):
+        if self.product_type == "P":
+            return self.traded_product.product.name
+        return "Stocks"
+
+    @property
     def notional_amount(self):
         """
         Notional amount is a calculated field based on quantity and underlying

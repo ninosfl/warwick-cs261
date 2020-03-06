@@ -8,9 +8,11 @@ def enter(request):
         return NotImplemented
     return render(request, "trades/new.html", {"stuff": "Stuff can simply be passed in a dictionary"})
 
-
 def form(request):
     return render(request, "newtrades/form.html")
+
+def view_trade(request):
+    return render(request, "trades/home.html")
 
 def edit_trade(request, trade_id):
     trade = get_object_or_404(DerivativeTrade, trade_id=trade_id)
@@ -18,8 +20,8 @@ def edit_trade(request, trade_id):
         "dateOfTrade": trade.date_of_trade,
         "tradeID": trade.trade_id,
         "product": trade.product_or_stocks,
-        "buyingParty": trade.buying_party,
-        "sellingParty": trade.selling_party,
+        "buyingParty": trade.buying_party.name,
+        "sellingParty": trade.selling_party.name,
         "notionalAmount": trade.notional_amount,
         "notionalCurrency": trade.notional_currency,
         "quantity": trade.quantity,
@@ -57,6 +59,9 @@ def list_months(request, year: int):
     }
     return render(request, "reports/months.html", context)
 
+
+def list_all_of_day(request):
+    pass # TODO
 
 def list_days(request, year: int, month: int):
     """ List all days available in the given month. """
