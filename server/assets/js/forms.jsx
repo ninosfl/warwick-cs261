@@ -2,6 +2,8 @@
 
 import React, { useReducer, useEffect } from 'react';
 import { Grid, Paper, CircularProgress, InputAdornment, Typography } from '@material-ui/core';
+import IconButton from '@material-ui/core/IconButton';
+import CheckIcon from '@material-ui/icons/Check';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -24,20 +26,28 @@ function SuperForm(props) {
     const machineLearning = () => {
         const fields = [inputs.quantity, inputs.uPrice, inputs.sPrice];
 
-        // Mark all fields as requesting
-        fields.map((field) => dispatch({ type: actionTypes.markRequesting, input: field }));
-
         // Check all fields are populated
+        let anyAreEmpty = false;
         fields.map((field) => {
             if (state[field] === "") {
                 dispatch({
                     type: actionTypes.markNoSuggestions,
                     input: field
                 });
+                anyAreEmpty = true;
             }
         });
 
+        // Do not do ML fetch if there are empty fields!
+        if (anyAreEmpty) {
+            fields.map((field) => dispatch({ type: actionTypes.markRequestComplete, input: field }));
+            return;
+        }
+
         console.log("Doing machine learning fetch!");
+        // Mark all fields as requesting
+        fields.map((field) => dispatch({ type: actionTypes.markRequesting, input: field }));
+
         fetch(host + 'api/validate/trade/', {
             method: 'POST',
             headers: {
@@ -351,11 +361,6 @@ function SuperForm(props) {
                     });
 
                 } else {
-                    // TODO: Validate with API!
-                    // dispatch({
-                    //     type: actionTypes.markCorrect,
-                    //     input: inputs.uPrice
-                    // });
                     machineLearning();
                 }
 
@@ -420,11 +425,6 @@ function SuperForm(props) {
                         input: inputs.quantity
                     });
                 } else {
-                    // TODO: Validate with API!
-                    // dispatch({
-                    //     type: actionTypes.markCorrect,
-                    //     input: inputs.quantity
-                    // });
                     machineLearning();
                 }
 
@@ -446,11 +446,6 @@ function SuperForm(props) {
                     });
 
                 } else {
-                    // TODO: Validate with API!
-                    // dispatch({
-                    //     type: actionTypes.markCorrect,
-                    //     input: inputs.sPrice
-                    // });
                     machineLearning();
                 }
 
@@ -495,9 +490,31 @@ function SuperForm(props) {
 
     // Use effect hook for submitting form
     useEffect(() => {
-        // TODO: Get this to actually do some submitting you muppet
         if (state.submitNow) {
-            document.write("Submitted! (Obviously not this is debug text)");
+
+            console.log("Submitting!");
+            fetch(host + 'api/submit/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "underlyingPrice": state.underlyingPrice,
+                    "underlyingCurrency": state.underlyingCurrency,
+                    "strikePrice": state.strikePrice,
+                    "notionalCurrency": state.notionalCurrency,
+                    "quantity": state.quantity,
+                    "product": state.productName,
+                    "maturityDate": state.maturityDate,
+                    "sellingParty": state.sellingParty,
+                    "buyingParty": state.buyingParty
+                }),
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+            // TODO: Maybe put user input on an extra page, with generated fields
+
         }
     }, [state.submitNow]);
 
@@ -870,7 +887,9 @@ function SubmitForm(props) {
             </Grid>
             <Grid item className={classes.submitButton}>
                 <PrevButton />
-                <SubmitButton disabled={anyInputEmpty} />
+                {(props.fields.submitNow === true)
+                ? <IconButton className={classes.button}><CheckIcon /></IconButton>
+                : <SubmitButton disabled={anyInputEmpty} /> }
             </Grid>
         </Grid>
     );
