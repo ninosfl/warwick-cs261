@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
+from trades.models import DerivativeTrade
 
 def enter(request):
     if request.method == "POST":
@@ -10,8 +12,20 @@ def enter(request):
 def form(request):
     return render(request, "newtrades/form.html")
 
-def edit_trade(request):
-    # TODO: Fetch trade data into Python dict
+def edit_trade(request, trade_id):
+    trade = get_object_or_404(DerivativeTrade, trade_id=trade_id)
+    trade_data = {
+        "dateOfTrade": trade.date_of_trade,
+        "tradeID": trade.trade_id,
+        "product": trade.product_or_stocks,
+        "buyingParty": trade.buying_party,
+        "sellingParty": trade.selling_party,
+        "notionalAmount": trade.notional_amount,
+        "notionalCurrency": trade.notional_currency,
+        "quantity": trade.quantity,
+        "maturityDate": trade.maturity_date,
+        "underlyingPrice": trade.underlying_price
+    }
     return render(request, "newtrades/form.html", {"form_data": trade_data})
 
 
