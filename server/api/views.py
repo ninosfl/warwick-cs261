@@ -9,8 +9,8 @@ from jellyfish import damerau_levenshtein_distance as edit_dist
 
 
 from keras.models import load_model
-import keras as k
 import tensorflow.compat.v1 as tf
+import  tensorflow.python.keras.backend as k
 import numpy as np
 
 from learning.models import Correction, TrainData, MetaData
@@ -23,7 +23,7 @@ t_session = tf.Session(graph=tf.Graph())
 def load_model_from_path(path):
     global model
     with t_session.graph.as_default():
-        k.backend.set_session(t_session)
+        k.set_session(t_session)
         model = load_model(path)
         return model
 
