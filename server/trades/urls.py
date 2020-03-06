@@ -1,5 +1,6 @@
-from django.urls import path, include
-from .views import enter, form, list_months, list_days, list_years, list_all_of_day, view_trade, edit_trade
+from django.urls import path
+from .views import (enter, form, list_months, list_days, list_years,
+                    list_all_of_day, view_trade, edit_trade)
 
 urlpatterns = [
     path("", enter, name='trades-new'),
@@ -10,5 +11,4 @@ urlpatterns = [
     path("list/<int:year>/<int:month>/", list_days, name="trades-list-days"),
     path("list/<int:year>/<int:month>/<int:day>/", list_all_of_day, name="trades-list-all"),
     path("list/<int:year>/<int:month>/<int:day>/<str:trade_id>/", view_trade, name="trades-view-trade"),
-    path("list/<int:year>/<int:month>/<int:day>/<str:trade_id>/", edit_trade, name="trades-edit-trade"),
 ]
