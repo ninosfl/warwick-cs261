@@ -22,30 +22,20 @@ function SuperForm(props) {
     const [state, dispatch] = useReducer(reducer, initialFormState);
 
     const machineLearning = () => {
-        // Signify fields are request validation
-        dispatch({ type: actionTypes.markRequesting, input: inputs.uPrice });
-        dispatch({ type: actionTypes.markRequesting, input: inputs.sPrice });
-        dispatch({ type: actionTypes.markRequesting, input: inputs.quantity });
+        const fields = [inputs.quantity, inputs.uPrice, inputs.sPrice];
+
+        // Mark all fields as requesting
+        fields.map((field) => dispatch({ type: actionTypes.markRequesting, input: field }));
 
         // Check all fields are populated
-        if (state.underlyingPrice === "") {
-            dispatch({
-                type: actionTypes.markNoSuggestions,
-                input: inputs.uPrice
-            });
-        }
-        if (state.strikePrice === "") {
-            dispatch({
-                type: actionTypes.markNoSuggestions,
-                input: inputs.sPrice
-            });
-        }
-        if (state.quantity === "") {
-            dispatch({
-                type: actionTypes.markNoSuggestions,
-                input: inputs.quantity
-            });
-        }
+        fields.map((field) => {
+            if (state[field] === "") {
+                dispatch({
+                    type: actionTypes.markNoSuggestions,
+                    input: field
+                });
+            }
+        });
 
         console.log("Doing machine learning fetch!");
         fetch(host + 'api/validate/trade/', {
@@ -54,6 +44,7 @@ function SuperForm(props) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                "date": "31/12/2019",  // TODO: Get rid of this
                 "underlyingPrice": state.underlyingPrice,
                 "underlyingCurrency": state.underlyingCurrency,
                 "strikePrice": state.strikePrice,
@@ -72,23 +63,40 @@ function SuperForm(props) {
         })
         .then((data) => {
             console.log('Success:', data);
-            if ((data.success === true) && (errorThreshold === true)) {
+            if ((data.success === true) && (data.errorThreshold === true)) {
+                let validFields = fields.filter((f) => data.possibleCauses.includes(f) === false);
+
+                // Flag incorrect fields as incorrect
                 data.possibleCauses.map((field) => 
                     dispatch({
                         type: actionTypes.markNoSuggestions,
                         input: field
                     })
                 );
+
+                // Flag non-incorrect fields as correct!
+                validFields.map((field) =>
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: field
+                    })
+                );
+            } else {
+                // Fields are fine - mark them as such!
+                fields.map((field) =>
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: field
+                    })
+                );
             }
-            dispatch({ type: actionTypes.markRequestComplete, input: inputs.uPrice });
-            dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
-            dispatch({ type: actionTypes.markRequestComplete, input: inputs.quantity });
+
+            // Mark all fields as done requesting
+            fields.map((field) => dispatch({ type: actionTypes.markRequestComplete, input: field }));
         })
         .catch((error) => {
             console.error('Error:', error);
-            dispatch({ type: actionTypes.markRequestComplete, input: inputs.uPrice });
-            dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
-            dispatch({ type: actionTypes.markRequestComplete, input: inputs.quantity });
+            fields.map((field) => dispatch({ type: actionTypes.markRequestComplete, input: field }));
         });
     };
 
@@ -333,10 +341,11 @@ function SuperForm(props) {
 
                 } else {
                     // TODO: Validate with API!
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: inputs.uPrice
-                    });
+                    // dispatch({
+                    //     type: actionTypes.markCorrect,
+                    //     input: inputs.uPrice
+                    // });
+                    machineLearning();
                 }
 
                 dispatch({ type: actionTypes.markRequestComplete, input: inputs.uPrice });
@@ -401,10 +410,11 @@ function SuperForm(props) {
                     });
                 } else {
                     // TODO: Validate with API!
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: inputs.quantity
-                    });
+                    // dispatch({
+                    //     type: actionTypes.markCorrect,
+                    //     input: inputs.quantity
+                    // });
+                    machineLearning();
                 }
 
                 dispatch({ type: actionTypes.markRequestComplete, input: inputs.quantity });
@@ -426,10 +436,11 @@ function SuperForm(props) {
 
                 } else {
                     // TODO: Validate with API!
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: inputs.sPrice
-                    });
+                    // dispatch({
+                    //     type: actionTypes.markCorrect,
+                    //     input: inputs.sPrice
+                    // });
+                    machineLearning();
                 }
 
                 dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
@@ -677,7 +688,7 @@ function SubFormTwo(props) {
                     incorrectField={props.fields.incorrectFields[inputs.mDate]}
                     disabled={props.fields.requestingFields[inputs.mDate]}
                     helperText="Please enter the maturity date, in dd/mm/yyyy format."
-                    errorMessage="This must be a valid, future date; Please try again."
+                    errorMessage="This must be a valid, future date in dd/mm/yyyy format; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -695,20 +706,22 @@ function SubFormThree(props) {
 
     // Only let them progress if all fields are non-empty and there are no
     // corrections left
-    let anyEmptyOrError = (
+    let anyEmptyOrSuggestions = (
         props.fields.correctionFields[inputs.quantity].length > 0
         || props.fields.correctionFields[inputs.uPrice].length > 0
         || props.fields.correctionFields[inputs.sPrice].length > 0
-        || props.fields.incorrectFields[inputs.quantity]
-        || props.fields.incorrectFields[inputs.uPrice]
-        || props.fields.incorrectFields[inputs.sPrice]
         || props.fields.requestingFields[inputs.quantity]
         || props.fields.requestingFields[inputs.uPrice]
         || props.fields.requestingFields[inputs.sPrice]
         || props.fields.quantity === ""
         || props.fields.underlyingPrice === ""
         || props.fields.strikePrice === ""
-        
+    );
+
+    let anyError = (
+        props.fields.incorrectFields[inputs.quantity]
+        || props.fields.incorrectFields[inputs.uPrice]
+        || props.fields.incorrectFields[inputs.sPrice]
     );
 
     // Render sub-form within a grid
@@ -734,7 +747,7 @@ function SubFormThree(props) {
                     incorrectField={props.fields.incorrectFields[inputs.uPrice]}
                     disabled={props.fields.requestingFields[inputs.uPrice]}
                     helperText={"Please enter the underlying price, in: " + props.fields.underlyingCurrency}
-                    errorMessage="This input must be a positive, valid price; Please try again."
+                    errorMessage="This input looks incorrect; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -746,7 +759,7 @@ function SubFormThree(props) {
                     incorrectField={props.fields.incorrectFields[inputs.sPrice]}
                     disabled={props.fields.requestingFields[inputs.sPrice]}
                     helperText={"Please enter the strike price, in: " + props.fields.underlyingCurrency}
-                    errorMessage="This input must be a positive, valid price; Please try again."
+                    errorMessage="This input looks incorrect; Please try again."
                 />
             </Grid>
             <Grid item className={classes.formItemContainer}>
@@ -758,13 +771,13 @@ function SubFormThree(props) {
                     incorrectField={props.fields.incorrectFields[inputs.quantity]}
                     disabled={props.fields.requestingFields[inputs.quantity]}
                     helperText="Please enter the quantity of products sold."
-                    errorMessage="This input must be a positive integer; Please try again."
+                    errorMessage="This input looks incorrect; Please try again."
                 />
             </Grid>
             
             <Grid item className={classes.formItemContainer}>
                 <PrevButton />
-                <NextButton disabled={anyEmptyOrError}/>
+                <NextButton disabled={anyEmptyOrSuggestions} color={anyError ? "default" : "primary"}/>
             </Grid>
         </Grid>
         );
