@@ -1,0 +1,25 @@
+{% extends "trades/base.html" %}
+
+{% block content %}
+<h1>Reports for {{day}}/{{month}}/{{year}}</h1>
+{% for report in reports %}
+    <p>Date of Trade: {{ report.date_of_trade }}</p>
+    <p>Trade ID: {{ report.trade_id }}</p>
+    {% if report.product_type == "S" %}
+        <p>Product Name: Stocks</p>
+    {% else %}
+        <p>Product Name: {{ report.traded_product.product }}</p>
+    {% endif %}
+    <p>Buying Party: {{ report.buying_party }}</p>
+    <p>Selling Party: {{ report.selling_party }}</p>
+    <p>Notional Amount: {{ report.notional_currency}} {{ report.notional_amount }}</p>
+    <p>Quantity: {{ report.quantity }}</p>
+    <!-- <p>Notional Currency: {{ report.notional_currency }}</p> -->
+    <p>Maturity Date: {{ report.maturity_date }}</p>
+    <p>Underlying Price: {{ report.underlying_currency }} {{ report.underlying_price }}</p>
+    <!-- <p>Underlying Currency: {{ report.underlying_currency }}</p> -->
+    <p>Strike Price: {{ report.underlying_currency}} {{ report.strike_price }}</p>
+
+    <hr>
+{% endfor %}
+{% endblock content %}
