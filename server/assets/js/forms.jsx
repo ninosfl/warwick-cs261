@@ -23,6 +23,59 @@ function SuperForm(props) {
     // Use reducer hook to handle form data
     const [state, dispatch] = useReducer(reducer, initialFormState);
 
+    // If provided form data, then hand it in
+    let form_data = document.querySelector('#form-data');
+    if (form_data) {
+        let data = JSON.parse(form_data.textContent);
+
+        // Populate fields!!
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.buying,
+            newValue: data.buyingParty
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.selling,
+            newValue: data.sellingParty
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.product,
+            newValue: data.product
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.quantity,
+            newValue: data.quantity
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.uCurr,
+            newValue: data.underlyingCurrency
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.uPrice,
+            newValue: data.underlyingPrice
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.mDate,
+            newValue: data.maturityDate
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.nCurr,
+            newValue: data.notionalCurrency
+        });
+        dispatch({
+            type: actionTypes.new,
+            input: inputs.sPrice,
+            newValue: data.strikePrice
+        });
+    }
+
     const machineLearning = () => {
         const fields = [inputs.quantity, inputs.uPrice, inputs.sPrice];
 
@@ -73,43 +126,62 @@ function SuperForm(props) {
         })
         .then((data) => {
             console.log('Success:', data);
-            if ((data.success === true) && (data.errorThreshold === true)) {
-                let validFields = fields.filter((f) => data.possibleCauses.includes(f) === false);
-
-                // Flag incorrect fields as incorrect
-                data.possibleCauses.map((field) => 
+            if (data.success === true) {
+                if (data.errorThreshold === true) {
+                    let validFields = fields.filter((f) => data.possibleCauses.includes(f) === false);
+    
+                    // Flag incorrect fields as incorrect
+                    data.possibleCauses.map((field) => 
+                        dispatch({
+                            type: actionTypes.markNoSuggestions,
+                            input: field
+                        })
+                    );
+    
+                    // Flag non-incorrect fields as correct!
+                    validFields.map((field) =>
+                        dispatch({
+                            type: actionTypes.markCorrect,
+                            input: field
+                        })
+                    );
+    
+                    console.log("MLError: ", data.errorMessage);
                     dispatch({
-                        type: actionTypes.markNoSuggestions,
-                        input: field
-                    })
-                );
+                        type: actionTypes.newMLError,
+                        message: "Error: " + data.errorMessage + "."
+                    });
 
-                // Flag non-incorrect fields as correct!
-                validFields.map((field) =>
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: field
-                    })
-                );
+                } else {
+                    // Fields are fine - mark them as such!
+                    fields.map((field) =>
+                        dispatch({
+                            type: actionTypes.markCorrect,
+                            input: field
+                        })
+                    );
 
-                console.log("MLError: ", data.errorMessage);
-                dispatch({
-                    type: actionTypes.newMLError,
-                    message: "Error: " + data.errorMessage + "."
-                });
-            } else {
-                // Fields are fine - mark them as such!
-                fields.map((field) =>
-                    dispatch({
-                        type: actionTypes.markCorrect,
-                        input: field
-                    })
-                );
+                    // Check if product or selling party needs correcting.
 
-                dispatch({
-                    type: actionTypes.newMLError,
-                    message: ""
-                });
+                    if (data.possibleCauses.includes("product") === true) {
+                        dispatch({
+                            type: actionTypes.newMLError,
+                            message: "Product is likely to be incorrect. Please try with suggestion: " + data.correction[0] + "."
+                        });
+                    } else if (data.possibleCauses.includes("sellingParty") === true) {
+                        dispatch({
+                            type: actionTypes.newMLError,
+                            message: "Selling party is likely to be incorrect. Please try with suggestion: " + data.correction[0] + "."
+                        });
+                    } else {
+                        dispatch({
+                            type: actionTypes.newMLError,
+                            message: ""
+                        });                      
+                    }
+
+                }
+
             }
 
             // Mark all fields as done requesting

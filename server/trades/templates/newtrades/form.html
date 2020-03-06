@@ -4,6 +4,7 @@
 {% block content %}
     {# React root! #}
     <div id="form-root"></div>
+    {{form_data | json_script:"form-data"}}
     {# Get react to do some rendering! #}
     {% render_bundle 'main' %}
 {% endblock content %}
