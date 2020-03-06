@@ -41,7 +41,6 @@ def api_main(request, func):
     try:
         json_dict = json.loads(request.body.decode("utf-8"))
     except json.decoder.JSONDecodeError:
-        print(request.body.decode("utf-8"))
         return JsonResponse({"success": False, "error": "Malformed JSON"})
     return JsonResponse(func(json_dict))
 
@@ -117,7 +116,6 @@ def normalize_trade(quantity, key, today_date, maturity_date, adjusted_strike, a
     """ ML only """
     md = MetaData.objects.get(key=key)
     hp = get_prices_traded(31, today_date, key, is_stock, adjusted_underlying)
-    print(hp)
     smaPeriod = 20
     tp = 20
     if len(hp) < 20:
@@ -320,32 +318,25 @@ def ai_magic(data):
             k.backend.set_session(t_session)
             predict = autoencoder.predict(np.array([normalizedData]))[0]
         squared_error = squared_errors(predict,normalizedData)
-        print(squared_error)
         mse = mean_squared_error(predict, normalizedData)
         error_ratio = estimate_error_ratio(mse)
         error_msg = mse_error_message(squared_error)
         possible_causes = list(mse_error_causes(squared_error,error_ratio))
-        print(mse_error_causes(squared_error,error_ratio))
-        print(mse)
         if len(possible_causes) == 3 and mse > 5:
             key_mse = []
             for key in (Company.objects.all() if isStock else Product.objects.all()):
                 key = key.name
                 normalizedData = normalize_trade(data['quantity'], key, d, maturityDate, adjustedStrikePrice,
                              adjustedUnderlyingPrice, isStock)
-                if key=='Blue Shells':
-                    print()
                 with t_session.graph.as_default():
                     k.backend.set_session(t_session)
                     predict = autoencoder.predict(np.array([normalizedData]))[0]
                 new_mse = mean_squared_error(predict, normalizedData)
                 if new_mse < 0.0252:
                     key_mse.append((key,new_mse))
-            print(key_mse)
             if key_mse:
                 likely = sorted(key_mse, key=lambda x:x[1])[:3]
                 probability = estimate_error_ratio(likely[0][1])
-                print(likely)
                 return {'success': True,
                     'possible_causes': ['sellingParty' if isStock else 'product'],
                     'probability': probability,
@@ -484,7 +475,6 @@ def validate_trade(data):
 
 
 def correction(data):
-    print(data)
     try:
         corr = Correction.objects.get(old_val=data['oldValue'], new_val=data['newValue'], field=data['field'])
         corr.times_corrected += 1
