@@ -533,8 +533,13 @@ def validate_maturity_date(data):
     try:
         test_date = datetime.strptime(data["date"], "%d/%m/%Y").date()
     except ValueError:
-        result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
-        return result
+        date = data['date'].split("/")
+        date = "/".join(date[:2] + ["20" + date[2]])
+        try:
+            test_date = datetime.strptime(date, "%d/%m/%Y").date()
+        except ValueError:
+            result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
+            return result
 
     # Validate date.
     if test_date < today:
