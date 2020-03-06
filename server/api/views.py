@@ -81,9 +81,11 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
             x,
             w)
         for w in ws}
-    filtered_distances = {w: d for w, d in distances.items() if d <= 5}
-    sorted_distances = sorted(filtered_distances, key=filtered_distances.get)
-    return sorted_distances[:5]
+    
+    filtered_distances = ((w,d) for w, d in distances.items() if d <= 5)
+    sorted_distances = sorted(filtered_distances, key=lambda x:x[1])
+    print(sorted_distances)
+    return [x[0] for x in sorted_distances[:5]], sorted_distances[0][1] < 0
 
 
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
@@ -315,6 +317,7 @@ def estimate_error_ratio(errorValue):
 
 
 def ai_magic(data):
+    error_threshold = 0.8
     d = [int(x) for x in data['date'].split('-')]
     d = date(d[0], d[1], d[2])
     maturityDate = [int(x) for x in data['maturityDate'].split('-')]
@@ -353,17 +356,20 @@ def ai_magic(data):
                 likely = sorted(key_mse, key=lambda x:x[1])[:3]
                 probability = estimate_error_ratio(likely[0][1])
                 return {'success': True,
-                    'possible_causes': ['sellingParty' if isStock else 'product'],
+                    'possibleCauses': ['sellingParty' if isStock else 'product'],
                     'probability': probability,
-                    'correction': [l[0] for l in likely]
+                    'correction': [l[0] for l in likely],   
+                    'errorThreshold': bool(probability > error_threshold),
+                    'errorMessage':'All fields erroneous, correction necessary'
                     }
         return {'success': True,
-                'possible_causes':possible_causes,
+                'possibleCauses':possible_causes,
                 'probability': error_ratio,
-                'error_message':error_msg
+                'errorMessage': error_msg,
+                'errorThreshold': bool(error_ratio > error_threshold)
                 }
     else:
-        return {'success':False, 'possible_cause': 'Not enough historic data','probability':0}
+        return {'success': False, 'errorMessage': 'Not enough historic data','probability': 0}
 
 def validate_company(data):
     """ Validate single company. Expected data: name """
@@ -379,7 +385,10 @@ def validate_company(data):
         result["success"] = True
 
     # possibly a performance bottleneck
-    result["names"] = closest_matches(data["name"], [c.name for c in Company.objects.all()])
+    result["names"], autocorrect = closest_matches(data["name"], [c.name for c in Company.objects.all()],commonCorrectionField=data["fieldType"])
+
+    # Blah blah correction is good
+    result["autoCorrect"] = autocorrect  # Automatically change to top value
     return result
 
 
@@ -400,8 +409,8 @@ def validate_product(data):
         # return result
 
     # Get closest distance matches 
-    result["products"] = closest_matches(
-        data["product"], [p.name for p in Product.objects.all()])
+    result["products"], _ = closest_matches(
+        data["product"], [p.name for p in Product.objects.all()], commonCorrectionField='product')
 
     # Validate product existence
     prod = get_product(data["product"])
@@ -495,6 +504,7 @@ def validate_trade(data):
 
 
 def correction(data):
+    print(str(data))
     try:
         corr = Correction.objects.get(old_val=data['oldValue'], new_val=data['newValue'], field=data['field'])
         corr.times_corrected += 1
@@ -557,11 +567,12 @@ def currencies(_, date_str=None):
 def company(_, company_name):
     """ View of a single company at path 'company/<company_name>/'' """
     comp = get_company(company_name)
+    suggestions, _ = closest_matches(
+            company_name, [c.name for c in Company.objects.all()], commonCorrectionField='companyName'
+    )
     result = {
         "success": comp is not None,
-        "suggestions": closest_matches(
-            company_name, [c.name for c in Company.objects.all()], commonCorrectionField='companyName'
-        ),
+        "suggestions": suggestions
     }
     if comp:
         result["company"] = {
@@ -580,7 +591,7 @@ def product(_, product_name):
             "name": prod.name,
             "seller_company": prod.seller_company.name
         }
-    result["suggestions"] = closest_matches(product_name, [p.name for p in Product.objects.all()])
+    result["suggestions"], _ = closest_matches(product_name, [p.name for p in Product.objects.all()],commonCorrectionField='product')
     return JsonResponse(result)
 
 
@@ -593,7 +604,7 @@ def company_product(_, company_name, product_name):
     comp = get_company(company_name)
     result["company_exists"] = bool(comp)
     if comp:
-        result["product_suggestions"] = closest_matches(
-            product_name, [p.name for p in comp.product_set.all()]
+        result["product_suggestions"], _ = closest_matches(
+            product_name, [p.name for p in comp.product_set.all()], commonCorrectionField='sellingParty'
         )
     return JsonResponse(result)

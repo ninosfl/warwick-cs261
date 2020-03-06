@@ -40,7 +40,10 @@ function SuperForm(props) {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ "name": state.buyingParty }),
+                    body: JSON.stringify({
+                        "name": state.buyingParty,
+                        "fieldType": "buyingParty"
+                    }),
                 })
                 .then((response) => {
                     if (!response.ok) {
@@ -52,24 +55,33 @@ function SuperForm(props) {
                     console.log('Success:', data);
                     if (data.success === false) {
 
-                        let suggestions = data.names;
-                        // If suggestions available, pass them to form
-                        if (suggestions.length > 0) {
+                        if (data.autoCorrect === true) {
                             dispatch({
-                                type: actionTypes.markCorrect,
-                                input: inputs.buying
-                            });
-                            dispatch({
-                                type: actionTypes.provideSuggestions,
+                                type: actionTypes.new,
                                 input: inputs.buying,
-                                suggestions: suggestions
+                                newValue: data.names[0]
                             });
-                        } else {  // No suggestions - just mark as incorrect
-                            dispatch({
-                                type: actionTypes.markNoSuggestions,
-                                input: inputs.buying
-                            });
+                        } else {
+                            let suggestions = data.names;
+                            // If suggestions available, pass them to form
+                            if (suggestions.length > 0) {
+                                dispatch({
+                                    type: actionTypes.markCorrect,
+                                    input: inputs.buying
+                                });
+                                dispatch({
+                                    type: actionTypes.provideSuggestions,
+                                    input: inputs.buying,
+                                    suggestions: suggestions
+                                });
+                            } else {  // No suggestions - just mark as incorrect
+                                dispatch({
+                                    type: actionTypes.markNoSuggestions,
+                                    input: inputs.buying
+                                });
+                            }
                         }
+
                     }
                     dispatch({ type: actionTypes.markRequestComplete, input: inputs.buying });
                 })
@@ -89,7 +101,10 @@ function SuperForm(props) {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ "name": state.sellingParty }),
+                    body: JSON.stringify({
+                        "name": state.sellingParty,
+                        "fieldType": "sellingParty"
+                    }),
                 })
                 .then((response) => {
                     if (!response.ok) {
@@ -101,25 +116,34 @@ function SuperForm(props) {
                     console.log('Success:', data);
                     if (data.success === false) {
 
-                        let suggestions = data.names;
-                        // If suggestions available, pass them to form
-                        if (suggestions.length > 0) {
+                        if (data.autoCorrect === true) {
                             dispatch({
-                                type: actionTypes.markCorrect,
-                                input: inputs.selling
-                            });
-                            dispatch({
-                                type: actionTypes.provideSuggestions,
+                                type: actionTypes.new,
                                 input: inputs.selling,
-                                suggestions: suggestions
+                                newValue: data.names[0]
                             });
-                        } else {  // No suggestions - mark as such
-                            dispatch({
-                                type: actionTypes.markNoSuggestions,
-                                input: inputs.selling
-                            });
+                        } else {
+                            let suggestions = data.names;
+                            // If suggestions available, pass them to form
+                            if (suggestions.length > 0) {
+                                dispatch({
+                                    type: actionTypes.markCorrect,
+                                    input: inputs.selling
+                                });
+                                dispatch({
+                                    type: actionTypes.provideSuggestions,
+                                    input: inputs.selling,
+                                    suggestions: suggestions
+                                });
+                            } else {  // No suggestions - mark as such
+                                dispatch({
+                                    type: actionTypes.markNoSuggestions,
+                                    input: inputs.selling
+                                });
+                            }
                         }
                     }
+
                     dispatch({ type: actionTypes.markRequestComplete, input: inputs.selling });
                 })
                 .catch((error) => {
