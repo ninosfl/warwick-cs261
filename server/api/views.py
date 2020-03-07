@@ -52,6 +52,13 @@ def api_main(request, func):
     return JsonResponse(func(json_dict))
 
   
+@csrf_exempt
+def api_main(request, searchString):
+    if request.method != "POST":
+        return JsonResponse({'success':False})
+
+
+
 def get_company(name):
     """ Returns the Company with that exact name or None if it does not exist """
     try:
