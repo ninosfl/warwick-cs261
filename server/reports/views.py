@@ -60,15 +60,16 @@ def report(request, year: int, month: int, day: int):
         context = {"error_message": err}
         return render(request, "errors/errorpage.html", context)
 
-    reports = DerivativeTrade.objects.select_related('traded_product').filter(date_of_trade=(
-        "%s-%s-%s" % (str(year), str(month), str(day))))
+    # select_related() effectively performs a JOIN on the TradeProduct table to fetch the full product name.
+    # filter() is similar to a WHERE clause in SQL, obtaining trades only for the chosen day.
+    reports = DerivativeTrade.objects.select_related(
+        'traded_product').filter(date_of_trade__date=f"{year}-{month}-{day}")
 
     context = {
         "year": year,
         "month": month,
         "day": day,
-        "reports": reports,
-        # "prod_names": prod_names
+        "reports": reports,  # Returns the queryset.
     }
 
     return render(request, "reports/report.html", context)
