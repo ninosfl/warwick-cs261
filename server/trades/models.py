@@ -209,11 +209,7 @@ def get_currency_values(date):
     if any(retrieved_currencies):
         return {cv.currency:cv.value for cv in retrieved_currencies}
     generated_values = {
-<<<<<<< HEAD
         c: round(Decimal(random.uniform(0.998, 1.002)) * v, 6) # max 6 decimal places
-=======
-        c: round(Decimal(random.uniform(0.9, 1.1)) * v, 6) # max 6 decimal places
->>>>>>> master
         for c, v in _get_sample_currency_values().items()
     }
     generated_values["USD"] = 1

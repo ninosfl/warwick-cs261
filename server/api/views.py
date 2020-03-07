@@ -11,13 +11,13 @@ from jellyfish import damerau_levenshtein_distance as edit_dist
 from keras.models import load_model
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras as k
-# import  tensorflow.python.keras.backend as k
+import  tensorflow.python.keras.backend as kb
 import numpy as np
 
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
                            StockPrice, ProductPrice, TradeProduct, 
-                           convert_currency,get_currencies)
+                           convert_currency, get_currencies)
 
 tf.disable_v2_behavior()
 graph = tf.get_default_graph()
@@ -27,10 +27,12 @@ t_session = tf.Session(graph=tf.Graph())
 def load_model_from_path(path):
     global model
     with t_session.graph.as_default():
-        k.set_session(t_session)
+        try:
+            k.set_session(t_session)
+        except AttributeError:
+            kb.set_session(t_session)
         model = load_model(path)
         return model
-
 autoencoder = load_model_from_path('api/mlModels/AutoEncoder/2217570.h5')
 
 date_format_parse = "%d/%m/%Y"  # Was "%Y-%m-%d"
@@ -86,7 +88,8 @@ def closest_matches(x, ws, commonCorrectionField="", correction_function=min):
     filtered_distances = ((w,d) for w, d in distances.items() if d <= 5)
     sorted_distances = sorted(filtered_distances, key=lambda x:x[1])
     print(sorted_distances)
-    return [x[0] for x in sorted_distances[:5]], sorted_distances[0][1] < 0
+
+    return [x[0] for x in sorted_distances[:5]], sorted_distances[0][1] < 0 if sorted_distances else False
 
   
 def get_prices_traded(n_last, today_date, key, is_stock, adjusted_underlying=None):
