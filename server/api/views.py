@@ -11,11 +11,13 @@ from jellyfish import damerau_levenshtein_distance as edit_dist
 from keras.models import load_model
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras as k
+# import  tensorflow.python.keras.backend as k
 import numpy as np
 
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
-                           StockPrice, ProductPrice, TradeProduct,convert_currency,get_currencies)
+                           StockPrice, ProductPrice, TradeProduct, 
+                           convert_currency,get_currencies)
 
 tf.disable_v2_behavior()
 graph = tf.get_default_graph()
@@ -25,7 +27,7 @@ t_session = tf.Session(graph=tf.Graph())
 def load_model_from_path(path):
     global model
     with t_session.graph.as_default():
-        k.backend.set_session(t_session)
+        k.set_session(t_session)
         model = load_model(path)
         return model
 
@@ -180,8 +182,8 @@ def normalize_trade(quantity, key, today_date, maturity_date, adjusted_strike, a
 
 def record_learning_trade(trade):
     isStock = trade.product_type == 'S'
-    todayDate = date(trade.date_of_trade.year, trade.date_of_trade.month, trade.date_of_trade.day)
-    maturityDate = date(trade.maturity_date.year, trade.maturity_date.month, trade.maturity_date.day)
+    todayDate = trade.date_of_trade.date()
+    maturityDate = trade.maturity_date
     key = trade.selling_party if isStock else trade.traded_product.product
     md = MetaData.objects.get_or_create(key=key, defaults={"runningAvgClosePrice": 0, "runningAvgTradePrice": 0,
                                                            "runningAvgQuantity": 0, "totalEntries": 0,
@@ -391,7 +393,8 @@ def validate_company(data):
         result["success"] = False
     else:
         result["success"] = True
-
+    if 'fieldType' not in data:
+        data['fieldType'] = None
     # possibly a performance bottleneck
     result["names"], autocorrect = closest_matches(data["name"], [c.name for c in Company.objects.all()],commonCorrectionField=data["fieldType"])
 
@@ -415,7 +418,6 @@ def validate_product(data):
     if not get_company(data["buyingParty"]):
         result["error"] = "Buying company does not exist"
         result["buyingParty"] = False
-        # return result
 
     # Get closest distance matches 
     result["products"], _ = closest_matches(
@@ -542,8 +544,13 @@ def validate_maturity_date(data):
     try:
         test_date = datetime.strptime(data["date"], "%d/%m/%Y").date()
     except ValueError:
-        result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
-        return result
+        date = data['date'].split("/")
+        date = "/".join(date[:2] + ["20" + date[2]])
+        try:
+            test_date = datetime.strptime(date, "%d/%m/%Y").date()
+        except ValueError:
+            result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
+            return result
 
     # Validate date.
     if test_date < today:
