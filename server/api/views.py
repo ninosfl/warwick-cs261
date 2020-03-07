@@ -53,9 +53,15 @@ def api_main(request, func):
 
   
 @csrf_exempt
-def api_main(request, searchString):
+def search(request, searchString):
     if request.method != "POST":
         return JsonResponse({'success':False})
+    searchString = searchString.lower()
+    today = timezone.now().date()
+    return True
+    #DerivativeTrade.objects.filter(date__range=[
+    #           (today - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
+    #           today_date.strftime('%Y-%m-%d')]), )
 
 
 
