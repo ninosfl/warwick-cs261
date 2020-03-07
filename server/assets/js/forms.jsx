@@ -24,7 +24,7 @@ function SuperForm(props) {
     let formState = { ...initialFormState };
     if (formData) {
         const data = JSON.parse(formData.textContent);
-        console.log("Parsing data: ", data);
+        // console.log("Parsing data: ", data);
         for (var key in data) {
             if (key === "product") {
                 formState.productName = data.product;
@@ -32,7 +32,7 @@ function SuperForm(props) {
                 formState[key] = data[key];
             }
         }
-        console.log("Form state: ", formState);
+        // console.log("Form state: ", formState);
     }
 
 
