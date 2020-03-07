@@ -6,7 +6,7 @@ Make sure python 3.7 and npm 6.13+ are both installed on your system.
 
 ### Install requirements
 In terminal execute 
-`pip install django jellyfish`
+`pip install django jellyfish  tensorflow keras`
 
 
 ### Run server
@@ -27,7 +27,7 @@ Stop server using `Ctrl+C`
 
 ### Install django
 In terminal execute 
-`pip3 install django jellyfish tensorflow keras currencyconverter`
+`pip3 install django jellyfish tensorflow keras`
 
 ### Run server
 `cd` to this directory (`cs261db/server/`)
