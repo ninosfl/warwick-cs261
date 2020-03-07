@@ -253,7 +253,6 @@ def create_trade(data):
     # Convert values to their appropriate type
 
     try:
-
         data["maturityDate"] = datetime.strptime(data["maturityDate"], date_format_parse).date()
     except ValueError:
         split_date = data['maturityDate'].split("/")
