@@ -28,8 +28,10 @@ def edit_trade(request, trade_id):
         "notionalAmount": trade.notional_amount,
         "notionalCurrency": trade.notional_currency,
         "quantity": trade.quantity,
-        "maturityDate": trade.maturity_date,
-        "underlyingPrice": trade.underlying_price
+        "maturityDate": trade.maturity_date.strftime("%d/%m/%Y"),
+        "underlyingPrice": trade.underlying_price,
+        "strikePrice": trade.strike_price,
+        "underlyingCurrency": trade.underlying_currency,
     }
     return render(request, "newtrades/form.html", {"form_data": trade_data})
 
