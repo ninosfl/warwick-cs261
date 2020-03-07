@@ -371,7 +371,7 @@ def ai_magic(data):
                 return {'success': True,
                     'possibleCauses': ['sellingParty' if isStock else 'product'],
                     'probability': probability,
-                    'correction': [l[0] for l in likely],   
+                    'correction': [l[0] for l in likely],
                     'errorThreshold': bool(probability > error_threshold),
                     'errorMessage':'All fields erroneous, correction necessary'
                     }
