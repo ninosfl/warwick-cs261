@@ -6,6 +6,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import {KeyboardDatePicker, MuiPickersUtilsProvider} from '@material-ui/pickers';
 export {MaterialUIPickers}
 
+var currDate = new Date();
+var year = "/" + currDate.getFullYear().toString();
+var month =  "/" + (currDate.getMonth() + 1).toString();
+var day = "/" + String(currDate.getDate()).padStart(2, '0');
+
 const useStyles = makeStyles(theme => ({
   root: {
     '& > *': {
@@ -26,40 +31,43 @@ function BarButton(props){
 </Button>);
 }
 
-function MaterialUIPickers() {
-  // The first commit of Material-UI
-  const [selectedDate, setSelectedDate] = React.useState(new Date('2014-08-18T21:11:54'));
+function MaterialUIPickers() { //Handles date changed
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
   const classes = useStyles();
   const handleDateChange = date => {
     setSelectedDate(date);
+    currDate = date
+    year = "/" + currDate.getFullYear().toString();
+    month = "/" + (currDate.getMonth() + 1).toString();
+    day = "/" + String(currDate.getDate()).padStart(2, '0');
   };
 
   return (
     
     <div className={classes.root}> 
-    <Grid container justify="space-around">
-    <MuiPickersUtilsProvider utils={DateFnsUtils} >
-        <KeyboardDatePicker
-            margin="normal"
-            id="date-picker-dialog"
-            label="Quick Select"
-            format="dd/MM/yyyy"
-            value={selectedDate}
-            onChange={handleDateChange}
-            KeyboardButtonProps={{
-            'aria-label': 'change date',
-            }}
-        />
-    </MuiPickersUtilsProvider>
-    </Grid>
-    {/* Will need to modifiy these buttons to work with new URLs */}
+      <Grid container justify="space-around">
+      <MuiPickersUtilsProvider utils={DateFnsUtils} >
+          <KeyboardDatePicker
+              margin="normal"
+              id="date-picker-dialog"
+              label="Quick Select"
+              format="dd/MM/yyyy"
+              value={selectedDate}
+              onChange={handleDateChange}
+              KeyboardButtonProps={{
+              'aria-label': 'change date',
+              }}
+          />
+      </MuiPickersUtilsProvider>
+      </Grid>
+      {/* Will need to modifiy these buttons to work with new URLs */}
       <BarButton 
         text="Trades"
-        href="/trades" 
+        href={"/trades" + year + month + day}  
       />
       <BarButton
         text="Reports"
-        href="/trades"
+        href={"/reports" + year + month + day}
       />
     </div>
 
