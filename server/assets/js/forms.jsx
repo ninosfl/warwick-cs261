@@ -20,62 +20,24 @@ function SuperForm(props) {
     // Fetch defined styling
     const classes = useStyles(props);
 
-    // Use reducer hook to handle form data
-    const [state, dispatch] = useReducer(reducer, initialFormState);
-
-    // If provided form data, then hand it in
-    const form_data = document.querySelector('#form-data');
-    if (form_data) {
-        const data = JSON.parse(form_data.textContent);
+    const formData = document.querySelector('#form-data');
+    let formState = { ...initialFormState };
+    if (formData) {
+        const data = JSON.parse(formData.textContent);
         console.log("Parsing data: ", data);
-
-        // Populate fields!!
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.buying,
-            newValue: data.buyingParty
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.selling,
-            newValue: data.sellingParty
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.product,
-            newValue: data.product
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.quantity,
-            newValue: data.quantity
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.uCurr,
-            newValue: data.underlyingCurrency
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.uPrice,
-            newValue: data.underlyingPrice
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.mDate,
-            newValue: data.maturityDate
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.nCurr,
-            newValue: data.notionalCurrency
-        });
-        dispatch({
-            type: actionTypes.new,
-            input: inputs.sPrice,
-            newValue: data.strikePrice
-        });
+        for (var key in data) {
+            if (key === "product") {
+                formState.productName = data.product;
+            } else {
+                formState[key] = data[key];
+            }
+        }
+        console.log("Form state: ", formState);
     }
+
+
+    // Use reducer hook to handle form data
+    const [state, dispatch] = useReducer(reducer, formState);
 
     const machineLearning = () => {
         const fields = [inputs.quantity, inputs.uPrice, inputs.sPrice];
