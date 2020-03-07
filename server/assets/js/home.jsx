@@ -87,7 +87,7 @@ function Album() {
             <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
               Derivative Trades
             </Typography>
-            <Typography variant="subtitle1" align="center" color="textSecondary" paragraph>
+            <Typography variant="body1" align="center" color="textSecondary" paragraph>
               Welcome to the derivatives trades software which helps generate reports and keeps track of all trades that happen on a daily basis. For quickly accessing trades
               or reports on a particular day choose a day in the calender or explore any of the other options.
             </Typography>
