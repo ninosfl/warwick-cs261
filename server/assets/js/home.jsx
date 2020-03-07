@@ -7,8 +7,6 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
-import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import { makeStyles } from '@material-ui/core/styles';
@@ -60,6 +58,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 function Copyright() {
+  //Just some minor tweaks for the bottom
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {'Copyright © '}
@@ -81,7 +80,7 @@ function Album() {
     <React.Fragment>
       <CssBaseline />
       <main>
-        {/* Hero unit */}
+        {/* Hero unit. Basically does all the headings and timetabling for the webpage */}
         <div className={classes.heroContent}>
           <Container maxWidth="sm">
             <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
@@ -94,15 +93,11 @@ function Album() {
               <MaterialUIPickers/>
           </Container>
         </div>
-        <Container className={classes.cardGrid} maxWidth="md" >
+        {/* This part will just allow for the info boxes to appear. They work as cards so links and descriptions are combined*/}
+        <Container className={classes.cardGrid} maxWidth="md" > 
           <Grid container spacing={4}>
               <Grid item  xs={12} sm={6} md={4}>
                 <Card className={classes.card}>
-                  <CardMedia
-                    className={classes.cardMedia}
-                    image="https://source.unsplash.com/random"
-                    title="Image title"
-                  />
                   <CardContent className={classes.cardContent}>
                     <Typography gutterBottom variant="h5" component="h2">
                       Add
@@ -155,7 +150,7 @@ function Album() {
           </Grid>
         </Container>
       </main>
-      {/* Footer */}
+      {/* Footer to show the end of the page*/}
       <footer className={classes.footer}>
         <Typography variant="subtitle1" align="center" color="textSecondary" >
           20th Legion
@@ -186,6 +181,7 @@ function MaterialUIPickers() { //Handles date changed
   const classes = useStyles();
   const handleDateChange = date => {
     setSelectedDate(date);
+    //Take date and cut it up for a url when we try and go the relevant day
     currDate = date
     year = "/" + currDate.getFullYear().toString();
     month = "/" + (currDate.getMonth() + 1).toString();
@@ -194,6 +190,7 @@ function MaterialUIPickers() { //Handles date changed
 
   return (
     <React.Fragment>
+      {/*This part is the calender */}
       <Grid container justify="space-around">
       <MuiPickersUtilsProvider utils={DateFnsUtils} >
           <KeyboardDatePicker
@@ -209,6 +206,7 @@ function MaterialUIPickers() { //Handles date changed
           />
       </MuiPickersUtilsProvider>
       </Grid>
+      {/* Here are the buttons which will take you to the trade or reports respectively */}
       <Grid container spacing={2} justify="center">
         <Grid item>
           <BarButton 

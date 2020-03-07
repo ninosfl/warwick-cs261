@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -83,16 +82,15 @@ function ScrollTop(props) {
   const { children, window } = props;
   const classes = useStyles();
   // Note that you normally won't need to set the window ref as useScrollTrigger
-  // will default to window.
-  // This is only being set here because the demo is in an iframe.
+  // will default to window. Currently the threshold has been set to 100px
   const trigger = useScrollTrigger({
     target: window ? window() : undefined,
     disableHysteresis: true,
     threshold: 100,
   });
 
-  const handleClick = event => {
-    const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor');
+  const handleClick = event => { //On click we just scroll bach to the top
+    const anchor = (event.target.ownerDocument || document).querySelector('#back-to-top-anchor'); 
 
     if (anchor) {
       anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -111,7 +109,7 @@ function ScrollTop(props) {
 
 //End of the scroll button
 
-// General React Component to add buttons to our bar
+// General React Component to add buttons to our bar more easily and quickly
 function BarButton(props){
   return (<Button
   variant="contained"
@@ -136,14 +134,6 @@ function SearchBar() {
       </ScrollTop>
       <AppBar position="static">
         <Toolbar  id="back-to-top-anchor"> 
-          {/* <IconButton
-            edge="start"
-            className={classes.menuButton}
-            color="inherit"
-            aria-label="open drawer"
-          >
-            <MenuIcon />
-          </IconButton> */}
           <Typography className={classes.title} variant="h6" noWrap>
             20th Legion
           </Typography>
@@ -156,19 +146,19 @@ function SearchBar() {
           </IconButton>
           <BarButton 
             text="Add"
-            href="/trades/form" //Ways to add links to our buttons and formatting willk be done automatically TODO! make it accessable through dynamic URL?
+            href="/trades/form" 
           />
           <BarButton 
             text="Trades"
-            href="/trades/" //Ways to add links to our buttons and formatting willk be done automatically
+            href="/trades/" 
           />
           <BarButton 
             text="Reports"
-            href="/reports/" //Ways to add links to our buttons and formatting willk be done automatically
+            href="/reports/" 
           />
           <BarButton 
             text="Admin"
-            href="/admin/" //Ways to add links to our buttons and formatting willk be done automatically
+            href="/admin/" 
           />
           <div className={classes.search}>
             <div className={classes.searchIcon}>
