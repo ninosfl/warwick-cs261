@@ -527,23 +527,33 @@ function SuperForm(props) {
     useEffect(() => {
         if (state.submitNow) {
 
+            let submitData = {
+                "underlyingPrice": state.underlyingPrice,
+                "underlyingCurrency": state.underlyingCurrency,
+                "strikePrice": state.strikePrice,
+                "notionalCurrency": state.notionalCurrency,
+                "quantity": state.quantity,
+                "product": state.productName,
+                "maturityDate": state.maturityDate,
+                "sellingParty": state.sellingParty,
+                "buyingParty": state.buyingParty
+            };
+
+            // Pass date of trade and trade ID if applicable
+            if ("dateOfTrade" in state) {
+                submitData.dateOfTrade = state.dateOfTrade;
+            }
+            if ("tradeID" in state) {
+                submitData.tradeID = state.tradeID;
+            }
+
             console.log("Submitting!");
             fetch(host + 'api/submit/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    "underlyingPrice": state.underlyingPrice,
-                    "underlyingCurrency": state.underlyingCurrency,
-                    "strikePrice": state.strikePrice,
-                    "notionalCurrency": state.notionalCurrency,
-                    "quantity": state.quantity,
-                    "product": state.productName,
-                    "maturityDate": state.maturityDate,
-                    "sellingParty": state.sellingParty,
-                    "buyingParty": state.buyingParty
-                }),
+                body: JSON.stringify(submitData),
             })
             .catch((error) => {
                 console.error('Error:', error);
