@@ -1,0 +1,15 @@
+{% extends "trades/base.html" %}
+{% load render_bundle from webpack_loader %}
+
+{% block content %}
+    {# Store current url! #}
+    <base href="{{ request.path }}" />
+    {# React root! #}
+    <div id="report-list-days"></div>
+    {# Transfer data from Django template to React #}
+    {{days | json_script:"list-data"}}
+    {{year | json_script:"year"}}
+    {{month | json_script:"month"}}
+    {# Get react to do some rendering! #}
+    {% render_bundle 'main' %}
+{% endblock content %}

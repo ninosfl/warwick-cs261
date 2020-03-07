@@ -1,8 +1,15 @@
 import random
 import string
+from decimal import Decimal
+from pathlib import Path
+from datetime import datetime
+
 from django.utils import timezone
 from django.db import models
-# from .utils import convert_currency
+
+DATA_DIR = Path("../data")
+
+SAMPLE_CURRENCY_VALUES_CACHE = None
 
 """
 Permanent-ish data found in main data directory
@@ -72,6 +79,7 @@ def generate_trade_id():
         except DerivativeTrade.DoesNotExist:
             return new_id
 
+
 class Company(models.Model):
     id = models.CharField(primary_key=True, max_length=6, default=generate_company_id)
     # 36 max name length found in data
@@ -89,6 +97,7 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class CurrencyValue(models.Model):
     date = models.DateField()
@@ -122,6 +131,13 @@ class DerivativeTrade(models.Model):
     strike_price = models.DecimalField(max_digits=16, decimal_places=4)
 
     @property
+    def product_or_stocks(self):
+        """ Returns the name of the traded product (if one exists) or otherwise 'Stocks' """
+        if self.product_type == "P":
+            return self.traded_product.product.name
+        return "Stocks"
+
+    @property
     def notional_amount(self):
         """
         Notional amount is a calculated field based on quantity and underlying
@@ -131,6 +147,14 @@ class DerivativeTrade(models.Model):
             self.date_of_trade.date(),
             self.quantity * self.underlying_price,
             self.underlying_currency, self.notional_currency), 4)
+
+    def __str__(self):
+        return ', '.join([
+            str(self.date_of_trade.time()),
+            self.buying_party.name,
+            self.selling_party.name,
+            'Stocks' if self.product_type == 'S' else self.traded_product.product.name
+        ])
 
 class ProductPrice(models.Model):
     date = models.DateField()
@@ -153,14 +177,6 @@ class TradeProduct(models.Model):
                                  on_delete=models.CASCADE, related_name="traded_product")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
-from decimal import Decimal
-from pathlib import Path
-import random
-from .models import CurrencyValue
-
-DATA_DIR = Path("../data")
-
-SAMPLE_CURRENCY_VALUES_CACHE = None
 
 def _get_sample_currency_values():
     """
@@ -183,6 +199,7 @@ def remove_currencies_on_date(date):
 
 def get_currency_values(date):
     """
+    date must be a date object or a string in the format %Y-%m-%d
     Returns a mapping (dict) of currency-value. If no currencies exist for that
     day a list of sample currencies is loaded and then each value is transformed
     +/-10% and stored as that date's currency-values. This resulting mapping is
@@ -192,7 +209,7 @@ def get_currency_values(date):
     if any(retrieved_currencies):
         return {cv.currency:cv.value for cv in retrieved_currencies}
     generated_values = {
-        c: round(Decimal(random.uniform(0.9, 1.1)) * v, 6) # max 6 decimal places
+        c: round(Decimal(random.uniform(0.998, 1.002)) * v, 6) # max 6 decimal places
         for c, v in _get_sample_currency_values().items()
     }
     generated_values["USD"] = 1
@@ -204,6 +221,7 @@ def get_currency_values(date):
 
 def get_currencies(date):
     """
+    date must be a date object or a string in the format %Y-%m-%d
     Returns all currencies that exist on a specified day, if none exist 
     currencies for that date they will be generated as per get_currency_values
     """
@@ -211,6 +229,7 @@ def get_currencies(date):
 
 def convert_currency(date, value, currency1, currency2):
     """
+    date must be a date object or a string in the format %Y-%m-%d
     Convert a value from currency1 to currency2 based on specified date's rate.
     What is stored in CurrencyValue table is valueInUSD hence value is USD/currency
     To convert value V from currency C1 to currency C2:
@@ -223,5 +242,7 @@ def convert_currency(date, value, currency1, currency2):
     with USD/C2 and USD/C1 being what's stored in CurrencyValues it is a simple
     matter of multiplication and to perform the conversion. Result is a Decimal
     """
+    if isinstance(date, str):
+        date = datetime.strptime(date, "%Y-%m-%d")
     currencyvals = get_currency_values(date)
     return Decimal(value) * currencyvals[currency1] / currencyvals[currency2]

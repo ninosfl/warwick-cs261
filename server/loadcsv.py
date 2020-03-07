@@ -2,11 +2,13 @@ import csv
 from pathlib import Path
 from datetime import datetime
 from decimal import Decimal
-
+from api.views import record_learning_trade
 from django.utils import timezone
 from trades.models import (Product, Company, CurrencyValue, DerivativeTrade,
                            ProductPrice, StockPrice, TradeProduct)
-
+from learning.models import Correction,TrainData,MetaData
+from math import floor
+import pickle
 DATA_DIR = Path("../data")
 
 def get_csv(file_path, skip_header=True, delimiter=','):
@@ -25,7 +27,10 @@ def clear_data():
         return False
     CurrencyValue.objects.all().delete()
     Company.objects.all().delete()
+    #Correction.objects.all().delete()
     Product.objects.all().delete()
+    TrainData.objects.all().delete()
+    MetaData.objects.all().delete()
     DerivativeTrade.objects.all().delete()
     ProductPrice.objects.all().delete()
     StockPrice.objects.all().delete()
@@ -48,6 +53,7 @@ def load_all(years_to_load, months_to_load):
     ])
     print(DATA_DIR/'productSellers.csv')
 
+    runningMetaData = pickle.load(open(r'api/runningMetaData.p', 'rb'))
     # load currency values:
     # date,currency,valueInUSD
     for yeardir in (DATA_DIR/'currencyValues').iterdir():
@@ -81,7 +87,10 @@ def load_all(years_to_load, months_to_load):
         10. underlyingCurrency
         11. strikePrice
     """
-
+    for key in runningMetaData:
+        if key!='INFO_DAY':
+            md = runningMetaData[key]
+            MetaData(key=key,runningAvgClosePrice=md['runningAvgClosePrice'],runningAvgTradePrice=md['runningAvgTradePrice'],runningAvgQuantity=md['runningAvgQuantity'],totalEntries=md['totalEntries'],totalQuantity=md['totalQuantity'],trades=md['trades']).save()
     current_tz = timezone.get_current_timezone()
     for yeardir in (DATA_DIR/'derivativeTrades').iterdir():
         if years_to_load != "all" and yeardir.name not in years_to_load:
@@ -112,6 +121,15 @@ def load_all(years_to_load, months_to_load):
                             trade=trades[-1], product_id=l[2]))
                 DerivativeTrade.objects.bulk_create(trades)
                 TradeProduct.objects.bulk_create(tradeproducts)
+                '''
+                interval = floor(len(trades)/10)
+                i=0
+                for trade in trades:
+                    if i % interval == 0:
+                        print(f'Progress in current month: {i/interval*10}%')
+                    i+=1
+                    recordLearningTrade(trade)
+                '''
             print(monthdir)
 
     """
