@@ -340,68 +340,79 @@ def estimate_error_ratio(errorValue):
     if errorValue < values[0.6]:
         return ((errorValue) / values[0.6]) * 0.6
 
+def str_to_date(date_str):
+    """
+    Parses a date string that is either in format DD/MM/YYYY or DD/MM/YY. Any
+    two digit years YY are taken to be after the millenium i.e. 20YY.
+    """
+    try:
+        return datetime.strptime(date_str, date_format_parse).date()
+    except ValueError:
+        split_date = date_str.split("/")
+        if len(split_date) == 3:
+            date_str = '/'.join(split_date[:2] + ["20" + split_date[2]])
+            try:
+                return datetime.strptime(date_str, date_format_parse).date()
+            except ValueError:
+                pass
+    raise ValueError("Date given not in format DD/MM/YYYY or DD/MM/YY")
 
 def ai_magic(data):
     error_threshold = 0.8
 
     # Split date for dd/mm/yyy
-
     if 'date' not in data:
         d = timezone.now().date()
-    else:
-        d = [int(x) for x in data['date'].split('/')]
-        d = date(d[2], d[1], d[0])
-    maturityDate = [int(x) for x in data['maturityDate'].split('/')]
-    maturityDate = date(maturityDate[2], maturityDate[1], maturityDate[0])
+    elif isinstance(data["date"], str):
+        d = datetime.strptime(data["date"], date_format_parse).date()
     data['date'] = d
-    data['maturityDate'] = maturityDate
+    data['maturityDate'] = str_to_date(data["maturityDate"])
 
     isStock = (data['product'] == 'Stocks')
     key = data['sellingParty'] if isStock else data['product']
     adjustedStrikePrice = convert_currency(d, data['strikePrice'],data['notionalCurrency'],'USD')
     adjustedUnderlyingPrice = convert_currency(d, data['underlyingPrice'],data['underlyingCurrency'],'USD')
-    md = MetaData.objects.get(key=key)
-    normalizedData = normalize_trade(data['quantity'], key, d, maturityDate, adjustedStrikePrice,
+    normalizedData = normalize_trade(data['quantity'], key, d, data["maturityDate"], adjustedStrikePrice,
                                      adjustedUnderlyingPrice, isStock)
     if normalizedData is not False:
         with t_session.graph.as_default():
             k.backend.set_session(t_session)
             predict = autoencoder.predict(np.array([normalizedData]))[0]
-        squared_error = squared_errors(predict,normalizedData)
+        squared_error = squared_errors(predict, normalizedData)
         mse = mean_squared_error(predict, normalizedData)
         error_ratio = estimate_error_ratio(mse)
         error_msg = mse_error_message(squared_error)
-        possible_causes = list(mse_error_causes(squared_error,error_ratio))
+        possible_causes = list(mse_error_causes(squared_error, error_ratio))
         if len(possible_causes) == 3 and mse > 5:
             key_mse = []
             for key in (Company.objects.all() if isStock else Product.objects.all()):
                 key = key.name
-                normalizedData = normalize_trade(data['quantity'], key, d, maturityDate, adjustedStrikePrice,
+                normalizedData = normalize_trade(data['quantity'], key, d, data["maturityDate"], adjustedStrikePrice,
                              adjustedUnderlyingPrice, isStock)
                 with t_session.graph.as_default():
                     k.backend.set_session(t_session)
                     predict = autoencoder.predict(np.array([normalizedData]))[0]
                 new_mse = mean_squared_error(predict, normalizedData)
                 if new_mse < 0.0252:
-                    key_mse.append((key,new_mse))
+                    key_mse.append((key, new_mse))
             if key_mse:
-                likely = sorted(key_mse, key=lambda x:x[1])[:3]
+                likely = sorted(key_mse, key=lambda x: x[1])[:3]
                 probability = estimate_error_ratio(likely[0][1])
-                return {'success': True,
+                return {
+                    'success': True,
                     'possibleCauses': ['sellingParty' if isStock else 'product'],
                     'probability': probability,
                     'correction': [l[0] for l in likely],
                     'errorThreshold': bool(probability > error_threshold),
                     'errorMessage':'All fields erroneous, correction necessary'
-                    }
+                }
         return {'success': True,
                 'possibleCauses':possible_causes,
                 'probability': error_ratio,
                 'errorMessage': error_msg,
                 'errorThreshold': bool(error_ratio > error_threshold)
                 }
-    else:
-        return {'success': False, 'errorMessage': 'Not enough historic data','probability': 0}
+    return {'success': False, 'errorMessage': 'Not enough historic data', 'probability': 0}
 
 def validate_company(data):
     """ Validate single company. Expected data: name """
@@ -536,7 +547,6 @@ def validate_trade(data):
 
 
 def correction(data):
-    print(str(data))
     try:
         corr = Correction.objects.get(old_val=data['oldValue'], new_val=data['newValue'], field=data['field'])
         corr.times_corrected += 1
@@ -544,9 +554,7 @@ def correction(data):
     except Correction.DoesNotExist:
         Correction.objects.create(old_val=data['oldValue'], new_val=data['newValue'], field=data['field'],
                                   times_corrected=1)
-    return {
-        'success': 'true'
-    }
+    return {'success': 'true'}
 
 def validate_maturity_date(data):
     """
@@ -564,15 +572,10 @@ def validate_maturity_date(data):
 
     # Attempt to parse given date string
     try:
-        test_date = datetime.strptime(data["date"], "%d/%m/%Y").date()
+        test_date = str_to_date(data["date"])
     except ValueError:
-        date = data['date'].split("/")
-        date = "/".join(date[:2] + ["20" + date[2]])
-        try:
-            test_date = datetime.strptime(date, "%d/%m/%Y").date()
-        except ValueError:
-            result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
-            return result
+        result["error"] = "Invalid date string given. Expected format DD/MM/YYYY"
+        return result
 
     # Validate date.
     if test_date < today:
@@ -581,8 +584,6 @@ def validate_maturity_date(data):
 
     result["success"] = True
     return result
-
-
 
 @csrf_exempt
 def currencies(_, date_str=None):
