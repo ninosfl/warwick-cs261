@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import { YearList, MonthList, DayList } from './list-reports';
 import { ErrorMessage } from './errors';
 import { SearchBar } from './searchbar';
-import { MaterialUIPickers } from "./home";
+import { Album } from "./home";
 import { SuperForm } from './forms';
 
 
@@ -26,7 +26,7 @@ if (target = document.querySelector('#report-list-years')) {
 }
 
 if (target = document.querySelector('#home')){
-  ReactDOM.render(<MaterialUIPickers />, target)
+  ReactDOM.render(<Album />, target)
 }
 
 if (target = document.querySelector('#error-root')) {
