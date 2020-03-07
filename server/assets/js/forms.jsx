@@ -64,13 +64,16 @@ function SuperForm(props) {
         // Mark all fields as requesting
         fields.map((field) => dispatch({ type: actionTypes.markRequesting, input: field }));
 
+        let currentDate = new Date();
+        let dateStr = currentDate.getDate() + "/" + (currentDate.getMonth() + 1) + "/" + currentDate.getFullYear();
+
         fetch(host + 'api/validate/trade/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                "date": "31/12/2019",  // TODO: Get rid of this
+                "date": dateStr,
                 "underlyingPrice": state.underlyingPrice,
                 "underlyingCurrency": state.underlyingCurrency,
                 "strikePrice": state.strikePrice,
