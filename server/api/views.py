@@ -251,7 +251,14 @@ def create_trade(data):
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
     # Convert values to their appropriate type
-    data["maturityDate"] = datetime.strptime(data["maturityDate"], date_format_parse).date()
+
+    try:
+
+        data["maturityDate"] = datetime.strptime(data["maturityDate"], date_format_parse).date()
+    except ValueError:
+        split_date = data['maturityDate'].split("/")
+        data["maturityDate"] = "/".join(split_date[:2] + ["20" + split_date[2]])
+        data["maturityDate"] = datetime.strptime(data["maturityDate"], date_format_parse).date()
     data["underlyingPrice"] = Decimal(data["underlyingPrice"])
     data["strikePrice"] = Decimal(data["strikePrice"])
     data["quantity"] = int(data["quantity"])
