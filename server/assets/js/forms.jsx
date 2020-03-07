@@ -24,9 +24,10 @@ function SuperForm(props) {
     const [state, dispatch] = useReducer(reducer, initialFormState);
 
     // If provided form data, then hand it in
-    let form_data = document.querySelector('#form-data');
+    const form_data = document.querySelector('#form-data');
     if (form_data) {
-        let data = JSON.parse(form_data.textContent);
+        const data = JSON.parse(form_data.textContent);
+        console.log("Parsing data: ", data);
 
         // Populate fields!!
         dispatch({
