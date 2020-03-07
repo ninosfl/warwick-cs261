@@ -87,7 +87,7 @@ function Album() {
             <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
               Derivative Trades
             </Typography>
-            <Typography variant="h7" align="center" color="textSecondary" paragraph>
+            <Typography variant="subtitle1" align="center" color="textSecondary" paragraph>
               Welcome to the derivatives trades software which helps generate reports and keeps track of all trades that happen on a daily basis. For quickly accessing trades
               or reports on a particular day choose a day in the calender or explore any of the other options.
             </Typography>
@@ -157,7 +157,7 @@ function Album() {
       </main>
       {/* Footer */}
       <footer className={classes.footer}>
-        <Typography variant="h6" align="center" gutterBottom>
+        <Typography variant="subtitle1" align="center" color="textSecondary" >
           20th Legion
         </Typography>
         <Typography variant="subtitle1" align="center" color="textSecondary" component="p">
@@ -209,7 +209,7 @@ function MaterialUIPickers() { //Handles date changed
           />
       </MuiPickersUtilsProvider>
       </Grid>
-      <Grid container spacing={2} justify="center" gutterBottom>
+      <Grid container spacing={2} justify="center">
         <Grid item>
           <BarButton 
             text="Trades"
