@@ -67,22 +67,29 @@ function SuperForm(props) {
         let currentDate = new Date();
         let dateStr = currentDate.getDate() + "/" + (currentDate.getMonth() + 1) + "/" + currentDate.getFullYear();
 
+        let bodyContent = {
+            "date": dateStr,
+            "underlyingPrice": state.underlyingPrice,
+            "underlyingCurrency": state.underlyingCurrency,
+            "strikePrice": state.strikePrice,
+            "notionalCurrency": state.notionalCurrency,
+            "quantity": state.quantity,
+            "product": state.productName,
+            "maturityDate": state.maturityDate,
+            "sellingParty": state.sellingParty
+        };
+        
+        // Send trade ID if necessary
+        if ("tradeID" in state) {
+            bodyContent.tradeID = state.tradeID;
+        }
+
         fetch(host + 'api/validate/trade/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                "date": dateStr,
-                "underlyingPrice": state.underlyingPrice,
-                "underlyingCurrency": state.underlyingCurrency,
-                "strikePrice": state.strikePrice,
-                "notionalCurrency": state.notionalCurrency,
-                "quantity": state.quantity,
-                "product": state.productName,
-                "maturityDate": state.maturityDate,
-                "sellingParty": state.sellingParty
-            }),
+            body: JSON.stringify(bodyContent),
         })
         .then((response) => {
             if (!response.ok) {
