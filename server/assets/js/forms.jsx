@@ -155,6 +155,15 @@ function SuperForm(props) {
 
                 }
 
+            } else {
+                console.log("Failed ML validate! Unsuccessful!");
+                // Fetch unsuccessful - no sense flagging incorrect
+                fields.map((field) =>
+                    dispatch({
+                        type: actionTypes.markCorrect,
+                        input: field
+                    })
+                );
             }
 
             // Mark all fields as done requesting
