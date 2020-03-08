@@ -24,7 +24,7 @@
 {% endblock page_style %}
 {% block content %}
 <h1>Trades on {{day}}/{{month}}/{{year}}</h1>
-
+{% if reports %}
     <table>
         <tr>
             <th>Date of Trade</th>
@@ -57,5 +57,8 @@
         </tr>
         {% endfor %}
     </table>
+{% else %}
+    <p>No trades found on this day.</p>
+{% endif %}
 
 {% endblock content %}
