@@ -954,7 +954,7 @@ function SubmitForm(props) {
             <Grid item className={classes.submitButton}>
                 <PrevButton />
                 {(props.fields.submitNow === true)
-                ? <IconButton className={classes.button}><CheckIcon /></IconButton>
+                ? <IconButton className={classes.button} href="/"><CheckIcon /></IconButton>
                 : <SubmitButton disabled={anyInputEmpty} /> }
             </Grid>
         </Grid>
