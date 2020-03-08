@@ -14,7 +14,7 @@ def enter(request):
 def delete_trade(_, trade_id):
     trade = get_object_or_404(DerivativeTrade, trade_id=trade_id)
     trade.delete()
-    return redirect(reverse("trades-list-years"))
+    return redirect(reverse("home-page"))
 
 def form(request):
     return render(request, "newtrades/form.html")
