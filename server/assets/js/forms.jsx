@@ -243,6 +243,11 @@ function SuperForm(props) {
                     console.error('Error:', error);
                     dispatch({ type: actionTypes.markRequestComplete, input: inputs.buying });
                 });
+
+                if (state.productName.length > 0) {
+                    dispatch({ type: actionTypes.markRequesting, input: inputs.product });
+                    dispatch({ type: actionTypes.validate, validationInput: inputs.product });
+                }
                 
                 break;
 
@@ -304,6 +309,12 @@ function SuperForm(props) {
                     console.error('Error:', error);
                     dispatch({ type: actionTypes.markRequestComplete, input: inputs.selling });
                 });
+
+                if (state.productName.length > 0) {
+                    dispatch({ type: actionTypes.markRequesting, input: inputs.product });
+                    dispatch({ type: actionTypes.validate, validationInput: inputs.product });
+                }
+
                 break;
 
             case inputs.product:
@@ -345,16 +356,21 @@ function SuperForm(props) {
                             console.log("Swapping buying and selling parties.");
                             let buying = state.buyingParty;
                             let selling = state.sellingParty;
+
                             dispatch({
-                                type: actionTypes.new,
+                                type: actionTypes.correction,
                                 input: inputs.buying,
+                                oldValue: buying,
                                 newValue: selling
                             });
+
                             dispatch({
-                                type: actionTypes.new,
+                                type: actionTypes.correction,
                                 input: inputs.selling,
+                                oldValue: selling,
                                 newValue: buying
                             });
+                            
                         } else {
                             let wrongSelling = data.sellingParty !== state.sellingParty;
                             // let wrongBuying = data.buyingParty === false;
