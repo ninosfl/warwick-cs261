@@ -1,5 +1,15 @@
 {% extends "trades/base.html" %}
 
+{% block page_style %}
+<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+<!-- Table styling from https://www.w3schools.com/html/html_tables.asp -->
+<style>
+    * {
+        font-family: 'Roboto';
+    }
+</style>
+{% endblock page_style %}
+
 {% block content %}
 
 <h1>Trades on {{day}}/{{month}}/{{year}}</h1>
