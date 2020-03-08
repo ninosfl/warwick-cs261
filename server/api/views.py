@@ -245,7 +245,7 @@ def modify_trade(data):
     else: # Not stocks
         trade.product_type = 'P'
         trade.traded_product = TradeProduct(trade=trade, product=get_product(data["product"]))
-        trade.traded_product.save
+        trade.traded_product.save()
     trade.maturity_date = str_to_date(data["maturityDate"])
     trade.strike_price = Decimal(data["strikePrice"])
     trade.underlying_price = Decimal(data["underlyingPrice"])
