@@ -183,9 +183,14 @@ function MaterialUIPickers() { //Handles date changed
     setSelectedDate(date);
     //Take date and cut it up for a url when we try and go the relevant day
     currDate = date
-    year = "/" + currDate.getFullYear().toString();
-    month = "/" + (currDate.getMonth() + 1).toString();
-    day = "/" + String(currDate.getDate()).padStart(2, '0');
+    try{
+      year = "/" + currDate.getFullYear().toString();
+      month = "/" + (currDate.getMonth() + 1).toString();
+      day = "/" + String(currDate.getDate()).padStart(2, '0');
+    }catch(err) {
+      //This only happens when we have no date in the date field and avoids any null pointer errors
+    }
+    
   };
 
   return (
