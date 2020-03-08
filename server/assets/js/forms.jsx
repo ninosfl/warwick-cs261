@@ -952,10 +952,9 @@ function SubmitForm(props) {
                 </Typography>
             </Grid>
             <Grid item className={classes.submitButton}>
-                <PrevButton />
                 {(props.fields.submitNow === true)
                 ? <IconButton className={classes.button} href="/"><CheckIcon /></IconButton>
-                : <SubmitButton disabled={anyInputEmpty} /> }
+                : <> <PrevButton /> <SubmitButton disabled={anyInputEmpty} /> </> }
             </Grid>
         </Grid>
     );
