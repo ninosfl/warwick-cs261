@@ -105,7 +105,6 @@ class CurrencyValue(models.Model):
     currency = models.CharField(max_length=3)
     # max 4 decimal places found in data
     value = models.DecimalField(max_digits=16, decimal_places=6)
-    
     class Meta:
         unique_together = ("date", "currency")
 

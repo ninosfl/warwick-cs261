@@ -1,6 +1,6 @@
 import csv
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from api.views import record_learning_trade
 from django.utils import timezone
@@ -27,7 +27,7 @@ def clear_data():
         return False
     CurrencyValue.objects.all().delete()
     Company.objects.all().delete()
-    #Correction.objects.all().delete()
+    Correction.objects.all().delete()
     Product.objects.all().delete()
     TrainData.objects.all().delete()
     MetaData.objects.all().delete()
@@ -38,6 +38,8 @@ def clear_data():
     return True
 
 def load_all(years_to_load, months_to_load):
+
+
     # load Company
     Company.objects.bulk_create([
         Company(name=name, id=id)
@@ -65,7 +67,6 @@ def load_all(years_to_load, months_to_load):
             for f in monthdir.iterdir():
                 CurrencyValue.objects.bulk_create([
                     CurrencyValue(
-
                         date=datetime.strptime(l[0], "%d/%m/%Y").date(),
                         currency=l[1],
                         value=Decimal(l[2]))
@@ -92,6 +93,7 @@ def load_all(years_to_load, months_to_load):
             md = runningMetaData[key]
             MetaData(key=key,runningAvgClosePrice=md['runningAvgClosePrice'],runningAvgTradePrice=md['runningAvgTradePrice'],runningAvgQuantity=md['runningAvgQuantity'],totalEntries=md['totalEntries'],totalQuantity=md['totalQuantity'],trades=md['trades']).save()
     current_tz = timezone.get_current_timezone()
+
     for yeardir in (DATA_DIR/'derivativeTrades').iterdir():
         if years_to_load != "all" and yeardir.name not in years_to_load:
             continue
@@ -131,7 +133,44 @@ def load_all(years_to_load, months_to_load):
                     recordLearningTrade(trade)
                 '''
             print(monthdir)
-
+    if input(
+            "Would you like to load most recent CSV month as learning trades for the last month? Warning, takes a while (y/yes)\n> ").lower() in [
+        'y', 'yes']:
+        for f in ((DATA_DIR / 'currencyValues') / '2019' / 'December').iterdir():
+            CurrencyValue.objects.bulk_create([
+                CurrencyValue(
+                    date=datetime.combine((datetime.now().date() - timedelta(days=31)) + (
+                            datetime.strptime(l[0], "%d/%m/%Y").date() - datetime(2019, 12, 1).date()),
+                                          datetime.min.time()),
+                    currency=l[1],
+                    value=Decimal(l[2]))
+                for l in get_csv(f)
+            ])
+        for f in ((DATA_DIR / 'derivativeTrades') / '2019' / 'December').iterdir():
+            trades = []
+            tradeproducts = []
+            for l in get_csv(f):
+                newDate = datetime.combine((datetime.now().date() - timedelta(days=31)) + (
+                            datetime.strptime(l[0], "%d/%m/%Y %H:%M") - datetime(2019, 12, 1)), datetime.min.time())
+                trades.append(DerivativeTrade(
+                    date_of_trade=newDate,
+                    product_type=('S' if l[2] == "Stocks" else 'P'),
+                    buying_party_id=l[3],
+                    selling_party_id=l[4],
+                    # notional_amount=Decimal(l[5]),
+                    notional_currency=l[6],
+                    quantity=int(l[7]),
+                    maturity_date=datetime.strptime(l[8], "%d/%m/%Y"),
+                    underlying_price=Decimal(l[9]),
+                    underlying_currency=l[10],
+                    strike_price=Decimal(l[11])))
+                if l[2] != "Stocks":
+                    tradeproducts.append(TradeProduct(
+                        trade=trades[-1], product_id=l[2]))
+            DerivativeTrade.objects.bulk_create(trades)
+            TradeProduct.objects.bulk_create(tradeproducts)
+            for trade in trades:
+                record_learning_trade(trade)
     """
     Load Product Prices
     0. date

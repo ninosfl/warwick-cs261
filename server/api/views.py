@@ -52,16 +52,6 @@ def api_main(request, func):
     return JsonResponse(func(json_dict))
 
   
-@csrf_exempt
-def search(request, searchString):
-    if request.method != "POST":
-        return JsonResponse({'success':False})
-    searchString = searchString.lower()
-    today = timezone.now().date()
-    return True
-    #DerivativeTrade.objects.filter(date__range=[
-    #           (today - timedelta(days=n_last + 10)).strftime('%Y-%m-%d'),
-    #           today_date.strftime('%Y-%m-%d')]), )
 
 
 
@@ -343,10 +333,10 @@ def estimate_error_ratio(errorValue):
 
 def ai_magic(data):
     error_threshold = 0.8
-
     # Split date for dd/mm/yyy
-
-    if 'date' not in data:
+    if 'tradeID' in data:
+        d = DerivativeTrade.objects.get(trade_id=data['tradeID']).date_of_trade
+    elif 'date' not in data:
         d = timezone.now().date()
     else:
         d = [int(x) for x in data['date'].split('/')]
