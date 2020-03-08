@@ -67,22 +67,29 @@ function SuperForm(props) {
         let currentDate = new Date();
         let dateStr = currentDate.getDate() + "/" + (currentDate.getMonth() + 1) + "/" + currentDate.getFullYear();
 
+        let bodyContent = {
+            "date": dateStr,
+            "underlyingPrice": state.underlyingPrice,
+            "underlyingCurrency": state.underlyingCurrency,
+            "strikePrice": state.strikePrice,
+            "notionalCurrency": state.notionalCurrency,
+            "quantity": state.quantity,
+            "product": state.productName,
+            "maturityDate": state.maturityDate,
+            "sellingParty": state.sellingParty
+        };
+        
+        // Send trade ID if necessary
+        if ("tradeID" in state) {
+            bodyContent.tradeID = state.tradeID;
+        }
+
         fetch(host + 'api/validate/trade/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                "date": dateStr,
-                "underlyingPrice": state.underlyingPrice,
-                "underlyingCurrency": state.underlyingCurrency,
-                "strikePrice": state.strikePrice,
-                "notionalCurrency": state.notionalCurrency,
-                "quantity": state.quantity,
-                "product": state.productName,
-                "maturityDate": state.maturityDate,
-                "sellingParty": state.sellingParty
-            }),
+            body: JSON.stringify(bodyContent),
         })
         .then((response) => {
             if (!response.ok) {
@@ -291,6 +298,17 @@ function SuperForm(props) {
                 break;
 
             case inputs.product:
+
+                // Allow Stocks as an input
+                if (state.productName.toLowerCase() === "stocks") {
+                    dispatch({
+                        type: actionTypes.new,
+                        input: inputs.product,
+                        newValue: "Stocks"
+                    });
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.product });
+                    break;
+                }
 
                 console.log("Currently validating product: ", state.productName);
                 fetch(host + 'api/validate/product/', {
@@ -936,7 +954,7 @@ function SubmitForm(props) {
             <Grid item className={classes.submitButton}>
                 <PrevButton />
                 {(props.fields.submitNow === true)
-                ? <IconButton className={classes.button}><CheckIcon /></IconButton>
+                ? <IconButton className={classes.button} href="/"><CheckIcon /></IconButton>
                 : <SubmitButton disabled={anyInputEmpty} /> }
             </Grid>
         </Grid>
