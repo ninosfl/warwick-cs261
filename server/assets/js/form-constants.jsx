@@ -104,7 +104,6 @@ const reducer = (state, action) => {
             // Return a new object with only the relevant input modified!
             return { ...state, [action.input]: action.newValue };
 
-        // FIXME: Cannot validate the same item multiple times in a row.
         case actionTypes.validate:
             // Change validationInput to activate SuperForm effect hook.
             return { ...state, "validationInputs": [...state.validationInputs, action.validationInput] };

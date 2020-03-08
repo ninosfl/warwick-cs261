@@ -9,19 +9,17 @@ import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import PublishIcon from '@material-ui/icons/Publish';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import { actionTypes, FormDispatch, useStyles, inputs, host } from './form-constants';
 
-export { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, IgnoreButton, SubFormTitle, CurrencyField };
+export { FormFieldWrapper, SubmitButton, NextButton, PrevButton, IgnoreButton, SubFormTitle, CurrencyField };
 
 
 // Component for text fields in the form
 function FormField(props) {
     // Get dispatch function from the reducer hook via a context hook
-    // TODO: Move this out if this proves expensive
     const dispatch = useContext(FormDispatch);
 
     // Fetch defined styling
@@ -240,34 +238,6 @@ function FormFieldWrapper(props) {
 }
 
 
-function SubmitField(props) {
-    // Get dispatch function from the reducer hook via a context hook
-    // TODO: Move this out if this proves expensive
-    const dispatch = useContext(FormDispatch);
-
-    // Fetch defined styling
-    const classes = useStyles(props);
-
-    // Create a function that takes in an event, and dispatches the appropriate
-    // action to the reducer hook.
-    const handleChange = e => dispatch({
-        input: props.id,
-        type: actionTypes.new,
-        newValue: e.target.value
-    });
-
-    return (
-        <TextField
-            variant="standard"
-            size="small"
-            onChange={handleChange}
-            className={classes.formItem}
-            {...props}
-        />
-    );
-}
-
-
 function NextButton(props) {
     // Fetch defined styling
     const classes = useStyles(props);
@@ -353,7 +323,6 @@ function SubmitButton(props) {
             color="primary"
             className={classes.button}
             endIcon={<CloudUploadIcon />}
-            // endIcon={<PublishIcon />}
             onClick={goToNextForm}
             {...props}
         >

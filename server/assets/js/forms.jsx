@@ -1,16 +1,12 @@
 /* jshint esversion: 9 */
 
 import React, { useReducer, useEffect } from 'react';
-import { Grid, Paper, CircularProgress, InputAdornment, Typography } from '@material-ui/core';
+import { Grid, Paper, Typography } from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import CheckIcon from '@material-ui/icons/Check';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
 import { subForms, initialFormState, actionTypes, inputs, reducer, FormDispatch, useStyles, all_zeroes, int_re, decimal_re, date_format_re, host } from './form-constants';
-import { FormFieldWrapper, SubmitField, SubmitButton, NextButton, PrevButton, IgnoreButton, SubFormTitle, CurrencyField } from './form-components';
-import AutorenewRoundedIcon from '@material-ui/icons/AutorenewRounded';
+import { FormFieldWrapper, SubmitButton, NextButton, PrevButton, IgnoreButton, SubFormTitle, CurrencyField } from './form-components';
 
 export { SuperForm };
 
@@ -187,8 +183,8 @@ function SuperForm(props) {
         switch (input) {
             case inputs.buying:
                 // Validate buying party via API
-                // curl --request POST --data '{"name": "Axon"}' localhost:8000/api/validate/company/
                 console.log("Currently validating buying party: ", state.buyingParty);
+
                 fetch(host + 'api/validate/company/', {
                     method: 'POST',
                     headers: {
@@ -253,8 +249,8 @@ function SuperForm(props) {
 
             case inputs.selling:
                 // Validate selling party using API
-
                 console.log("Currently validating selling party: ", state.sellingParty);
+
                 fetch(host + 'api/validate/company/', {
                     method: 'POST',
                     headers: {
@@ -370,13 +366,12 @@ function SuperForm(props) {
                                 oldValue: selling,
                                 newValue: buying
                             });
-                            
+
                         } else {
                             let wrongSelling = data.sellingParty !== state.sellingParty;
-                            // let wrongBuying = data.buyingParty === false;
 
                             if (wrongSelling) {
-                                // TODO: Maybe correct automatically rather than suggesting??
+
                                 dispatch({
                                     type: actionTypes.markCorrect,
                                     input: inputs.selling
@@ -387,12 +382,7 @@ function SuperForm(props) {
                                     suggestions: [data.sellingParty]
                                 });
                             }
-                            // if (wrongBuying) {
-                            //     dispatch({
-                            //         type: actionTypes.markNoSuggestions,
-                            //         input: inputs.buying
-                            //     });
-                            // }
+
                             if (data.product === false) {
                                 let suggestions = [];
                                 if ("products" in data) {
@@ -533,8 +523,6 @@ function SuperForm(props) {
                 dispatch({ type: actionTypes.markRequestComplete, input: inputs.sPrice });
                 break;
 
-            // TODO: Below validations!
-
             case inputs.uCurr:
                 break;
             
@@ -604,7 +592,6 @@ function SuperForm(props) {
             .catch((error) => {
                 console.error('Error:', error);
             });
-            // TODO: Maybe put user input on an extra page, with generated fields
 
         }
     }, [state.submitNow]);
