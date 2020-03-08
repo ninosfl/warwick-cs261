@@ -7,7 +7,7 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 
 from trades.models import Company, CurrencyValue, DerivativeTrade, Product
-from api.views import create_trade, validate_maturity_date, validate_company
+from api.views import submit_trade, validate_maturity_date, validate_company
 
 DATE_REGEX = "^(?P<day>[0-9]+)/(?P<month>[0-9]+)/(?P<year>[0-9]{2,2})$"
 
@@ -15,7 +15,7 @@ class TestSubmit(TestCase):
     def test_url_correct(self):
         self.assertEqual(reverse("api-submit"), "/api/submit/")
     def test_correct_function_chosen(self):
-        self.assertEqual(resolve("/api/submit/").kwargs["func"], create_trade)
+        self.assertEqual(resolve("/api/submit/").kwargs["func"], submit_trade)
     def test_trade_created_yyyy(self):
         test_date = timezone.now().date()
         CurrencyValue.objects.create(date=test_date, currency="USD", value="1")
@@ -35,7 +35,7 @@ class TestSubmit(TestCase):
             "notionalCurrency": "BBB",
             "strikePrice": "1"
         }
-        response = create_trade(trade_data.copy()) # copy because passed data is modified
+        response = submit_trade(trade_data.copy()) # copy because passed data is modified
         self.assertTrue(response["success"])
         new_trade = response["trade"]
         self.assertTrue(DerivativeTrade.objects.all())
@@ -67,7 +67,7 @@ class TestSubmit(TestCase):
             "notionalCurrency": "BBB",
             "strikePrice": "1"
         }
-        response = create_trade(trade_data.copy()) # copy because passed data is modified
+        response = submit_trade(trade_data.copy()) # copy because passed data is modified
         self.assertTrue(response["success"])
         new_trade = response["trade"]
         matcher = re.match(DATE_REGEX, trade_data["maturityDate"])

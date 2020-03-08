@@ -20,7 +20,7 @@ def view_trade(request):
 def edit_trade(request, trade_id):
     trade = get_object_or_404(DerivativeTrade, trade_id=trade_id)
     trade_data = {
-        "dateOfTrade": trade.date_of_trade,
+        "dateOfTrade": trade.date_of_trade.strftime("%H:%M:%S %d/%m/%Y"),
         "tradeID": trade.trade_id,
         "product": trade.product_or_stocks,
         "buyingParty": trade.buying_party.name,
@@ -83,8 +83,14 @@ def list_days(request, year: int, month: int):
     return render(request, "trades/days.html", context)
 
 def list_all_of_day(request, year, month, day):
-    daily_trades = DerivativeTrade.objects.filter(date_of_trade__date=date(year, month, day))
-    return render(request, "trades/trades_list.html", {"trades": daily_trades, "day": day, "month": month, "year": year})
+    context = {
+        "trades": DerivativeTrade.objects.filter(date_of_trade__date=date(year, month, day)),
+        "day": day,
+        "month": month,
+        "year": year,
+        "editable": (timezone.now().date() - date(year, month, day)).days < 8
+    }
+    return render(request, "trades/trades_list.html", context)
 
 def is_year_valid(year: int, now=timezone.now()):
     """ Checks if a given year is valid. """
