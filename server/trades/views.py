@@ -25,7 +25,7 @@ def view_trade(request):
 def edit_trade(request, trade_id):
     trade = get_object_or_404(DerivativeTrade, trade_id=trade_id)
     trade_data = {
-        "dateOfTrade": trade.date_of_trade.strftime("%H:%M:%S %d/%m/%Y"),
+        "dateOfTrade": trade.date_of_trade.strftime("%H:%M %d/%m/%Y"),
         "tradeID": trade.trade_id,
         "product": trade.product_or_stocks,
         "buyingParty": trade.buying_party.name,

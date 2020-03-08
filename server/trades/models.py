@@ -149,7 +149,7 @@ class DerivativeTrade(models.Model):
 
     def __str__(self):
         return ', '.join([
-            str(self.date_of_trade.time()),
+            self.date_of_trade.strftime("%H:%M"),
             self.buying_party.name,
             self.selling_party.name,
             'Stocks' if self.product_type == 'S' else self.traded_product.product.name
