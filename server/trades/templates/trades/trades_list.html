@@ -8,6 +8,15 @@
         font-family: 'Roboto';
     }
 </style>
+<script type="text/javascript">
+    function myFunction(trade_id, trade_delete_url)
+    {
+        if (true == confirm("Do you wanna delete trade with ID " + trade_id))
+        {
+            window.location.href = trade_delete_url;
+        }
+    }
+</script>
 {% endblock page_style %}
 
 {% block content %}
@@ -15,7 +24,10 @@
 <h1>Trades on {{day}}/{{month}}/{{year}}</h1>
 
 {% for trade in trades %}
-    <div> {{ trade }} {% if editable %} <a href="{% url 'trades-edit' trade.trade_id %}">Edit</a> {% endif %} </div>
+    <div> {{ trade }} {% if editable %} 
+        <a href="{% url 'trades-edit' trade.trade_id %}">Edit</a>
+        <button onclick='myFunction("{{ trade.trade_id }}", "{% url 'trades-delete' trade.trade_id %}")'>Delete</button> {% endif %}
+    </div>
 {% endfor %}
 
 {% endblock content %}

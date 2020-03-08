@@ -1,7 +1,7 @@
 from datetime import date
 from calendar import Calendar
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, reverse, redirect, get_object_or_404
 from django.utils import timezone
 from trades.models import DerivativeTrade
 
@@ -10,6 +10,11 @@ def enter(request):
         # proccess entered data contained in request.POST
         return NotImplemented
     return render(request, "trades/new.html", {"stuff": "Stuff can simply be passed in a dictionary"})
+
+def delete_trade(_, trade_id):
+    trade = get_object_or_404(DerivativeTrade, trade_id=trade_id)
+    trade.delete()
+    return redirect(reverse("trades-list-years"))
 
 def form(request):
     return render(request, "newtrades/form.html")
