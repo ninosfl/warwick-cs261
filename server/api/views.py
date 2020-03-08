@@ -1,6 +1,7 @@
 from decimal import Decimal, InvalidOperation
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 import json
+import re
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -23,6 +24,8 @@ tf.disable_v2_behavior()
 graph = tf.get_default_graph()
 t_session = tf.Session(graph=tf.Graph())
 
+datetime_pattern = "(?P<hours>[0-9]+):(?P<minutes>[0-9]{2,2})(:(?P<seconds>[0-9]{2,2}))? (?P<day>[0-9]+)/(?P<month>[0-9]+)/(?P<year>(?P<year2>[0-9]{2,2})|(?P<year4>[0-9]{4,4}))"
+datetime_regex = re.compile(datetime_pattern)
 
 def load_model_from_path(path):
     global model
@@ -194,8 +197,6 @@ def normalize_trade(quantity, key, today_date, maturity_date, adjusted_strike, a
                        (d[11] / d[8] - 1) * 15)
     return normalized_data
 
-
-
 def record_learning_trade(trade):
     isStock = trade.product_type == 'S'
     todayDate = trade.date_of_trade.date()
@@ -238,9 +239,39 @@ def currency_exists(currency_code):
     currencies_today = [c.currency for c in CurrencyValue.objects.get(date=timezone.now().date())]
     return currency_code in currencies_today
 
+def submit_trade(data):
+    if "tradeID" in data:
+        return modify_trade(data)
+    else:
+        return create_trade(data)
+
+def modify_trade(data):
+    trade = DerivativeTrade.objects.get(trade_id=data["tradeID"])
+    # Set product and product type
+    old_is_stocks = trade.product_type
+    new_is_stocks = data["product"] == "Stocks"
+    if new_is_stocks:
+        trade.product_type = 'S'
+        if not old_is_stocks:
+            trade.traded_product.delete()
+    else: # Not stocks
+        trade.product_type = 'P'
+        trade.traded_product = get_product(data["product"])
+        if old_is_stocks:
+            trade.traded_product = TradeProduct(trade=trade, product=get_product(data["product"]))
+    trade.maturity_date = str_to_date(data["maturityDate"])
+    trade.strike_price = Decimal(data["strikePrice"])
+    trade.underlying_price = Decimal(data["underlyingPrice"])
+    trade.underlying_currency = data["underlyingCurrency"]
+    trade.notional_currency = data["notionalCurrency"]
+    trade.buying_party = get_company(data["buyingParty"])
+    trade.selling_party = get_company(data["sellingParty"])
+    trade.quantity = int(data["quantity"])
+    trade.date_of_trade = str_to_datetime(data["dateOfTrade"])
+    trade.save()
+    return {"success": True}
 
 def create_trade(data):
-    print(str(data))
     # Verify all data keys exist
     required_data = {
         "product", "sellingParty", "buyingParty",
@@ -250,8 +281,7 @@ def create_trade(data):
     not_specified = required_data.difference(data)
     if not_specified:
         return {"success": False, "error": f"Did not specify {', '.join(not_specified)}"}
-    # Convert values to their appropriate type
-
+    # Convert values to their appropriate types
     try:
         data["maturityDate"] = datetime.strptime(data["maturityDate"], date_format_parse).date()
     except ValueError:
@@ -356,6 +386,26 @@ def str_to_date(date_str):
             except ValueError:
                 pass
     raise ValueError("Date given not in format DD/MM/YYYY or DD/MM/YY")
+
+def str_to_datetime(datetime_str):
+    """
+    Parses a date string that is either in format HH:MM:SS DD/MM/YYYY or
+    HH:mm:ss DD/MM/YY. Any two digit years YY are taken to be after the
+    millenium i.e. 20YY.
+    """
+    global datetime_regex
+    matcher = datetime_regex.match(datetime)
+    if not matcher:
+        raise ValueError("datetime not given in format 'HH:mm:ss DD/MM/YY' or"
+                         +"'HH:mm DD/MM/YY'. Year can be either 2 or 4 digits")
+    return datetime(
+        int(matcher["year"]),
+        int(matcher["month"]),
+        int(matcher["day"]),
+        int(matcher["hours"]),
+        int(matcher["minutes"]),
+        int("20" + matcher["year2"] if matcher["year2"] else matcher["year4"])
+    )
 
 def ai_magic(data):
     error_threshold = 0.8
@@ -591,10 +641,7 @@ def currencies(_, date_str=None):
     Returns currencies for a specific date. If no date is specified the current
     server date is used. Date str must be in DD/MM/YYYY format.
     """
-    if not date_str:
-        request_date = timezone.now().date()
-    else:
-        request_date = datetime.strptime(date_str, date_format_parse).date()
+    request_date = str_to_date(date_str) if date_str else timezone.now().date()
     return JsonResponse({
         "currencies": get_currencies(request_date)
     })
