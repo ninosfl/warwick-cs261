@@ -5,7 +5,7 @@
 <h1>Trades on {{day}}/{{month}}/{{year}}</h1>
 
 {% for trade in trades %}
-    <div> {{ trade }} <a href="{% url 'trades-edit' trade.trade_id %}">Edit</a> </div>
+    <div> {{ trade }} {% if editable %} <a href="{% url 'trades-edit' trade.trade_id %}">Edit</a> {% endif %} </div>
 {% endfor %}
 
 {% endblock content %}
