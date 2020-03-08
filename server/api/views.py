@@ -7,14 +7,14 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from jellyfish import damerau_levenshtein_distance as edit_dist
-
-
 from keras.models import load_model
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras as k
 import  tensorflow.python.keras.backend as kb
 import numpy as np
+import pytz
 
+from djangoserver.settings import TIME_ZONE
 from learning.models import Correction, TrainData, MetaData
 from trades.models import (Company, Product, CurrencyValue, DerivativeTrade,
                            StockPrice, ProductPrice, TradeProduct, 
@@ -24,8 +24,9 @@ tf.disable_v2_behavior()
 graph = tf.get_default_graph()
 t_session = tf.Session(graph=tf.Graph())
 
-datetime_pattern = "(?P<hours>[0-9]+):(?P<minutes>[0-9]{2,2})(:(?P<seconds>[0-9]{2,2}))? (?P<day>[0-9]+)/(?P<month>[0-9]+)/(?P<year>(?P<year2>[0-9]{2,2})|(?P<year4>[0-9]{4,4}))"
-datetime_regex = re.compile(datetime_pattern)
+DATETIME_REGEX = re.compile("(?P<hours>[0-9]+):(?P<minutes>[0-9]{2,2})(:(?P<seconds>[0-9]{2,2}))?"
+                            +" (?P<day>[0-9]+)/(?P<month>[0-9]+)"
+                            +"/(?P<year>(?P<year2>[0-9]{2,2})|(?P<year4>[0-9]{4,4}))")
 
 def load_model_from_path(path):
     global model
@@ -240,10 +241,7 @@ def currency_exists(currency_code):
     return currency_code in currencies_today
 
 def submit_trade(data):
-    if "tradeID" in data:
-        return modify_trade(data)
-    else:
-        return create_trade(data)
+    return modify_trade(data) if "tradeID" in data else create_trade(data)
 
 def modify_trade(data):
     trade = DerivativeTrade.objects.get(trade_id=data["tradeID"])
@@ -256,9 +254,8 @@ def modify_trade(data):
             trade.traded_product.delete()
     else: # Not stocks
         trade.product_type = 'P'
-        trade.traded_product = get_product(data["product"])
-        if old_is_stocks:
-            trade.traded_product = TradeProduct(trade=trade, product=get_product(data["product"]))
+        trade.traded_product = TradeProduct(trade=trade, product=get_product(data["product"]))
+        trade.traded_product.save
     trade.maturity_date = str_to_date(data["maturityDate"])
     trade.strike_price = Decimal(data["strikePrice"])
     trade.underlying_price = Decimal(data["underlyingPrice"])
@@ -393,18 +390,21 @@ def str_to_datetime(datetime_str):
     HH:mm:ss DD/MM/YY. Any two digit years YY are taken to be after the
     millenium i.e. 20YY.
     """
-    global datetime_regex
-    matcher = datetime_regex.match(datetime)
+    global DATETIME_REGEX # pylint: disable=global-statement
+    matcher = DATETIME_REGEX.match(datetime_str)
+    print(datetime_str)
     if not matcher:
         raise ValueError("datetime not given in format 'HH:mm:ss DD/MM/YY' or"
                          +"'HH:mm DD/MM/YY'. Year can be either 2 or 4 digits")
     return datetime(
-        int(matcher["year"]),
+        int("20" + matcher["year2"] if matcher["year2"] else matcher["year4"]),
         int(matcher["month"]),
         int(matcher["day"]),
         int(matcher["hours"]),
         int(matcher["minutes"]),
-        int("20" + matcher["year2"] if matcher["year2"] else matcher["year4"])
+        int(matcher["seconds"]) if matcher["seconds"] else 0,
+        0,
+        pytz.timezone(TIME_ZONE)
     )
 
 def ai_magic(data):
