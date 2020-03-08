@@ -299,6 +299,17 @@ function SuperForm(props) {
 
             case inputs.product:
 
+                // Allow Stocks as an input
+                if (state.productName.toLowerCase() === "stocks") {
+                    dispatch({
+                        type: actionTypes.new,
+                        input: inputs.product,
+                        newValue: "Stocks"
+                    });
+                    dispatch({ type: actionTypes.markRequestComplete, input: inputs.product });
+                    break;
+                }
+
                 console.log("Currently validating product: ", state.productName);
                 fetch(host + 'api/validate/product/', {
                     method: 'POST',
