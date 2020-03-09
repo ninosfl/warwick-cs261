@@ -79,6 +79,8 @@ Note Note: Do not commit the resulting `db.sqlite3` file yet...
 
 ## Install React dependencies
 
+`npm install`
+
 A node environment has been set up via `npm init`, so you can just make your way to the `server/` directory and run the following commands:
 
 We use django-webpack-loader because it automatically interfaces between Django and the bundles created by webpack. It's hugely helpful and does a bunch of busywork for us :)
