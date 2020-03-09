@@ -401,17 +401,19 @@ def ai_magic(data):
     error_threshold = 0.8
 
     # Split date for dd/mm/yyy
-    if 'date' not in data:
-        d = timezone.now().date()
+    if 'tradeID' in data:
+        d = DerivativeTrade.objects.get(trade_id=data['tradeID']).date_of_trade
     elif isinstance(data["date"], str):
         d = datetime.strptime(data["date"], date_format_parse).date()
+    else:
+        d = timezone.now().date()
     data['date'] = d
     data['maturityDate'] = str_to_date(data["maturityDate"])
 
     isStock = (data['product'] == 'Stocks')
     key = data['sellingParty'] if isStock else data['product']
     adjustedStrikePrice = convert_currency(d, data['strikePrice'],data['notionalCurrency'],'USD')
-    adjustedUnderlyingPrice = convert_currency(d, data['underlyingPrice'],data['underlyingCurrency'],'USD')
+    adjustedUnderlyingPrice = convert_currency(d, data['underlyingPrice'],'USD',data['underlyingCurrency'])
     normalizedData = normalize_trade(data['quantity'], key, d, data["maturityDate"], adjustedStrikePrice,
                                      adjustedUnderlyingPrice, isStock)
     if normalizedData is not False:
@@ -423,7 +425,7 @@ def ai_magic(data):
         error_ratio = estimate_error_ratio(mse)
         error_msg = mse_error_message(squared_error)
         possible_causes = list(mse_error_causes(squared_error, error_ratio))
-        if len(possible_causes) == 3 and mse > 5:
+        if len(possible_causes) >= 3 and mse > 3:
             key_mse = []
             for key in (Company.objects.all() if isStock else Product.objects.all()):
                 key = key.name
@@ -434,9 +436,14 @@ def ai_magic(data):
                     predict = autoencoder.predict(np.array([normalizedData]))[0]
                 new_mse = mean_squared_error(predict, normalizedData)
                 if new_mse < 0.0252:
-                    key_mse.append((key, new_mse))
+                    mutual_seller = True
+                    try:
+                        Product.objects.get(name=key,seller_company=data['sellingParty'])
+                    except Product.DoesNotExist:
+                        mutual_seller = False
+                    key_mse.append((key, new_mse, 0 if mutual_seller else 1))
             if key_mse:
-                likely = sorted(key_mse, key=lambda x: x[1])[:3]
+                likely = sorted(key_mse, key=lambda x: (x[2],x[1]))[:3]
                 probability = estimate_error_ratio(likely[0][1])
                 return {
                     'success': True,
