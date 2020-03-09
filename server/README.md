@@ -6,7 +6,7 @@ Make sure python 3.7 and npm 6.13+ are both installed on your system.
 
 ### Install requirements
 In terminal execute 
-`pip install django jellyfish  tensorflow keras`
+`pip install django jellyfish tensorflow keras django-webpack-loader`
 
 
 ### Run server
@@ -27,7 +27,7 @@ Stop server using `Ctrl+C`
 
 ### Install django
 In terminal execute 
-`pip3 install django jellyfish tensorflow keras`
+`pip3 install django jellyfish tensorflow keras django-webpack-loader`
 
 ### Run server
 `cd` to this directory (`cs261db/server/`)
@@ -57,6 +57,8 @@ Admin page URL: `localhost:8000/admin`
 
 ## Load CSV data
 
+Assumes data directory is extracted alongside the server directory
+
 ```bash
 python manage.py migrate
 python manage.py shell  # This will create a python shell!
@@ -78,12 +80,6 @@ Note Note: Do not commit the resulting `db.sqlite3` file yet...
 ## Install React dependencies
 
 A node environment has been set up via `npm init`, so you can just make your way to the `server/` directory and run the following commands:
-
-```bash
-cd server/  # If required
-npm install
-pip install django-webpack-loader  # May need pip3, depends on your installation
-```
 
 We use django-webpack-loader because it automatically interfaces between Django and the bundles created by webpack. It's hugely helpful and does a bunch of busywork for us :)
 
