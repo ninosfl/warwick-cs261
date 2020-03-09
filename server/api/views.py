@@ -401,7 +401,7 @@ def ai_magic(data):
     error_threshold = 0.8
 
     # Split date for dd/mm/yyy
-    if 'testMode' not in data:
+    if 'testMode' not in data: # DEMO PURPOSES ONLY, NOT THIS BOOL IN PRODUCTION
         d = datetime(2020,1,1).date()
     elif 'tradeID' in data:
         d = DerivativeTrade.objects.get(trade_id=data['tradeID']).date_of_trade
