@@ -135,7 +135,7 @@ function SearchBar() {
       <AppBar position="static">
         <Toolbar  id="back-to-top-anchor"> 
           <Typography className={classes.title} variant="h6" noWrap>
-            20th Legion
+            Derivative Trades System
           </Typography>
           <IconButton
             color="inherit"
@@ -160,7 +160,7 @@ function SearchBar() {
             text="Admin"
             href="/admin/" 
           />
-          <div className={classes.search}>
+          {/* <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />
             </div>
@@ -172,7 +172,7 @@ function SearchBar() {
               }}
               inputProps={{ 'aria-label': 'search' }}
             />
-          </div>
+          </div> */}
         </Toolbar>
       </AppBar>
     </div>
