@@ -25,7 +25,7 @@ Stop server using `Ctrl+C`
 
 ## Mac/Linux
 
-### Install django
+### Install python modules
 In terminal execute 
 `pip3 install django jellyfish tensorflow keras django-webpack-loader`
 
