@@ -401,7 +401,9 @@ def ai_magic(data):
     error_threshold = 0.8
 
     # Split date for dd/mm/yyy
-    if 'tradeID' in data:
+    if 'testMode' not in data:
+        d = datetime(2020,1,1).date()
+    elif 'tradeID' in data:
         d = DerivativeTrade.objects.get(trade_id=data['tradeID']).date_of_trade
     elif isinstance(data["date"], str):
         d = datetime.strptime(data["date"], date_format_parse).date()
@@ -438,7 +440,8 @@ def ai_magic(data):
                 if new_mse < 0.0252:
                     mutual_seller = True
                     try:
-                        Product.objects.get(name=key,seller_company=data['sellingParty'])
+
+                        Product.objects.get(name=key,seller_company=Company.objects.get(name=data['sellingParty']))
                     except Product.DoesNotExist:
                         mutual_seller = False
                     key_mse.append((key, new_mse, 0 if mutual_seller else 1))

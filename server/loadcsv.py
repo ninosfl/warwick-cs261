@@ -149,6 +149,7 @@ def load_all(years_to_load, months_to_load):
         for f in ((DATA_DIR / 'derivativeTrades') / '2019' / 'December').iterdir():
             trades = []
             tradeproducts = []
+            print(f)
             for l in get_csv(f):
                 newDate = datetime.combine((datetime.now().date() - timedelta(days=31)) + (
                             datetime.strptime(l[0], "%d/%m/%Y %H:%M") - datetime(2019, 12, 1)), datetime.min.time())
@@ -169,8 +170,8 @@ def load_all(years_to_load, months_to_load):
                         trade=trades[-1], product_id=l[2]))
             DerivativeTrade.objects.bulk_create(trades)
             TradeProduct.objects.bulk_create(tradeproducts)
-            for trade in trades:
-                record_learning_trade(trade)
+            for t in trades:
+                record_learning_trade(t)
     """
     Load Product Prices
     0. date
